@@ -30,6 +30,9 @@ import org.fenixedu.academic.domain.util.EmailAddressList;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.joda.time.DateTime;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder; 
+import java.net.URLEncoder;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.Atomic.TxMode;
@@ -340,4 +343,34 @@ public class Message extends Message_Base {
         return getSender().getFromAddress();
     }
 
+    @Override
+    public String getBody() {
+        return decodeStringUrl(super.getBody());
+    }
+
+    @Override
+    public void setBody(String body) {
+        String encBody = encodeStringUrl(body);
+        super.setBody(encBody);
+    }
+
+    private String encodeStringUrl(String url) {
+        String encodedUrl = null;
+        try {
+            encodedUrl = URLEncoder.encode(url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return encodedUrl;
+        }
+        return encodedUrl;
+    }
+
+    private String decodeStringUrl(String encodedUrl) {
+        String decodedUrl = null;
+        try {
+            decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return decodedUrl;
+        }
+        return decodedUrl;
+    }
 }
