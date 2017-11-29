@@ -7,7 +7,14 @@ import org.fenixedu.academic.domain.MarkSheet;
 import org.fenixedu.academic.util.EnrolmentEvaluationState;
 import org.fenixedu.bennu.scheduler.custom.CustomTask;
 
+import pt.ist.fenixframework.Atomic.TxMode;
+
 public class FixMarksheetsWithAnnuledEnrolmentEvaluations extends CustomTask {
+
+    @Override
+    public TxMode getTxMode() {
+        return TxMode.READ;
+    }
 
     @Override
     public void runTask() throws Exception {
@@ -23,19 +30,19 @@ public class FixMarksheetsWithAnnuledEnrolmentEvaluations extends CustomTask {
     private void validate(final MarkSheet ms) {
         taskLog("Validating marksheet with id %s\n", ms.getExternalId());
         ms.getEnrolmentEvaluationsSet().forEach(this::validate);
-        if (ms.getEnrolmentEvaluationsSet().isEmpty()) {
-            taskLog("Marksheet became empty after validation...deleting it");
-            ms.delete();
-        }
+        // if (ms.getEnrolmentEvaluationsSet().isEmpty()) {
+        //     taskLog("Marksheet became empty after validation...deleting it");
+        //     ms.delete();
+        // }
     }
 
     private void validate(final EnrolmentEvaluation ee) {
         if (ee.getEnrolmentEvaluationState().equals(EnrolmentEvaluationState.ANNULED_OBJ)) {
-            taskLog("\tFound a student with annulled enrolment evaluation - id: %s\n", ee.getExternalId());
-            taskLog("\tCurrent grade: %s\n", ee.getGradeValue());
-            taskLog("\tStudent number: %d\n", ee.getStudentCurricularPlan().getStudent().getStudent().getStudentNumber().getNumber());
-            ee.removeFromMarkSheet();
-            taskLog("Removed student from marksheet");
+            taskLog("- Found a student with annulled enrolment evaluation - ee id: %s\n", ee.getExternalId());
+            taskLog("- Student number: %d\n", ee.getStudentCurricularPlan().getStudent().getStudent().getStudentNumber().getNumber());
+            taskLog("- Current grade: %s\n", ee.getGradeValue());
+            // ee.removeFromMarkSheet();
+            // taskLog("Removed student from marksheet");
         }
     }
 }
