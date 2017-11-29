@@ -7,6 +7,7 @@ import org.fenixedu.academic.domain.MarkSheet;
 import org.fenixedu.academic.util.EnrolmentEvaluationState;
 import org.fenixedu.bennu.scheduler.custom.CustomTask;
 
+
 import pt.ist.fenixframework.Atomic.TxMode;
 
 public class FixMarksheetsWithAnnuledEnrolmentEvaluations extends CustomTask {
@@ -18,17 +19,19 @@ public class FixMarksheetsWithAnnuledEnrolmentEvaluations extends CustomTask {
 
     @Override
     public void runTask() throws Exception {
-        final ExecutionSemester semester = ExecutionSemester.readActualExecutionSemester();
-        taskLog("Checking marksheets for %s\n", semester.getQualifiedName());
-        semester.getAssociatedExecutionCoursesSet().forEach(this::validate);
+        ExecutionSemester semester = ExecutionSemester.readActualExecutionSemester();
+        for (; semester != null; semester = semester.getPreviousExecutionPeriod()){
+            taskLog("Checking marksheets for %s\n", semester.getQualifiedName());
+            semester.getAssociatedExecutionCoursesSet().forEach(this::validate);
+        }
     }
-
+    
     private void validate(final ExecutionCourse ec) {
         ec.getAssociatedMarkSheets().forEach(this::validate);
     }
 
     private void validate(final MarkSheet ms) {
-        taskLog("Validating marksheet with id %s\n", ms.getExternalId());
+        // taskLog("Validating marksheet with id %s\n", ms.getExternalId());
         ms.getEnrolmentEvaluationsSet().forEach(this::validate);
         // if (ms.getEnrolmentEvaluationsSet().isEmpty()) {
         //     taskLog("Marksheet became empty after validation...deleting it");
