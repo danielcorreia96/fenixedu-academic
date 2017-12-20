@@ -33,7 +33,7 @@
 <fr:edit id="admOffice" name="bean" action="/manageAssociatedObjects.do?method=createEmptyDegree">
     <fr:schema bundle="MANAGER_RESOURCES"
                type="org.fenixedu.academic.ui.struts.action.manager.ManageAssociatedObjects$AssociatedObjectsBean">
-        <fr:slot name="office" layout="menu-select" key="label.username">
+        <fr:slot name="office" layout="menu-select" key="label.username" required="true">
             <fr:property name="from" value="offices"/>
             <fr:property name="format" value="${administrativeOfficeType.description}"/>
         </fr:slot>
@@ -42,5 +42,6 @@
         <fr:property name="classes"
                      value="tstyle5 thleft thlight thmiddle mtop05"/>
         <fr:property name="columnClasses" value=",,tdclear tderror1"/>
+        <fr:destination name="cancel" path="/manageAssociatedObjects.do?method=list"/>
     </fr:layout>
 </fr:edit>
