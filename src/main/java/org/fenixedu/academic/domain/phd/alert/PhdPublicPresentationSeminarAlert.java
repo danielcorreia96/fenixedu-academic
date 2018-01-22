@@ -179,7 +179,7 @@ public class PhdPublicPresentationSeminarAlert extends PhdPublicPresentationSemi
     private void generateMessage(Group group) {
         Set<Person> members = group.getMembers().map(User::getPerson).collect(Collectors.toSet());
         new PhdAlertMessage(getProcess(), members, getFormattedSubject(), getFormattedBody());
-        new Message(getSender(), new Recipient("", group), buildMailSubject(), buildMailBody());
+        Message.createMessage(getSender(), new Recipient("", group).getMembers(), buildMailSubject(), buildMailBody());
     }
 
     @Override

@@ -37,9 +37,10 @@ import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.domain.util.email.SystemSender;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.HtmlToTextConverterUtil;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 
 /**
  * @author <a href="mailto:goncalo@ist.utl.pt"> Goncalo Luiz</a><br>
@@ -120,7 +121,7 @@ public abstract class ForumService {
     private void sendEmailToPersons(Set<Person> persons, String personsName, String subject, String body) {
         if (!persons.isEmpty()) {
             final Recipient recipient = new Recipient(getString("label.teachers"), Person.convertToUserGroup(persons));
-            SystemSender systemSender = Bennu.getInstance().getSystemSender();
+            SystemSender systemSender = MessagingSystem.systemSender();
             new Message(systemSender, systemSender.getConcreteReplyTos(), recipient.asCollection(), subject, body, "");
         }
     }

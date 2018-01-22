@@ -27,6 +27,8 @@ import java.util.List;
 import org.fenixedu.academic.domain.util.email.Message;
 import org.fenixedu.academic.domain.util.email.SystemSender;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
@@ -41,7 +43,7 @@ abstract public class PublicCandidacyHashCode extends PublicCandidacyHashCode_Ba
 
     @Atomic
     public void sendEmail(final String fromSubject, final String body) {
-        SystemSender systemSender = getRootDomainObject().getSystemSender();
+        SystemSender systemSender = MessagingSystem.systemSender();
         new Message(systemSender, systemSender.getConcreteReplyTos(), Collections.EMPTY_LIST, fromSubject, body, getEmail());
     }
 

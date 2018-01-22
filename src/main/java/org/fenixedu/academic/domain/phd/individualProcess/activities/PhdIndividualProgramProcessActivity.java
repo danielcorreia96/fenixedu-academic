@@ -26,8 +26,9 @@ import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
 import org.fenixedu.academic.domain.phd.log.PhdLog;
 import org.fenixedu.academic.domain.util.email.Message;
 import org.fenixedu.academic.domain.util.email.SystemSender;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 
 public abstract class PhdIndividualProgramProcessActivity extends Activity<PhdIndividualProgramProcess> {
 
@@ -44,7 +45,7 @@ public abstract class PhdIndividualProgramProcessActivity extends Activity<PhdIn
     }
 
     protected void email(String email, String subject, String body) {
-        final SystemSender sender = Bennu.getInstance().getSystemSender();
+        final SystemSender sender = MessagingSystem.systemSender();
         new Message(sender, sender.getConcreteReplyTos(), null, null, null, subject, body, Collections.singleton(email));
     }
 

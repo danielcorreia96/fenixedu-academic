@@ -48,9 +48,10 @@ import org.fenixedu.academic.domain.util.email.Message;
 import org.fenixedu.academic.domain.util.email.SystemSender;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.phd.PhdProperties;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.joda.time.DateTime;
 
 public class PhdCandidacyFeedbackRequestProcess extends PhdCandidacyFeedbackRequestProcess_Base {
@@ -342,7 +343,7 @@ public class PhdCandidacyFeedbackRequestProcess extends PhdCandidacyFeedbackRequ
         }
 
         private void email(String email, String subject, String body) {
-            final SystemSender sender = Bennu.getInstance().getSystemSender();
+            final SystemSender sender = MessagingSystem.systemSender();
             new Message(sender, sender.getConcreteReplyTos(), null, null, null, subject, body, Collections.singleton(email));
         }
     }

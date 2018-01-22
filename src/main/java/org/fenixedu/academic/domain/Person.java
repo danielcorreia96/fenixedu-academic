@@ -95,6 +95,7 @@ import org.fenixedu.academic.util.Money;
 import org.fenixedu.academic.util.PeriodState;
 import org.fenixedu.academic.util.StringFormatter;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.domain.UserProfile;
 import org.fenixedu.bennu.core.domain.exceptions.BennuCoreDomainException;
@@ -105,6 +106,7 @@ import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.core.util.CoreConfiguration;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.commons.i18n.LocalizedString.Builder;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.Months;
@@ -1633,7 +1635,7 @@ public class Person extends Person_Base {
     }
 
     public boolean isOptOutAvailable() {
-        Group optOutGroup = Bennu.getInstance().getSystemSender().getOptOutGroup();
+        Group optOutGroup = MessagingSystem.systemSender().getOptOutGroup();
         return optOutGroup.isMember(this.getUser());
     }
 

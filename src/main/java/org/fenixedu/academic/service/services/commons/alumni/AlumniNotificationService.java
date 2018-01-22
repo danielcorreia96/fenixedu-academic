@@ -32,15 +32,16 @@ import org.fenixedu.academic.domain.util.email.Message;
 import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.domain.util.email.SystemSender;
 import org.fenixedu.academic.util.Bundle;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.util.CoreConfiguration;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 
 public class AlumniNotificationService {
 
     private static void sendEmail(final Collection<Recipient> recipients, final String subject, final String body,
             final String bccs) {
-        SystemSender systemSender = Bennu.getInstance().getSystemSender();
+        SystemSender systemSender = MessagingSystem.systemSender();
         new Message(systemSender, systemSender.getConcreteReplyTos(), recipients, subject, body, bccs);
     }
 

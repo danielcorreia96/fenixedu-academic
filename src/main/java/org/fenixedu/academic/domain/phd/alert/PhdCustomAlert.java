@@ -130,8 +130,8 @@ public class PhdCustomAlert extends PhdCustomAlert_Base {
         }
 
         if (isToSendMail()) {
-            final Recipient recipient = new Recipient(getTargetAccessGroup());
-            new Message(getSender(), recipient, buildMailSubject(), buildMailBody());
+            final Recipient recipient = Recipient.createRecipient(getTargetAccessGroup());
+            Message.createMessage(getSender(), recipient.getMembers(), buildMailSubject(), buildMailBody());
 
         }
 

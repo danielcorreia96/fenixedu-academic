@@ -59,6 +59,10 @@ public class Sender extends Sender_Base {
         setFromAddress(fromAddress);
         setMembers(members);
     }
+    
+    public org.fenixedu.messaging.core.domain.Sender getNewSender() {
+    	return null;
+    }
 
     public Group getMembers() {
         return getMembersGroup().toGroup();

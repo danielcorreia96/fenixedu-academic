@@ -34,9 +34,10 @@ import org.fenixedu.academic.domain.person.RoleType;
 import org.fenixedu.academic.domain.util.email.Message;
 import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.util.Bundle;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.fenixedu.spaces.core.service.NotificationService;
 import org.fenixedu.spaces.domain.Space;
 import org.fenixedu.spaces.domain.occupation.Occupation;
@@ -61,7 +62,7 @@ public class GOPSendMessageService implements NotificationService {
             GOP_SENDER = initGOPSender();
             if (GOP_SENDER == null) {
                 logger.warn("WARN: GOPSender couldn't be found, using SystemSender ...");
-                GOP_SENDER = Bennu.getInstance().getSystemSender();
+                GOP_SENDER = MessagingSystem.systemSender();
             }
         }
         return GOP_SENDER;

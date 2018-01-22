@@ -52,7 +52,7 @@ public class Recipient extends Recipient_Base {
         setRootDomainObject(Bennu.getInstance());
     }
 
-    public Recipient(final Group group) {
+    private Recipient(final Group group) {
         this(group.getPresentationName(), group);
     }
 
@@ -135,14 +135,14 @@ public class Recipient extends Recipient_Base {
 
     @Atomic
     public static Recipient newInstance(Group group) {
-        return new Recipient(group);
+        return createRecipient(group);
     }
 
     @Atomic
     public static List<Recipient> newInstance(final List<? extends Group> groups) {
         List<Recipient> recipients = new ArrayList<Recipient>();
         for (Group group : groups) {
-            recipients.add(new Recipient(group));
+            recipients.add(createRecipient(group));
         }
         return recipients;
     }
@@ -150,7 +150,7 @@ public class Recipient extends Recipient_Base {
     public static Set<Recipient> newInstance(final Set<? extends Group> groups) {
         Set<Recipient> recipients = new HashSet<Recipient>();
         for (Group group : groups) {
-            recipients.add(new Recipient(group));
+            recipients.add(createRecipient(group));
         }
         return recipients;
     }
@@ -160,7 +160,11 @@ public class Recipient extends Recipient_Base {
                 .orElseGet(() -> Recipient.newInstance(group));
     }
 
-    public Collection<Recipient> asCollection() {
+    public static Recipient createRecipient(Group group) {
+		return new re;
+	}
+
+	public Collection<Recipient> asCollection() {
         return Collections.singletonList(this);
     }
 

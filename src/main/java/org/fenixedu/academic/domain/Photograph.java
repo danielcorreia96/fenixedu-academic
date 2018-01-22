@@ -35,7 +35,9 @@ import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.ContentType;
 import org.fenixedu.bennu.core.domain.Avatar;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
@@ -100,9 +102,9 @@ public class Photograph extends Photograph_Base implements Comparable<Photograph
                 if (person != null) {
                     setRejector(person);
                 }
-                SystemSender systemSender = getRootDomainObject().getSystemSender();
+                SystemSender systemSender = MessagingSystem.systemSender();
                 new Message(systemSender, systemSender.getConcreteReplyTos(),
-                        new Recipient(getPerson().getUser().groupOf()).asCollection(), BundleUtil.getString(Bundle.PERSONAL,
+                        Recipient.createRecipient(getPerson().getUser().groupOf()).asCollection(), BundleUtil.getString(Bundle.PERSONAL,
                                 REJECTION_MAIL_SUBJECT_KEY), BundleUtil.getString(Bundle.PERSONAL, REJECTION_MAIL_BODY_KEY), "");
 
             }

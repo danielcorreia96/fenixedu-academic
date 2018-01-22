@@ -70,13 +70,14 @@ import org.fenixedu.academic.ui.struts.action.publico.PublicApplication.PublicCa
 import org.fenixedu.academic.ui.struts.action.publico.candidacies.RefactoredIndividualCandidacyProcessPublicDA;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.report.ReportsUtils;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
 import org.fenixedu.bennu.struts.annotations.Mapping;
 import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
 import org.fenixedu.commons.i18n.I18N;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonthDay;
 import org.slf4j.Logger;
@@ -1090,7 +1091,7 @@ public class ErasmusIndividualCandidacyProcessPublicDA extends RefactoredIndivid
                 BundleUtil.getString(Bundle.CANDIDATE, "error.mobility.report.mail.subject", Unit.getInstitutionAcronym());
         String errorReportBody = sb.toString();
 
-        SystemSender systemSender = Bennu.getInstance().getSystemSender();
+        SystemSender systemSender = MessagingSystem.systemSender();
         EmailBean emailBean = new EmailBean();
         emailBean.setSender(systemSender);
         emailBean.setReplyTos(systemSender.getConcreteReplyTos());

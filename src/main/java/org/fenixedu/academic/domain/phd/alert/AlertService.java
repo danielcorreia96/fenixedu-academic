@@ -37,9 +37,10 @@ import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.domain.util.email.ReplyTo;
 import org.fenixedu.academic.domain.util.email.UnitBasedSender;
 import org.fenixedu.academic.util.Bundle;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.joda.time.LocalDate;
 
 import pt.ist.fenixframework.DomainObject;
@@ -147,7 +148,7 @@ public class AlertService {
                 toNotify.add(((InternalPhdParticipant) guiding).getPerson());
             } else {
                 guiding.ensureExternalAccess();
-                new Message(Bennu.getInstance().getSystemSender(), Collections.<ReplyTo> emptyList(),
+                new Message(MessagingSystem.systemSender(), Collections.<ReplyTo> emptyList(),
                         Collections.<Recipient> emptyList(), getSubjectPrefixed(process, subjectKey), getBodyText(process,
                                 bodyKey), Collections.singleton(guiding.getEmail()));
             }
@@ -172,7 +173,7 @@ public class AlertService {
                 toNotify.add(((InternalPhdParticipant) guiding).getPerson());
             } else {
                 guiding.ensureExternalAccess();
-                new Message(Bennu.getInstance().getSystemSender(), Collections.<ReplyTo> emptyList(),
+                new Message(MessagingSystem.systemSender(), Collections.<ReplyTo> emptyList(),
                         Collections.<Recipient> emptyList(), getSubjectPrefixed(process, subjectMessage), getBodyText(process,
                                 bodyMessage), Collections.singleton(guiding.getEmail()));
             }

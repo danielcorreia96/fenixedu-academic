@@ -521,7 +521,7 @@ public class Shift extends Shift_Base {
 
         ExecutionCourseSender sender = ExecutionCourseSender.newInstance(executionCourse);
         Collection<Recipient> recipients =
-                Collections.singletonList(new Recipient(registration.getPerson().getUser().groupOf()));
+                Collections.singletonList(Recipient.createRecipient(registration.getPerson().getUser().groupOf()));
         final String subject = BundleUtil.getString(Bundle.APPLICATION, "label.shift.remove.subject");
         final String body = BundleUtil.getString(Bundle.APPLICATION, "label.shift.remove.body", getNome());
 

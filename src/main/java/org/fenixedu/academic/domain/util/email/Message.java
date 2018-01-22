@@ -29,6 +29,9 @@ import org.fenixedu.academic.domain.util.Email;
 import org.fenixedu.academic.domain.util.EmailAddressList;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
+import org.fenixedu.commons.i18n.I18N;
+import org.fenixedu.commons.i18n.LocalizedString;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
@@ -95,7 +98,7 @@ public class Message extends Message_Base {
         }
     }
 
-    public Message(final Sender sender, final Recipient recipient, final String subject, final String body) {
+    private Message(final Sender sender, final Recipient recipient, final String subject, final String body) {
         this(sender, sender.getConcreteReplyTos(), Collections.singleton(recipient), subject, body, new EmailAddressList(
                 Collections.EMPTY_LIST).toString());
     }
@@ -240,7 +243,11 @@ public class Message extends Message_Base {
         return emailAddresses;
     }
 
-    protected Set<String> getDestinationBccs() {
+    public static org.fenixedu.messaging.core.domain.Message createMessage(org.fenixedu.messaging.core.domain.Sender sender, Group group, String subject, String body) {
+    	return org.fenixedu.messaging.core.domain.Message.from(sender).bcc(group).subject(subject).textBody(body).send();
+	}
+
+	protected Set<String> getDestinationBccs() {
         final Set<String> emailAddresses = new HashSet<String>();
         if (getBccs() != null && !getBccs().isEmpty()) {
             for (final String emailAddress : getBccs().replace(',', ' ').replace(';', ' ').split(" ")) {

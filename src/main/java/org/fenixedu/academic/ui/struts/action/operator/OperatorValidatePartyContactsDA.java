@@ -40,13 +40,14 @@ import org.fenixedu.academic.domain.util.email.Message;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.predicates.AndPredicate;
-import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.Bennu_Base;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
 import org.fenixedu.bennu.struts.annotations.Mapping;
 import org.fenixedu.bennu.struts.portal.EntryPoint;
 import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
@@ -109,7 +110,7 @@ public class OperatorValidatePartyContactsDA extends FenixDispatchAction {
         }
         final String sendingEmail = person.getEmailForSendingEmails();
         if (!StringUtils.isEmpty(sendingEmail)) {
-            new Message(Bennu.getInstance().getSystemSender(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, subject, body,
+            new Message(MessagingSystem.systemSender(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, subject, body,
                     sendingEmail);
         }
     }

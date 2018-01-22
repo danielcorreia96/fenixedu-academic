@@ -124,8 +124,7 @@ public class PhdReporterReviewAlert extends PhdReporterReviewAlert_Base {
             InternalPhdParticipant internalParticipant = (InternalPhdParticipant) participant;
             new PhdAlertMessage(getProcess(), internalParticipant.getPerson(), getFormattedSubject(), buildBody(getProcess(),
                     participant));
-            new Message(getSender(), new Recipient(Collections.singleton(internalParticipant.getPerson())), buildMailSubject(),
-                    buildMailBody());
+            Message.createMessage(getSender(), new Recipient(Collections.singleton(internalParticipant.getPerson())).getMembers(), buildMailSubject(), buildMailBody());
         } else {
             new Message(getSender(), Collections.<ReplyTo> emptyList(), Collections.<Recipient> emptyList(), buildMailSubject(),
                     buildMailBody(), Collections.singleton(participant.getEmail()));
