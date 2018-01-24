@@ -40,9 +40,9 @@ public class ExecutionCourseSender extends ExecutionCourseSender_Base {
     public ExecutionCourseSender(ExecutionCourse executionCourse) {
         super();
         setCourse(Objects.requireNonNull(executionCourse));
-        setFromAddress(Sender.getNoreplyMail());
-        addReplyTos(new ExecutionCourseReplyTo());
-        addReplyTos(new CurrentUserReplyTo());
+        setAddress(Sender.getNoreplyMail());
+        setReplyTo(new ExecutionCourseReplyTo().getReplyToAddress());
+        //addReplyTos(new CurrentUserReplyTo());
         setMembers(TeacherGroup.get(executionCourse));
         final String labelECTeachers = BundleUtil
                 .getString(Bundle.SITE, "label.org.fenixedu.academic.domain.accessControl.ExecutionCourseTeachersGroupWithName",
@@ -54,10 +54,10 @@ public class ExecutionCourseSender extends ExecutionCourseSender_Base {
                 "label.org.fenixedu.academic.domain.accessControl.ExecutionCourseResponsibleTeachersGroupWithName",
                 executionCourse.getNome());
         // fixed recipients
-        addRecipients(new Recipient(labelECTeachers, TeacherGroup.get(executionCourse)));
-        addRecipients(new Recipient(labelECStudents, StudentGroup.get(executionCourse)));
-        addRecipients(new Recipient(labelECResponsibleTeachers, TeacherResponsibleOfExecutionCourseGroup.get(executionCourse)));
-        setFromName(createFromName());
+        addRecipient(TeacherGroup.get(executionCourse));
+        addRecipient(StudentGroup.get(executionCourse));
+        addRecipient(TeacherResponsibleOfExecutionCourseGroup.get(executionCourse));
+        setName(createFromName());
     }
 
     public String createFromName() {
@@ -68,7 +68,7 @@ public class ExecutionCourseSender extends ExecutionCourseSender_Base {
             String period = getCourse().getExecutionPeriod().getQualifiedName().replace('/', '-');
             return String.format("%s (%s: %s, %s)", Unit.getInstitutionAcronym(), degreeName, courseName, period);
         } else {
-            return getFromName();
+            return getName();
         }
 
     }
@@ -81,8 +81,7 @@ public class ExecutionCourseSender extends ExecutionCourseSender_Base {
 
     @Atomic
     public static ExecutionCourseSender newInstance(ExecutionCourse ec) {
-        ExecutionCourseSender sender = ec.getSender();
-        return sender == null ? new ExecutionCourseSender(ec) : sender;
+        return ec.getSender() == null ? new ExecutionCourseSender(ec) : (ExecutionCourseSender) ec.getSender();
     }
 
 }

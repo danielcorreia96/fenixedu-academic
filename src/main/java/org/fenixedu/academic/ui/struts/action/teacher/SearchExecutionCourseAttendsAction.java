@@ -40,10 +40,7 @@ import org.fenixedu.academic.domain.ExecutionCourse;
 import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.accessControl.SearchDegreeStudentsGroup;
-import org.fenixedu.academic.domain.util.email.CoordinatorSender;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
 import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.dto.teacher.executionCourse.SearchExecutionCourseAttendsBean;
 import org.fenixedu.academic.ui.struts.action.coordinator.DegreeCoordinatorIndex;
 import org.fenixedu.academic.ui.struts.action.messaging.EmailsDA;
@@ -173,13 +170,13 @@ public class SearchExecutionCourseAttendsAction extends ExecutionCourseBaseActio
         ExecutionCourse executionCourse;
         Group studentsGroup = null;
         String label;
-        Sender sender;
+        org.fenixedu.messaging.core.domain.Sender sender;
         SearchExecutionCourseAttendsBean bean = getRenderedObject("mailViewState");
         if (bean != null) {
             executionCourse = bean.getExecutionCourse();
             studentsGroup = bean.getAttendsGroup();
             label = bean.getLabel();
-            sender = ExecutionCourseSender.newInstance(executionCourse);
+            sender = executionCourse.getSender();
         } else {
             SearchDegreeStudentsGroup degreeStudentsGroup =
                     SearchDegreeStudentsGroup.parse((String) getFromRequestOrForm(request, (DynaActionForm) form, "searchGroup"));
@@ -187,11 +184,10 @@ public class SearchExecutionCourseAttendsAction extends ExecutionCourseBaseActio
             String executionDegreeId = (String) getFromRequestOrForm(request, (DynaActionForm) form, "executionDegreeId");
             studentsGroup = degreeStudentsGroup.getUserGroup();
             ExecutionDegree executionDegree = FenixFramework.getDomainObject(executionDegreeId);
-            sender = CoordinatorSender.newInstance(executionDegree.getDegree());
+            sender = executionDegree.getDegree().getSender();
         }
 
-        Recipient recipient = Recipient.newInstance(label, studentsGroup);
-        return EmailsDA.sendEmail(request, sender, recipient);
+        return EmailsDA.sendEmail(request, sender, studentsGroup);
     }
 
     public ActionForward search(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) {

@@ -40,8 +40,6 @@ import org.fenixedu.academic.domain.mobility.outbound.OutboundMobilityCandidacyP
 import org.fenixedu.academic.domain.mobility.outbound.OutboundMobilityCandidacyPeriodConfirmationOption;
 import org.fenixedu.academic.domain.mobility.outbound.OutboundMobilityCandidacySubmission;
 import org.fenixedu.academic.domain.util.email.EmailBean;
-import org.fenixedu.academic.domain.util.email.PersonSender;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.ui.struts.action.academicAdministration.AcademicAdministrationApplication.AcademicAdminCandidaciesApp;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
@@ -55,6 +53,7 @@ import org.fenixedu.bennu.struts.portal.EntryPoint;
 import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
 import org.fenixedu.commons.spreadsheet.Spreadsheet;
 
+import org.fenixedu.messaging.core.domain.Sender;
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
 import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.GenericChecksumRewriter;
 
@@ -449,13 +448,12 @@ public class OutboundMobilityCandidacyDA extends FenixDispatchAction {
                 Group.users(period.getOutboundMobilityCandidacySubmissionSet().stream()
                         .filter(s -> s.hasContestInGroup(mobilityGroup)).map(s -> s.getRegistration().getPerson().getUser()));
 
-        final Recipient recipient = Recipient.newInstance(toGroupName, group);
         final EmailBean bean = new EmailBean();
-        bean.setRecipients(Collections.singletonList(recipient));
+        bean.setRecipients(group);
 
         final Person person = AccessControl.getPerson();
         if (person != null) {
-            final PersonSender sender = person.getSender();
+            final Sender sender = person.getSender();
             if (sender != null) {
                 bean.setSender(sender);
             }

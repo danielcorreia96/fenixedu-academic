@@ -19,26 +19,28 @@
 package org.fenixedu.academic.domain.util.email;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.EMail;
+import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.commons.i18n.I18N;
+import org.fenixedu.commons.i18n.LocalizedString;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
 
 public class EmailBean implements Serializable {
 
-    private Sender sender;
-    private Set<Recipient> recipients;
-    private String tos, ccs, bccs;
-    private String subject, message, htmlMessage;
-    private Set<ReplyTo> replyTos;
+    private org.fenixedu.messaging.core.domain.Sender sender;
+    private Group recipients;
+    private Set<String> tos, ccs, bccs;
+    private LocalizedString subject, message, htmlMessage;
+    private String replyTos;
     private DateTime createdDate;
 
     public EmailBean() {
@@ -46,113 +48,87 @@ public class EmailBean implements Serializable {
 
     public EmailBean(final Message message) {
         this.subject = message.getSubject();
-        this.message = message.getBody();
+        this.message = message.getTextBody();
         this.htmlMessage = message.getHtmlBody();
         this.bccs = message.getBccs();
         this.createdDate = message.getCreated();
     }
 
-    public Sender getSender() {
+    public org.fenixedu.messaging.core.domain.Sender getSender() {
         return sender;
     }
 
-    public void setSender(final Sender sender) {
+    public void setSender(final org.fenixedu.messaging.core.domain.Sender sender) {
         this.sender = sender;
     }
 
-    public List<Recipient> getRecipients() {
-        final List<Recipient> result = new ArrayList<Recipient>();
-        if (recipients != null) {
-            for (final Recipient recipient : recipients) {
-                result.add(recipient);
-            }
-        }
-        return result;
+    public Group getRecipients() {
+        return recipients;
     }
 
-    public void setRecipients(List<Recipient> recipients) {
-        if (recipients == null) {
-            this.recipients = null;
-        } else {
-            this.recipients = new HashSet<Recipient>();
-            for (final Recipient recipient : recipients) {
-                this.recipients.add(recipient);
-            }
-        }
+    public void setRecipients(Group recipients) {
+        this.recipients = recipients;
     }
 
-    public List<ReplyTo> getReplyTos() {
-        final List<ReplyTo> result = new ArrayList<ReplyTo>();
-        if (replyTos != null) {
-            for (final ReplyTo replyTo : replyTos) {
-                result.add(replyTo);
-            }
-        }
-        return result;
+    public String getReplyTos() {
+        return this.replyTos;
     }
 
-    public void setReplyTos(List<ReplyTo> replyTos) {
-        if (replyTos == null) {
-            this.replyTos = null;
-        } else {
-            this.replyTos = new HashSet<ReplyTo>();
-            for (final ReplyTo replyTo : replyTos) {
-                this.replyTos.add(replyTo);
-            }
-        }
+    public void setReplyTos(String replyTos) {
+        this.replyTos = replyTos;
     }
 
-    public String getTos() {
+    public Set<String> getTos() {
         return tos;
     }
 
-    public void setTos(String tos) {
+    public void setTos(Set<String> tos) {
         this.tos = tos;
     }
 
-    public String getCcs() {
+    public Set<String> getCcs() {
         return ccs;
     }
 
-    public void setCcs(String ccs) {
+    public void setCcs(Set<String> ccs) {
         this.ccs = ccs;
     }
 
-    public String getBccs() {
+    public Set<String> getBccs() {
         return bccs;
     }
 
-    public void setBccs(String bccs) {
+    public void setBccs(Set<String> bccs) {
         this.bccs = bccs;
     }
 
-    public String getSubject() {
+    public LocalizedString getSubject() {
         return subject;
     }
 
-    public void setSubject(String subject) {
+    public void setSubject(LocalizedString subject) {
         this.subject = subject;
     }
 
-    public String getMessage() {
+    public LocalizedString getMessage() {
         return message;
     }
 
     public void setMessage(final String message) {
-        this.message = message;
+        this.message = this.message.with(I18N.getLocale(),message);
     }
 
-    public String getHtmlMessage() {
+    public LocalizedString getHtmlMessage() {
         return htmlMessage;
     }
 
-    public void setHtmlMessage(final String htmlMessage) {
+    public void setHtmlMessage(final LocalizedString htmlMessage) {
         this.htmlMessage = htmlMessage;
     }
 
     public String validate() {
-        String bccs = getBccs();
-        if (getRecipients().isEmpty() && StringUtils.isEmpty(bccs)) {
+        String bccs = getBccs().toString();
+        if (getRecipients() == null && StringUtils.isEmpty(bccs)) {
             return BundleUtil.getString(Bundle.APPLICATION, "error.email.validation.no.recipients");
         }
 
@@ -169,11 +145,11 @@ public class EmailBean implements Serializable {
             }
         }
 
-        if (StringUtils.isEmpty(getSubject())) {
+        if (getSubject().isEmpty()) {
             return BundleUtil.getString(Bundle.APPLICATION, "error.email.validation.subject.empty");
         }
 
-        if (StringUtils.isEmpty(getMessage()) && StringUtils.isEmpty(getHtmlMessage())) {
+        if (getMessage().isEmpty() && getHtmlMessage().isEmpty()) {
             return BundleUtil.getString(Bundle.APPLICATION, "error.email.validation.message.empty");
         }
 
@@ -189,34 +165,32 @@ public class EmailBean implements Serializable {
     }
 
     @Atomic
-    public Message send() {
+    public org.fenixedu.messaging.core.domain.Message send() {
         final StringBuilder message = new StringBuilder();
-        if (getMessage() != null && !getMessage().trim().isEmpty()) {
+        if (getMessage() != null && !getMessage().toString().trim().isEmpty()) {
             message.append(getMessage());
             message.append("\n\n---\n");
             message.append(BundleUtil.getString(Bundle.APPLICATION, "message.email.footer.prefix"));
             message.append(" ");
-            message.append(getSender().getFromName());
+            message.append(getSender().getName());
             message.append(" ");
             message.append(BundleUtil.getString(Bundle.APPLICATION, "message.email.footer.prefix.suffix").toLowerCase());
-            for (final Recipient recipient : getRecipients()) {
+            //for (final User user : getRecipients().getMembers()) {
                 message.append("\n\t");
-                message.append(recipient.getToName());
-            }
+                message.append(getRecipients().getPresentationName());
+            //}
             message.append("\n");
         }
+        final String bccs = getBccs() == null ? null : getBccs().toString().replace(" ", "");
 
-        final String bccs = getBccs() == null ? null : getBccs().replace(" ", "");
-        final String htmlMessage = getHtmlMessage();
-        return new Message(getSender(), getReplyTos(), getRecipients(), getSubject(), message.toString(), bccs, htmlMessage);
-    }
-
-    @Atomic
-    public void removeRecipients() {
-        for (Recipient recipient : getRecipients()) {
-            getSender().removeRecipients(recipient);
-        }
-        setRecipients(null);
+        return Message.from(getSender())
+                .replyTo(getSender().getReplyTo())
+                .to(getRecipients())
+                .singleBccs(bccs)
+                .subject(getSubject())
+                .textBody(message.toString())
+                .htmlBody(getHtmlMessage())
+                .send();
     }
 
 }

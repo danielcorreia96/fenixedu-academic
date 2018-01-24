@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
+import org.fenixedu.academic.domain.accessControl.TeacherGroup;
 import org.fenixedu.academic.domain.curriculum.CurricularCourseType;
 import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.domain.degreeStructure.BibliographicReferences;
@@ -50,6 +51,7 @@ import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.executionCourse.SummariesSearchBean;
 import org.fenixedu.academic.domain.messaging.ExecutionCourseForum;
 import org.fenixedu.academic.domain.organizationalStructure.DepartmentUnit;
+import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.domain.student.Student;
 import org.fenixedu.academic.domain.student.WeeklyWorkLoad;
@@ -388,7 +390,7 @@ public class ExecutionCourse extends ExecutionCourse_Base {
     public void delete() {
         DomainException.throwWhenDeleteBlocked(getDeletionBlockers());
         if (getSender() != null) {
-            getSender().getRecipientsSet().clear();
+            //getSender().getRecipientsSet().clear();
             getSender().delete();
         }
         if (getEvaluationMethod() != null) {
@@ -2196,6 +2198,28 @@ public class ExecutionCourse extends ExecutionCourse_Base {
 
     public boolean isHasSender() {
         return getSender() != null;
+    }
+
+    @Override
+    public org.fenixedu.messaging.core.domain.Sender getSender() {
+        org.fenixedu.messaging.core.domain.Sender sender = super.getSender();
+        return sender == null ? buildDefaultSender() : sender;
+    }
+
+    @Atomic
+    protected org.fenixedu.messaging.core.domain.Sender buildDefaultSender() {
+        org.fenixedu.messaging.core.domain.Sender sender = org.fenixedu.messaging.core.domain.Sender.from(Installation.getInstance().getInstituitionalEmailAddress("noreply"))
+                .as(createFromName())
+                .members(TeacherGroup.get(this)).build();
+        setSender(sender);
+        return sender;
+    }
+
+    public String createFromName() {
+        String degreeName = getDegreePresentationString();
+        String courseName = getNome();
+        String period = getExecutionPeriod().getQualifiedName().replace('/', '-');
+        return String.format("%s (%s: %s, %s)", Unit.getInstitutionAcronym(), degreeName, courseName, period);
     }
 
     /*

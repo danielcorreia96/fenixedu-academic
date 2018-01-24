@@ -20,13 +20,13 @@ package org.fenixedu.academic.domain;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.SystemSender;
+import org.fenixedu.academic.domain.util.email.*;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
+import org.fenixedu.messaging.core.domain.Message;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
@@ -41,8 +41,12 @@ abstract public class PublicCandidacyHashCode extends PublicCandidacyHashCode_Ba
 
     @Atomic
     public void sendEmail(final String fromSubject, final String body) {
-        SystemSender systemSender = getRootDomainObject().getSystemSender();
-        new Message(systemSender, systemSender.getConcreteReplyTos(), Collections.EMPTY_LIST, fromSubject, body, getEmail());
+        Message.fromSystem()
+                .replyToSender()
+                .singleBccs(getEmail())
+                .subject(fromSubject)
+                .textBody(body)
+                .send();
     }
 
     public boolean isFromDegreeOffice() {

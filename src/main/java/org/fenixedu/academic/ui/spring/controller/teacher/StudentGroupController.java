@@ -27,7 +27,6 @@ import org.fenixedu.academic.domain.Professorship;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.StudentGroup;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
 import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.ui.struts.action.teacher.ManageExecutionCourseDA;
 import org.fenixedu.academic.util.Bundle;
@@ -177,7 +176,7 @@ public class StudentGroupController extends ExecutionCourseController {
                 UriBuilder
                         .fromUri("/messaging/emails.do")
                         .queryParam("method", "newEmail")
-                        .queryParam("sender", ExecutionCourseSender.newInstance(executionCourse).getExternalId())
+                        .queryParam("sender", executionCourse.getSender().getExternalId())
                         .queryParam("recipient", recipients.stream().filter(r -> r != null).map(r -> r.getExternalId()).toArray())
                         .build().toString();
         String sendEmailWithChecksumUrl =

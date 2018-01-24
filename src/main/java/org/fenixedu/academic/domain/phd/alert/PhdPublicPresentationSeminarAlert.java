@@ -18,10 +18,7 @@
  */
 package org.fenixedu.academic.domain.phd.alert;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.fenixedu.academic.domain.ExecutionYear;
@@ -32,14 +29,12 @@ import org.fenixedu.academic.domain.phd.InternalPhdParticipant;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
 import org.fenixedu.academic.domain.phd.PhdParticipant;
 import org.fenixedu.academic.domain.phd.alert.AlertService.AlertMessage;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.ReplyTo;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
 
@@ -170,8 +165,11 @@ public class PhdPublicPresentationSeminarAlert extends PhdPublicPresentationSemi
             if (guiding.isInternal()) {
                 generateMessage(((InternalPhdParticipant) guiding).getPerson().getUser().groupOf());
             } else {
-                new Message(getSender(), Collections.<ReplyTo> emptyList(), Collections.<Recipient> emptyList(),
-                        buildMailSubject(), buildMailBody(), Collections.singleton(guiding.getEmail()));
+                Message.from(getSender())
+                        .singleBccs(guiding.getEmail())
+                        .subject(buildMailSubject())
+                        .textBody(buildMailBody())
+                        .send();
             }
         }
     }
@@ -179,7 +177,11 @@ public class PhdPublicPresentationSeminarAlert extends PhdPublicPresentationSemi
     private void generateMessage(Group group) {
         Set<Person> members = group.getMembers().map(User::getPerson).collect(Collectors.toSet());
         new PhdAlertMessage(getProcess(), members, getFormattedSubject(), getFormattedBody());
-        new Message(getSender(), new Recipient("", group), buildMailSubject(), buildMailBody());
+        Message.from(getSender())
+                .to(group)
+                .subject(buildMailSubject())
+                .textBody(buildMailBody())
+                .send();
     }
 
     @Override

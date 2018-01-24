@@ -27,15 +27,15 @@ public class PersonSender extends PersonSender_Base {
 
     public PersonSender() {
         super();
-        setFromAddress(Sender.getNoreplyMail());
-        addReplyTos(new CurrentUserReplyTo());
+        setAddress(Sender.getNoreplyMail());
+        setReplyTo(new CurrentUserReplyTo().getReplyToAddress());
     }
 
     public PersonSender(final Person person) {
         this();
         setPerson(person);
         setMembers(person.getUser().groupOf());
-        setFromName(createFromName());
+        setName(createFromName());
     }
 
     public String createFromName() {
@@ -50,7 +50,7 @@ public class PersonSender extends PersonSender_Base {
 
     @Atomic
     public static PersonSender newInstance(final Person person) {
-        return person.getSender() != null ? person.getSender() : new PersonSender(person);
+        return person.getSender() != null ? (PersonSender) person.getSender() : new PersonSender(person);
     }
 
 }

@@ -66,7 +66,8 @@ public class ViewSentEmailsDA extends FenixDispatchAction {
         }
 
         final User userView = Authenticate.getUser();
-        final Set<Sender> sendersGroups = new TreeSet<Sender>(Sender.COMPARATOR_BY_FROM_NAME);
+        final Set<org.fenixedu.messaging.core.domain.Sender> sendersGroups = new TreeSet<>();
+
         final TreeSet<ExecutionCourseSender> sendersGroupsCourses =
                 new TreeSet<ExecutionCourseSender>(ExecutionCourseSender.COMPARATOR_BY_EXECUTION_COURSE_SENDER);
         for (final Sender sender : Bennu.getInstance().getUtilEmailSendersSet()) {
@@ -79,6 +80,7 @@ public class ViewSentEmailsDA extends FenixDispatchAction {
                 sendersGroupsCourses.add((ExecutionCourseSender) sender);
             }
         }
+
         if (isSenderUnique(sendersGroups, sendersGroupsCourses)) {
             if (sendersGroupsCourses.size() == 1) {
                 return viewSentEmails(mapping, request, (sendersGroupsCourses.iterator().next()).getExternalId());

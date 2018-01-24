@@ -27,14 +27,12 @@ import org.fenixedu.academic.domain.Attends;
 import org.fenixedu.academic.domain.ExecutionCourse;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.ProjectSubmission;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.predicate.RolePredicates;
 import org.fenixedu.academic.util.Bundle;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 
+import org.fenixedu.messaging.core.domain.Message;
 import pt.ist.fenixframework.Atomic;
 
 public class NotifyStudentGroup {
@@ -50,11 +48,13 @@ public class NotifyStudentGroup {
         }
 
         final String groupName =
-                BundleUtil.getString(Bundle.GLOBAL, "label.group", new String[] { submission.getStudentGroup().getGroupNumber()
-                        .toString() });
-        Sender sender = ExecutionCourseSender.newInstance(course);
-        Recipient recipient = new Recipient(groupName, Person.convertToUserGroup(recievers));
-        new Message(sender, sender.getConcreteReplyTos(), recipient.asCollection(), submission.getProject().getName(),
-                submission.getTeacherObservation(), "");
+                BundleUtil.getString(Bundle.GLOBAL, "label.group", submission.getStudentGroup().getGroupNumber().toString());
+
+        Message.from(course.getSender())
+                .replyToSender()
+                .to(Person.convertToUserGroup(recievers))
+                .subject(submission.getProject().getName())
+                .textBody(submission.getTeacherObservation())
+                .send();
     }
 }

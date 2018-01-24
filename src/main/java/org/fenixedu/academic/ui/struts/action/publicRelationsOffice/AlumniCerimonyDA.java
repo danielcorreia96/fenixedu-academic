@@ -49,6 +49,7 @@ import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.academic.ui.struts.action.messaging.EmailsDA;
 import org.fenixedu.academic.util.Bundle;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
@@ -199,14 +200,14 @@ public class AlumniCerimonyDA extends FenixDispatchAction {
     public ActionForward sendEmail(ActionMapping mapping, ActionForm form, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
         final CerimonyInquiry cerimonyInquiry = getDomainObject(request, "cerimonyInquiryId");
-        final Sender sender = getPublicRelationsSender();
-        final Recipient recipient = cerimonyInquiry.createRecipient();
+        final org.fenixedu.messaging.core.domain.Sender sender = getPublicRelationsSender();
+        final Group recipient = cerimonyInquiry.createRecipient();
         return EmailsDA.sendEmail(request, sender, recipient);
     }
 
-    private Sender getPublicRelationsSender() {
-        for (final Sender sender : Sender.getAvailableSenders()) {
-            if (sender.getFromName().equalsIgnoreCase("Gabinete de Comunica��o e Rela��es P�blicas")) {
+    private org.fenixedu.messaging.core.domain.Sender getPublicRelationsSender() {
+        for (final org.fenixedu.messaging.core.domain.Sender sender : org.fenixedu.messaging.core.domain.Sender.available()) {
+            if (sender.getName().equalsIgnoreCase("Gabinete de Comunica��o e Rela��es P�blicas")) {
                 return sender;
             }
         }

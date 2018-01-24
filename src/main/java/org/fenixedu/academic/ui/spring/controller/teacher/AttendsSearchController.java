@@ -42,7 +42,6 @@ import org.fenixedu.academic.domain.Professorship;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.StudentGroup;
 import org.fenixedu.academic.domain.student.registrationStates.RegistrationState;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
 import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.dto.student.StudentStatuteBean;
 import org.fenixedu.academic.ui.struts.action.teacher.ManageExecutionCourseDA;
@@ -318,7 +317,7 @@ public class AttendsSearchController extends ExecutionCourseController {
                 UriBuilder
                         .fromUri("/messaging/emails.do")
                         .queryParam("method", "newEmail")
-                        .queryParam("sender", ExecutionCourseSender.newInstance(executionCourse).getExternalId())
+                        .queryParam("sender", executionCourse.getSender().getExternalId())
                         .queryParam("recipient", recipients.stream().filter(r -> r != null).map(r -> r.getExternalId()).toArray())
                         .build().toString();
         String sendEmailWithChecksumUrl =

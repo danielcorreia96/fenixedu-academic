@@ -35,8 +35,6 @@ import org.fenixedu.academic.domain.MarkSheet;
 import org.fenixedu.academic.domain.accessControl.TeachersWithGradesToSubmitGroup;
 import org.fenixedu.academic.domain.accessControl.TeachersWithMarkSheetsToConfirmGroup;
 import org.fenixedu.academic.domain.administrativeOffice.AdministrativeOffice;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.UnitBasedSender;
 import org.fenixedu.academic.dto.degreeAdministrativeOffice.gradeSubmission.GradesToSubmitExecutionCourseSendMailBean;
 import org.fenixedu.academic.dto.degreeAdministrativeOffice.gradeSubmission.MarkSheetSendMailBean;
 import org.fenixedu.academic.dto.degreeAdministrativeOffice.gradeSubmission.MarkSheetToConfirmSendMailBean;
@@ -46,6 +44,7 @@ import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
 import org.fenixedu.bennu.struts.annotations.Mapping;
 
+import org.fenixedu.messaging.core.domain.Sender;
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
 
 @Mapping(path = "/markSheetSendMail", module = "academicAdministration", formBean = "markSheetSendMailForm",
@@ -114,9 +113,8 @@ public class SendMailMarkSheetDispatchAction extends MarkSheetDispatchAction {
         MarkSheetSendMailBean bean = (MarkSheetSendMailBean) RenderUtils.getViewState("sendMailBean").getMetaObject().getObject();
         Group teachersGroup = TeachersWithMarkSheetsToConfirmGroup.get(bean.getExecutionPeriod(), bean.getDegreeCurricularPlan());
         String message = getResources(request, "ACADEMIC_OFFICE_RESOURCES").getMessage("label.markSheets.to.confirm.send.mail");
-        Recipient recipient = Recipient.newInstance(message, teachersGroup);
-        UnitBasedSender sender = bean.getDegree().getAdministrativeOffice().getUnit().getUnitBasedSenderSet().iterator().next();
-        return EmailsDA.sendEmail(request, sender, recipient);
+        Sender sender = bean.getDegree().getAdministrativeOffice().getUnit().getSender();
+        return EmailsDA.sendEmail(request, sender, teachersGroup);
     }
 
     public ActionForward prepareGradesToSubmitSendMail(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
@@ -124,9 +122,8 @@ public class SendMailMarkSheetDispatchAction extends MarkSheetDispatchAction {
         MarkSheetSendMailBean bean = (MarkSheetSendMailBean) RenderUtils.getViewState("sendMailBean").getMetaObject().getObject();
         Group teachersGroup = TeachersWithGradesToSubmitGroup.get(bean.getExecutionPeriod(), bean.getDegreeCurricularPlan());
         String message = getResources(request, "ACADEMIC_OFFICE_RESOURCES").getMessage("label.grades.to.submit.send.mail");
-        Recipient recipient = Recipient.newInstance(message, teachersGroup);
-        UnitBasedSender sender =
-                AdministrativeOffice.readDegreeAdministrativeOffice().getUnit().getUnitBasedSenderSet().iterator().next();
-        return EmailsDA.sendEmail(request, sender, recipient);
+        Sender sender =
+                AdministrativeOffice.readDegreeAdministrativeOffice().getUnit().getSender();
+        return EmailsDA.sendEmail(request, sender, teachersGroup);
     }
 }

@@ -18,8 +18,6 @@
  */
 package org.fenixedu.academic.domain.util.email;
 
-import java.util.Set;
-
 import org.fenixedu.academic.domain.accessControl.UnitGroup;
 import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.bennu.core.groups.Group;
@@ -30,7 +28,7 @@ public class UnitBasedSender extends UnitBasedSender_Base {
 
     public void init(final Unit unit, final String fromAddress, final Group members) {
         setUnit(unit);
-        setFromAddress(fromAddress);
+        setAddress(fromAddress);
         setMembers(members);
     }
 
@@ -50,42 +48,41 @@ public class UnitBasedSender extends UnitBasedSender_Base {
     }
 
     @Override
-    public String getFromName() {
+    public String getName() {
         return String.format("%s (%s)", Unit.getInstitutionAcronym(), getUnit().getName());
     }
 
-    @Override
-    public Set<ReplyTo> getReplyTosSet() {
-        if (super.getReplyTosSet().isEmpty()) {
-            addReplyTos(new CurrentUserReplyTo());
+    public String getReplyTosSet() {
+        if (super.getReplyTo().isEmpty()) {
+            setReplyTo(new CurrentUserReplyTo().getReplyToAddress());
         }
-        return super.getReplyTosSet();
+        return super.getReplyTo();
     }
 
     @Atomic
     private void createCurrentUserReplyTo() {
-        addReplyTos(new CurrentUserReplyTo());
+        setReplyTo(new CurrentUserReplyTo().getReplyToAddress());
     }
 
     @Override
-    public void setFromName(final String fromName) {
+    public void setName(final String fromName) {
         throw new Error("method.not.available.for.this.type.of.sender");
     }
 
     @Atomic
     @Override
-    public void addRecipients(final Recipient recipients) {
-        super.addRecipients(recipients);
+    public void addRecipient(final Group recipients) {
+        super.addRecipient(recipients);
     }
 
     @Atomic
     @Override
-    public void removeRecipients(final Recipient recipients) {
-        super.removeRecipients(recipients);
+    public void removeRecipient(final Group recipients) {
+        super.removeRecipient(recipients);
     }
 
     protected void createRecipient(final Group group) {
-        addRecipients(new Recipient(null, group));
+        addRecipient(group);
     }
 
     @Atomic

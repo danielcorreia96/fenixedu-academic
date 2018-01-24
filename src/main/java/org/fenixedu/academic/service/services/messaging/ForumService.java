@@ -22,9 +22,7 @@
 package org.fenixedu.academic.service.services.messaging;
 
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.fenixedu.academic.domain.Person;
@@ -32,14 +30,15 @@ import org.fenixedu.academic.domain.messaging.ConversationMessage;
 import org.fenixedu.academic.domain.messaging.ConversationThread;
 import org.fenixedu.academic.domain.messaging.ForumSubscription;
 import org.fenixedu.academic.domain.person.RoleType;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.domain.util.email.SystemSender;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.HtmlToTextConverterUtil;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 
 /**
  * @author <a href="mailto:goncalo@ist.utl.pt"> Goncalo Luiz</a><br>
@@ -119,9 +118,12 @@ public abstract class ForumService {
 
     private void sendEmailToPersons(Set<Person> persons, String personsName, String subject, String body) {
         if (!persons.isEmpty()) {
-            final Recipient recipient = new Recipient(getString("label.teachers"), Person.convertToUserGroup(persons));
-            SystemSender systemSender = Bennu.getInstance().getSystemSender();
-            new Message(systemSender, systemSender.getConcreteReplyTos(), recipient.asCollection(), subject, body, "");
+            Message.fromSystem()
+                    .replyToSender()
+                    .to(Person.convertToUserGroup(persons))
+                    .subject(subject)
+                    .textBody(body)
+                    .send();
         }
     }
 

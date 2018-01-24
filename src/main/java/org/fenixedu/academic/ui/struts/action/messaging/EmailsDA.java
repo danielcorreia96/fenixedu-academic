@@ -31,13 +31,12 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.fenixedu.academic.domain.util.email.EmailBean;
-import org.fenixedu.academic.domain.util.email.Message;
 import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.academic.ui.struts.action.commons.FenixActionForward;
 import org.fenixedu.academic.ui.struts.action.messaging.MessagingApplication.MessagingEmailsApp;
 import org.fenixedu.academic.util.Bundle;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
@@ -81,12 +80,12 @@ public class EmailsDA extends FenixDispatchAction {
             emailBean = new EmailBean();
             String senderExternalId = request.getParameter("sender");
             if (Strings.isNullOrEmpty(senderExternalId)) {
-                final Set<Sender> availableSenders = Sender.getAvailableSenders();
+                final Set<org.fenixedu.messaging.core.domain.Sender> availableSenders = org.fenixedu.messaging.core.domain.Sender.available();
                 if (availableSenders.size() == 1) {
                     emailBean.setSender(availableSenders.iterator().next());
                 }
             } else {
-                Sender sender = FenixFramework.getDomainObject(senderExternalId);
+                org.fenixedu.messaging.core.domain.Sender sender = FenixFramework.getDomainObject(senderExternalId);
                 emailBean.setSender(sender);
                 String[] recipientsParameter = request.getParameterValues("recipient");
                 if (recipientsParameter != null) {
@@ -115,16 +114,16 @@ public class EmailsDA extends FenixDispatchAction {
             request.setAttribute("emailBean", emailBean);
             return mapping.findForward("new.email");
         }
-        final Message message = emailBean.send();
+        final org.fenixedu.messaging.core.domain.Message message = emailBean.send();
         request.setAttribute("created", Boolean.TRUE);
         return new FenixActionForward(request, new ActionForward("/viewSentEmails.do?method=viewEmail&messagesId="
                 + message.getExternalId(), true));
     }
 
-    public static ActionForward sendEmail(HttpServletRequest request, Sender sender, Recipient... recipient) {
+    public static ActionForward sendEmail(HttpServletRequest request, org.fenixedu.messaging.core.domain.Sender sender, Group recipient) {
         EmailBean emailBean = new EmailBean();
         if (recipient != null) {
-            emailBean.setRecipients(Arrays.asList(recipient));
+            emailBean.setRecipients(recipient);
         }
         if (sender != null) {
             emailBean.setSender(sender);

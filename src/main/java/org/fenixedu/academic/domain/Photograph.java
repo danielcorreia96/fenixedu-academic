@@ -27,15 +27,16 @@ import org.fenixedu.academic.domain.photograph.AspectRatio;
 import org.fenixedu.academic.domain.photograph.Picture;
 import org.fenixedu.academic.domain.photograph.PictureMode;
 import org.fenixedu.academic.domain.photograph.PictureOriginal;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.SystemSender;
+import org.fenixedu.academic.domain.util.email.*;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.ContentType;
 import org.fenixedu.bennu.core.domain.Avatar;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
@@ -100,11 +101,12 @@ public class Photograph extends Photograph_Base implements Comparable<Photograph
                 if (person != null) {
                     setRejector(person);
                 }
-                SystemSender systemSender = getRootDomainObject().getSystemSender();
-                new Message(systemSender, systemSender.getConcreteReplyTos(),
-                        new Recipient(getPerson().getUser().groupOf()).asCollection(), BundleUtil.getString(Bundle.PERSONAL,
-                                REJECTION_MAIL_SUBJECT_KEY), BundleUtil.getString(Bundle.PERSONAL, REJECTION_MAIL_BODY_KEY), "");
-
+                Message.fromSystem()
+                        .replyToSender()
+                        .to(getPerson().getPersonGroup())
+                        .subject(BundleUtil.getString(Bundle.PERSONAL, REJECTION_MAIL_SUBJECT_KEY))
+                        .textBody(BundleUtil.getString(Bundle.PERSONAL, REJECTION_MAIL_BODY_KEY))
+                        .send();
             }
             if (state == PhotoState.APPROVED) {
                 Person person = AccessControl.getPerson();

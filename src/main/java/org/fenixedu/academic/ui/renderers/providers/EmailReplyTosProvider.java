@@ -33,10 +33,10 @@ public class EmailReplyTosProvider implements DataProvider {
     @Override
     public Object provide(final Object source, final Object currentValue) {
         final EmailBean emailBean = (EmailBean) source;
-        final Sender sender = emailBean.getSender();
-        final Set<ReplyTo> replyTos = new TreeSet<ReplyTo>(ReplyTo.COMPARATOR_BY_ADDRESS);
+        final org.fenixedu.messaging.core.domain.Sender sender = emailBean.getSender();
+        String replyTos = null;
         if (sender != null) {
-            replyTos.addAll(sender.getConcreteReplyTos());
+            replyTos = sender.getReplyTo();
         }
         return replyTos;
     }

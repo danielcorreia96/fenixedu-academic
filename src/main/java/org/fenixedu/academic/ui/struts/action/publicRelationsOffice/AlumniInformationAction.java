@@ -155,9 +155,8 @@ public class AlumniInformationAction extends FenixDispatchAction {
     public ActionForward prepareRemoveRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
         EmailBean emailBean = new EmailBean();
-        final Set<Sender> availableSenders = Sender.getAvailableSenders();
-        for (Sender sender : availableSenders) {
-            if (sender.getFromName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
+        for (org.fenixedu.messaging.core.domain.Sender sender : org.fenixedu.messaging.core.domain.Sender.available()) {
+            if (sender.getName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
                 emailBean.setSender(sender);
                 break;
             }

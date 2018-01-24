@@ -20,7 +20,6 @@ package org.fenixedu.academic.domain.candidacyProcess.mobility;
 
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
@@ -31,12 +30,14 @@ import org.fenixedu.academic.domain.candidacyProcess.IndividualCandidacyProcess;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.SystemSender;
+import org.fenixedu.academic.domain.util.email.*;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.commons.i18n.I18N;
+import org.fenixedu.messaging.core.domain.Message;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
 
 public enum MobilityEmailTemplateType {
 
@@ -276,8 +277,12 @@ public enum MobilityEmailTemplateType {
     }
 
     protected void sendEmail(final String fromSubject, final String body, final String email) {
-        SystemSender systemSender = Bennu.getInstance().getSystemSender();
-        new Message(systemSender, systemSender.getConcreteReplyTos(), Collections.EMPTY_LIST, fromSubject, body, email);
+        Message.fromSystem()
+                .replyToSender()
+                .singleBccs(email)
+                .subject(fromSubject)
+                .textBody(body)
+                .send();
     }
 
     abstract public void sendEmailFor(final MobilityEmailTemplate mobilityEmailTemplate,

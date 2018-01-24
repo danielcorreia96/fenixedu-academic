@@ -3381,15 +3381,25 @@ valueType org.fenixedu.academic.domain.accounting.EventTypes as EventTypes {
         String fromAddress;
     }
 
-    class util.email.UnitBasedSender extends util.email.Sender {}
+    //class util.email.UnitBasedSender extends util.email.Sender {}
     
+    //class util.email.DepartmentMemberBasedSender extends util.email.UnitBasedSender {}
+
+    //class util.email.ExecutionCourseSender extends util.email.Sender { }
+
+    //class util.email.CoordinatorSender extends util.email.Sender {}
+    
+    //class util.email.PersonSender extends util.email.Sender {}
+
+    class util.email.UnitBasedSender extends .org.fenixedu.messaging.core.domain.Sender {}
+
     class util.email.DepartmentMemberBasedSender extends util.email.UnitBasedSender {}
 
-    class util.email.ExecutionCourseSender extends util.email.Sender { }
+    class util.email.ExecutionCourseSender extends .org.fenixedu.messaging.core.domain.Sender { }
 
-    class util.email.CoordinatorSender extends util.email.Sender {}
-    
-    class util.email.PersonSender extends util.email.Sender {}
+    class util.email.CoordinatorSender extends .org.fenixedu.messaging.core.domain.Sender {}
+
+    class util.email.PersonSender extends .org.fenixedu.messaging.core.domain.Sender {}
 
     class util.email.SystemSender extends util.email.Sender {}
 
@@ -7178,21 +7188,40 @@ relation ExecutionCourseSummary {
     ExecutionCourse playsRole executionCourse;
 }
 
+//relation ExecutionCourseSender {
+//    ExecutionCourse playsRole course {
+//        multiplicity 1..1;
+//    }
+//    util.email.ExecutionCourseSender playsRole sender;
+//}
+
+// TODO: where should i place this ??
 relation ExecutionCourseSender {
-    ExecutionCourse playsRole course {
-        multiplicity 1..1;
-    }
-    util.email.ExecutionCourseSender playsRole sender;
+    ExecutionCourse playsRole course;
+    .org.fenixedu.messaging.core.domain.Sender playsRole sender;
 }
+
+//relation CoordinatorSender {
+//    Degree playsRole degree;
+//    util.email.CoordinatorSender playsRole sender;
+//}
+
 
 relation CoordinatorSender {
     Degree playsRole degree;
-    util.email.CoordinatorSender playsRole sender;
+    .org.fenixedu.messaging.core.domain.Sender playsRole sender;
 }
 
+//relation PersonSender {
+//    Person playsRole person;
+//    util.email.PersonSender playsRole sender;
+//}
+
+// TODO: where should i place this ??
 relation PersonSender {
     Person playsRole person;
-    util.email.PersonSender playsRole sender;
+    .org.fenixedu.messaging.core.domain.Sender playsRole sender;
+
 }
 
 relation ExecutionDegreeCampus {
@@ -10779,11 +10808,17 @@ relation UnitUnitCostCenterCode {
     organizationalStructure.UnitCostCenterCode playsRole unitCostCenterCode;
 }
 
-relation UnitUnitBasedSender {
+//relation UnitUnitBasedSender {
+//    organizationalStructure.Unit playsRole unit;
+//    util.email.UnitBasedSender playsRole unitBasedSender {
+//        multiplicity *;
+//    }
+//}
+
+// TODO: where should i place this ??
+relation UnitSender {
     organizationalStructure.Unit playsRole unit;
-    util.email.UnitBasedSender playsRole unitBasedSender {
-        multiplicity *;
-    }
+    .org.fenixedu.messaging.core.domain.Sender playsRole sender;
 }
 
 relation QueueJobPerson {

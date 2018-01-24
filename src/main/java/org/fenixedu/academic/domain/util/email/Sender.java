@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import org.fenixedu.academic.domain.DomainObjectUtil;
 import org.fenixedu.academic.domain.Installation;
@@ -58,6 +59,10 @@ public class Sender extends Sender_Base {
         setFromName(fromName);
         setFromAddress(fromAddress);
         setMembers(members);
+    }
+    
+    public org.fenixedu.messaging.core.domain.Sender getNewSender() {
+    	return null;
     }
 
     public Group getMembers() {
@@ -146,6 +151,11 @@ public class Sender extends Sender_Base {
             }
         }
         return replyTos;
+    }
+
+    @Atomic
+    public Stream<String> getConcreteReplyTosStream() {
+        return getConcreteReplyTos().stream().map(ReplyTo::getReplyToAddress);
     }
 
     public int deleteOldMessages() {

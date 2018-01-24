@@ -30,28 +30,25 @@ import org.fenixedu.bennu.core.groups.Group;
 import pt.ist.fenixframework.Atomic;
 
 public class CoordinatorSender extends CoordinatorSender_Base {
-    private Recipient createRecipient(Group group) {
-        return new Recipient(null, group);
-    }
 
     public CoordinatorSender(Degree degree) {
         super();
         setDegree(degree);
-        setFromAddress(Sender.getNoreplyMail());
-        addReplyTos(new CurrentUserReplyTo());
+        setAddress(Sender.getNoreplyMail());
+        setReplyTo(new CurrentUserReplyTo().getReplyToAddress());
         setMembers(CoordinatorGroup.get(degree));
         Group current = CoordinatorGroup.get(degree);
         Group teachers = TeacherGroup.get(degree);
         Group students = StudentGroup.get(degree, null);
         for (CycleType cycleType : degree.getDegreeType().getCycleTypes()) {
-            addRecipients(createRecipient(StudentGroup.get(degree, cycleType)));
+            addRecipient(StudentGroup.get(degree, cycleType));
         }
-        addRecipients(createRecipient(current));
-        addRecipients(createRecipient(teachers));
-        addRecipients(createRecipient(students));
-        addRecipients(createRecipient(RoleType.TEACHER.actualGroup()));
-        addRecipients(createRecipient(StudentGroup.get()));
-        setFromName(createFromName());
+        addRecipient(current);
+        addRecipient(teachers);
+        addRecipient(students);
+        addRecipient(RoleType.TEACHER.actualGroup());
+        addRecipient(StudentGroup.get());
+        setName(createFromName());
     }
 
     public String createFromName() {
@@ -66,8 +63,7 @@ public class CoordinatorSender extends CoordinatorSender_Base {
 
     @Atomic
     public static CoordinatorSender newInstance(Degree degree) {
-        CoordinatorSender sender = degree.getSender();
-        return sender == null ? new CoordinatorSender(degree) : sender;
+        return degree.getSender() == null ? new CoordinatorSender(degree) : (CoordinatorSender) degree.getSender();
     }
 
 }
