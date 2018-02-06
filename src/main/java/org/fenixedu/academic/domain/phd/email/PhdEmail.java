@@ -18,15 +18,11 @@
  */
 package org.fenixedu.academic.domain.phd.email;
 
-import java.util.Collection;
-
 import org.fenixedu.academic.domain.Person;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.ReplyTo;
-import org.fenixedu.academic.domain.util.email.Sender;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.commons.i18n.I18N;
 import org.fenixedu.commons.i18n.LocalizedString;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
@@ -67,8 +63,13 @@ public abstract class PhdEmail extends PhdEmail_Base {
 
     @Override
     protected void generateMessage() {
-        new Message(getSender(), getReplyTos(), getRecipients(), getSubject().getContent(org.fenixedu.academic.util.LocaleUtils.PT), getBody()
-                .getContent(org.fenixedu.academic.util.LocaleUtils.PT), getBccs());
+        Message.from(getSender())
+                .replyTo(getReplyTo())
+                .to(getRecipients())
+                .singleBccs(getBccs())
+                .subject(getSubject().getContent(org.fenixedu.academic.util.LocaleUtils.PT))
+                .textBody(getBody().getContent(org.fenixedu.academic.util.LocaleUtils.PT))
+                .send();
     }
 
     @Override
@@ -87,11 +88,11 @@ public abstract class PhdEmail extends PhdEmail_Base {
         super.fire();
     }
 
-    protected abstract Collection<? extends ReplyTo> getReplyTos();
+    protected abstract String getReplyTo();
 
-    protected abstract Sender getSender();
+    protected abstract org.fenixedu.messaging.core.domain.Sender getSender();
 
-    protected abstract Collection<Recipient> getRecipients();
+    protected abstract Group getRecipients();
 
     protected abstract String getBccs();
 

@@ -30,10 +30,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.fenixedu.academic.domain.Person;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
 import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.MessageDeleteService;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.academic.ui.struts.action.messaging.MessagingApplication.MessagingEmailsApp;
@@ -60,16 +57,19 @@ public class ViewSentEmailsDA extends FenixDispatchAction {
     @EntryPoint
     public ActionForward viewSentEmails(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) {
-        final String senderParam = request.getParameter("senderId");
+        //FIXME: this controller won't be used after messaging migration is finished
+        /*final String senderParam = request.getParameter("senderId");
         if (senderParam != null && !senderParam.isEmpty()) {
             return viewSentEmails(mapping, request, senderParam);
         }
 
         final User userView = Authenticate.getUser();
-        final Set<Sender> sendersGroups = new TreeSet<Sender>(Sender.COMPARATOR_BY_FROM_NAME);
-        final TreeSet<ExecutionCourseSender> sendersGroupsCourses =
+        final Set<org.fenixedu.messaging.core.domain.Sender> sendersGroups = new TreeSet<>();
+
+        *//*final TreeSet<ExecutionCourseSender> sendersGroupsCourses =
                 new TreeSet<ExecutionCourseSender>(ExecutionCourseSender.COMPARATOR_BY_EXECUTION_COURSE_SENDER);
-        for (final Sender sender : Bennu.getInstance().getUtilEmailSendersSet()) {
+
+        for (final org.fenixedu.messaging.core.domain.Sender sender : Bennu.getInstance().getMessagingSystem().getSenderSet()) {
             boolean allow = sender.getMembers().isMember(userView);
             boolean isExecutionCourseSender = sender instanceof ExecutionCourseSender;
             if (allow && !isExecutionCourseSender) {
@@ -78,7 +78,8 @@ public class ViewSentEmailsDA extends FenixDispatchAction {
             if (allow && isExecutionCourseSender) {
                 sendersGroupsCourses.add((ExecutionCourseSender) sender);
             }
-        }
+        }*//*
+
         if (isSenderUnique(sendersGroups, sendersGroupsCourses)) {
             if (sendersGroupsCourses.size() == 1) {
                 return viewSentEmails(mapping, request, (sendersGroupsCourses.iterator().next()).getExternalId());
@@ -96,17 +97,18 @@ public class ViewSentEmailsDA extends FenixDispatchAction {
                 searchSendersBean = new SearchSendersBean();
             }
             request.setAttribute("searchSendersBean", searchSendersBean);
-        }
+        }*/
 
         return mapping.findForward("view.sent.emails");
     }
 
     public ActionForward viewSentEmails(final ActionMapping mapping, final HttpServletRequest request, final String senderId) {
-        final Sender sender = FenixFramework.getDomainObject(senderId);
+        final org.fenixedu.messaging.core.domain.Sender sender = FenixFramework.getDomainObject(senderId);
         final int numberOfMessagesByPage = 40;
-        final CollectionPager<Message> pager =
-                new CollectionPager<Message>(sender.getMessagesSet().stream()
-                        .sorted(Message.COMPARATOR_BY_CREATED_DATE_OLDER_LAST).collect(Collectors.toList()),
+        final CollectionPager<org.fenixedu.messaging.core.domain.Message> pager =
+                new CollectionPager<org.fenixedu.messaging.core.domain.Message>(sender.getMessageSet().stream()
+                        .sorted(org.fenixedu.messaging.core.domain.Message.COMPARATOR_BY_CREATED_DATE_OLDER_LAST)
+                        .collect(Collectors.toList()),
                         numberOfMessagesByPage);
         request.setAttribute("numberOfPages", getNumberOfPages(pager));
         final String pageParameter = request.getParameter("pageNumber");
@@ -119,12 +121,12 @@ public class ViewSentEmailsDA extends FenixDispatchAction {
         return viewSentEmails(mapping, request, sender);
     }
 
-    public ActionForward viewSentEmails(final ActionMapping mapping, final HttpServletRequest request, final Sender sender) {
+    public ActionForward viewSentEmails(final ActionMapping mapping, final HttpServletRequest request, final org.fenixedu.messaging.core.domain.Sender sender) {
         request.setAttribute("sender", sender);
         return mapping.findForward("view.sent.emails");
     }
 
-    public ActionForward viewEmail(final ActionMapping mapping, final HttpServletRequest request, final Message message) {
+    public ActionForward viewEmail(final ActionMapping mapping, final HttpServletRequest request, final org.fenixedu.messaging.core.domain.Message message) {
         request.setAttribute("message", message);
         return mapping.findForward("view.email");
     }
@@ -132,21 +134,21 @@ public class ViewSentEmailsDA extends FenixDispatchAction {
     public ActionForward viewEmail(final ActionMapping mapping, final ActionForm actionForm, final HttpServletRequest request,
             final HttpServletResponse response) {
         final String messageParam = request.getParameter("messagesId");
-        final Message message =
-                messageParam != null && !messageParam.isEmpty() ? FenixFramework.<Message> getDomainObject(messageParam) : null;
+        final org.fenixedu.messaging.core.domain.Message message =
+                messageParam != null && !messageParam.isEmpty() ? FenixFramework.<org.fenixedu.messaging.core.domain.Message> getDomainObject(messageParam) : null;
         return viewEmail(mapping, request, message);
     }
 
     public ActionForward deleteMessage(final ActionMapping mapping, final ActionForm actionForm,
             final HttpServletRequest request, final HttpServletResponse response) {
         final String messageParam = request.getParameter("messagesId");
-        final Message message =
-                messageParam != null && !messageParam.isEmpty() ? FenixFramework.<Message> getDomainObject(messageParam) : null;
+        final org.fenixedu.messaging.core.domain.Message message =
+                messageParam != null && !messageParam.isEmpty() ? FenixFramework.<org.fenixedu.messaging.core.domain.Message> getDomainObject(messageParam) : null;
         if (message == null) {
             return viewSentEmails(mapping, actionForm, request, response);
         } else {
-            final Sender sender = message.getSender();
-            MessageDeleteService.delete(message);
+            final org.fenixedu.messaging.core.domain.Sender sender = message.getSender();
+            message.safeDelete();
             return viewSentEmails(mapping, request, sender.getExternalId());
         }
     }

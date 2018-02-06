@@ -19,10 +19,7 @@
 package org.fenixedu.academic.service;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -31,12 +28,10 @@ import org.fenixedu.academic.domain.ExecutionCourse;
 import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.domain.WrittenTest;
 import org.fenixedu.academic.domain.person.RoleType;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.util.Bundle;
-import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
 import org.fenixedu.spaces.core.service.NotificationService;
 import org.fenixedu.spaces.domain.Space;
 import org.fenixedu.spaces.domain.occupation.Occupation;
@@ -54,21 +49,21 @@ public class GOPSendMessageService implements NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(GOPSendMessageService.class);
 
-    private static Sender GOP_SENDER = null;
+    private static org.fenixedu.messaging.core.domain.Sender GOP_SENDER = null;
 
-    private static Sender getGOPSender() {
+    private static org.fenixedu.messaging.core.domain.Sender getGOPSender() {
         if (GOP_SENDER == null) {
             GOP_SENDER = initGOPSender();
             if (GOP_SENDER == null) {
                 logger.warn("WARN: GOPSender couldn't be found, using SystemSender ...");
-                GOP_SENDER = Bennu.getInstance().getSystemSender();
+                GOP_SENDER = org.fenixedu.messaging.core.domain.MessagingSystem.systemSender();
             }
         }
         return GOP_SENDER;
     }
 
-    private static Sender initGOPSender() {
-        for (Sender sender : Sender.getAvailableSenders()) {
+    private static org.fenixedu.messaging.core.domain.Sender initGOPSender() {
+        for (org.fenixedu.messaging.core.domain.Sender sender : org.fenixedu.messaging.core.domain.Sender.available()) {
             final Group members = sender.getMembers();
             if (members.equals(RoleType.RESOURCE_ALLOCATION_MANAGER.actualGroup())) {
                 return sender;
@@ -105,7 +100,12 @@ public class GOPSendMessageService implements NotificationService {
                 BundleUtil.getString(Bundle.APPLICATION, "email.request.room.body", test.getDescription(), coursesString, date,
                         time, degreesString, endTime);
         for (String email : getGOPEmail(degrees)) {
-            new Message(getGOPSender(), email, subject, body);
+            Message.from(getGOPSender())
+                    .replyToSender()
+                    .singleTos(email)
+                    .subject(subject)
+                    .textBody(body)
+                    .send();
         }
         test.setRequestRoomSentDate(new DateTime());
     }
@@ -144,7 +144,12 @@ public class GOPSendMessageService implements NotificationService {
                         degreesString, test.getRequestRoomSentDateString(), oldDate, oldStartTime, oldEndTime, date, startTime,
                         endTime);
         for (String email : getGOPEmail(degrees)) {
-            new Message(getGOPSender(), email, subject, body);
+            Message.from(getGOPSender())
+                    .replyToSender()
+                    .singleTos(email)
+                    .subject(subject)
+                    .textBody(body)
+                    .send();
         }
         test.setRequestRoomSentDate(new DateTime());
     }
@@ -194,11 +199,7 @@ public class GOPSendMessageService implements NotificationService {
 
         body += "\n\n" + messages.getMessage("message.room.reservation.last.comment") + "\n";
 
-        if (occupationComment != null) {
-            body += occupationComment.getDescription();
-        } else {
-            body += "-";
-        }
+        body += occupationComment.getDescription();
         sendEmail(request.getRequestor().getPerson().getEmailForSendingEmails(), messages.getMessage("message.room.reservation"),
                 body);
         return true;
@@ -207,8 +208,12 @@ public class GOPSendMessageService implements NotificationService {
     @Override
     public boolean sendEmail(String emails, String subject, String body) {
         if (!Strings.isNullOrEmpty(emails)) {
-            final Sender sender = getGOPSender();
-            new Message(sender, sender.getConcreteReplyTos(), null, subject, body, emails);
+            Message.from(getGOPSender())
+                    .replyToSender()
+                    .singleBccs(emails)
+                    .subject(subject)
+                    .textBody(body)
+                    .send();
             return true;
         }
         return false;

@@ -18,20 +18,19 @@
  */
 package org.fenixedu.academic.domain.alumni;
 
+import org.fenixedu.academic.domain.Person;
+import org.fenixedu.academic.domain.accessControl.CerimonyInquiryGroup;
+import org.fenixedu.academic.domain.exceptions.DomainException;
+import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.groups.Group;
+import org.joda.time.DateTime;
+import pt.ist.fenixframework.Atomic;
+
 import java.text.Collator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import org.fenixedu.academic.domain.Person;
-import org.fenixedu.academic.domain.accessControl.CerimonyInquiryGroup;
-import org.fenixedu.academic.domain.exceptions.DomainException;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.bennu.core.domain.Bennu;
-import org.fenixedu.bennu.core.domain.User;
-import org.joda.time.DateTime;
-
-import pt.ist.fenixframework.Atomic;
 
 public class CerimonyInquiry extends CerimonyInquiry_Base implements Comparable<CerimonyInquiry> {
 
@@ -106,8 +105,8 @@ public class CerimonyInquiry extends CerimonyInquiry_Base implements Comparable<
         return getBegin() != null && getBegin().isBeforeNow() && (getEnd() == null || getEnd().isAfterNow());
     }
 
-    public Recipient createRecipient() {
-        return Recipient.newInstance("Inquiridos: " + getDescription(), CerimonyInquiryGroup.get(this));
+    public Group createRecipient() {
+        return CerimonyInquiryGroup.get(this);
     }
 
     @Atomic

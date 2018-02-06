@@ -38,16 +38,15 @@ import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.person.RoleType;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.predicate.ResourceAllocationRolePredicates;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.DiaSemana;
 import org.fenixedu.academic.util.WeekDay;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.Duration;
 
 import pt.ist.fenixframework.Atomic;
@@ -519,13 +518,12 @@ public class Shift extends Shift_Base {
                 getExecutionCourse().getNome(), getExecutionCourse().getDegreePresentationString());
         registration.removeShifts(this);
 
-        ExecutionCourseSender sender = ExecutionCourseSender.newInstance(executionCourse);
-        Collection<Recipient> recipients =
-                Collections.singletonList(new Recipient(registration.getPerson().getUser().groupOf()));
-        final String subject = BundleUtil.getString(Bundle.APPLICATION, "label.shift.remove.subject");
-        final String body = BundleUtil.getString(Bundle.APPLICATION, "label.shift.remove.body", getNome());
-
-        new Message(sender, sender.getConcreteReplyTos(), recipients, subject, body, "");
+        Message.from(executionCourse.getSender())
+                .replyToSender()
+                .to(registration.getPerson().getPersonGroup())
+                .subject(BundleUtil.getString(Bundle.APPLICATION, "label.shift.remove.subject"))
+                .textBody(BundleUtil.getString(Bundle.APPLICATION, "label.shift.remove.body", getNome()))
+                .send();
     }
 
     public boolean hasAnyStudentsInAssociatedStudentGroups() {

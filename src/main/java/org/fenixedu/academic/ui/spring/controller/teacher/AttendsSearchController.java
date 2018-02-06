@@ -42,12 +42,11 @@ import org.fenixedu.academic.domain.Professorship;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.StudentGroup;
 import org.fenixedu.academic.domain.student.registrationStates.RegistrationState;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.dto.student.StudentStatuteBean;
 import org.fenixedu.academic.ui.struts.action.teacher.ManageExecutionCourseDA;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.domain.groups.PersistentDynamicGroup;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.security.CSRFTokenBean;
@@ -312,14 +311,14 @@ public class AttendsSearchController extends ExecutionCourseController {
         Group users =
                 Group.users(builder.build().map(a -> a.getRegistration().getPerson().getUser()).filter(Objects::nonNull)
                         .sorted(User.COMPARATOR_BY_NAME));
-        ArrayList<Recipient> recipients = new ArrayList<Recipient>();
-        recipients.add(Recipient.newInstance(label, users));
+        ArrayList<Group> recipients = new ArrayList<>();
+        recipients.add(users);
         String sendEmailUrl =
                 UriBuilder
                         .fromUri("/messaging/emails.do")
                         .queryParam("method", "newEmail")
-                        .queryParam("sender", ExecutionCourseSender.newInstance(executionCourse).getExternalId())
-                        .queryParam("recipient", recipients.stream().filter(r -> r != null).map(r -> r.getExternalId()).toArray())
+                        .queryParam("sender", executionCourse.getSender().getExternalId())
+                        .queryParam("recipient", recipients.stream().filter(r -> r != null).map(r -> r.toPersistentGroup().getExternalId()).toArray())
                         .build().toString();
         String sendEmailWithChecksumUrl =
                 GenericChecksumRewriter.injectChecksumInUrl(request.getContextPath(), sendEmailUrl, session);

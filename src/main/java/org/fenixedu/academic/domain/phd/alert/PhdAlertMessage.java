@@ -30,8 +30,6 @@ import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.administrativeOffice.AdministrativeOffice;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.UnitBasedSender;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.joda.time.DateTime;
@@ -170,20 +168,20 @@ public class PhdAlertMessage extends PhdAlertMessage_Base {
         return result;
     }
 
-    protected UnitBasedSender getSender() {
+    protected org.fenixedu.messaging.core.domain.Sender getSender() {
         AdministrativeOffice administrativeOffice = this.getProcess().getAdministrativeOffice();
-        return administrativeOffice.getUnit().getUnitBasedSenderSet().iterator().next();
+        return administrativeOffice.getUnit().getSender();
     }
 
-    public List<Message> getEmailsWithMatchWithThisMessage() {
-        List<Message> result = new ArrayList<Message>();
+    public List<org.fenixedu.messaging.core.domain.Message> getEmailsWithMatchWithThisMessage() {
+        List<org.fenixedu.messaging.core.domain.Message> result = new ArrayList<org.fenixedu.messaging.core.domain.Message>();
 
-        UnitBasedSender sender = getSender();
+        org.fenixedu.messaging.core.domain.Sender sender = getSender();
 
-        Collection<Message> messages = sender.getMessagesSet();
+        Set<org.fenixedu.messaging.core.domain.Message> messages = sender.getMessageSet();
 
-        for (Message message : messages) {
-            if (getSubject().getContent().contentEquals(message.getSubject())) {
+        for (org.fenixedu.messaging.core.domain.Message message : messages) {
+            if (getSubject().getContent().contentEquals(message.getSubject().toString())) {
                 result.add(message);
             }
         }

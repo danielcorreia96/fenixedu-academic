@@ -18,23 +18,18 @@
  */
 package org.fenixedu.academic.domain.util.email;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.fenixedu.academic.domain.DomainObjectUtil;
 import org.fenixedu.academic.domain.Installation;
 import org.fenixedu.academic.domain.Person;
-import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.security.Authenticate;
 
-import pt.ist.fenixframework.Atomic;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class Sender extends Sender_Base {
 
@@ -60,6 +55,7 @@ public class Sender extends Sender_Base {
         setMembers(members);
     }
 
+
     public Group getMembers() {
         return getMembersGroup().toGroup();
     }
@@ -71,17 +67,6 @@ public class Sender extends Sender_Base {
     public void delete() {
         for (final Message message : getMessagesSet()) {
             message.delete();
-        }
-        for (final Recipient recipient : getRecipientsSet()) {
-            if (recipient.getSendersSet().size() == 1) {
-                recipient.delete();
-            } else {
-                removeRecipients(recipient);
-            }
-        }
-        for (ReplyTo replyTo : getReplyTosSet()) {
-            removeReplyTos(replyTo);
-            replyTo.safeDelete();
         }
         setMembersGroup(null);
         setRootDomainObject(null);
@@ -130,23 +115,6 @@ public class Sender extends Sender_Base {
         return senders;
     }
 
-    @Atomic
-    public List<ReplyTo> getConcreteReplyTos() {
-        List<ReplyTo> replyTos = new ArrayList<ReplyTo>();
-        for (ReplyTo replyTo : getReplyTosSet()) {
-            if (replyTo instanceof CurrentUserReplyTo) {
-                if (AccessControl.getPerson().getReplyTo() == null) {
-                    ReplyTo concreteReplyTo = new PersonReplyTo(AccessControl.getPerson());
-                    replyTos.add(concreteReplyTo);
-                } else {
-                    replyTos.add(AccessControl.getPerson().getReplyTo());
-                }
-            } else {
-                replyTos.add(replyTo);
-            }
-        }
-        return replyTos;
-    }
 
     public int deleteOldMessages() {
         int deletedCounter = 0;
