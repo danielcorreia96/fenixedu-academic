@@ -60,9 +60,6 @@ import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.exceptions.FieldIsRequiredException;
 import org.fenixedu.academic.domain.organizationalStructure.ScientificCouncilUnit;
 import org.fenixedu.academic.domain.student.Student;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.dto.degreeAdministrativeOffice.gradeSubmission.MarkSheetEnrolmentEvaluationBean;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.predicate.ThesisPredicates;
@@ -70,12 +67,14 @@ import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.EvaluationType;
 import org.fenixedu.academic.util.LocaleUtils;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.core.signals.DomainObjectEvent;
 import org.fenixedu.bennu.core.signals.Signal;
 import org.fenixedu.commons.i18n.I18N;
 import org.fenixedu.commons.i18n.LocalizedString;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.DateTime;
 import org.joda.time.YearMonthDay;
 import org.slf4j.Logger;
@@ -527,11 +526,9 @@ public class Thesis extends Thesis_Base {
             throw new DomainException("thesis.creation.not.allowed.because.out.of.period");
         }
 
-        if (enrolment != null) {
-            CurricularCourse curricularCourse = enrolment.getCurricularCourse();
-            if (!curricularCourse.isDissertation()) {
-                throw new DomainException("thesis.enrolment.notDissertationEnrolment");
-            }
+        CurricularCourse curricularCourse = enrolment.getCurricularCourse();
+        if (!curricularCourse.isDissertation()) {
+            throw new DomainException("thesis.enrolment.notDissertationEnrolment");
         }
 
         super.setEnrolment(enrolment);
@@ -670,16 +667,19 @@ public class Thesis extends Thesis_Base {
         Set<Person> orientationPersons = getOrientationPersons();
         persons.addAll(orientationPersons);
 
-        final Recipient recipient = new Recipient("Membros da tese " + getTitle().getContent(), Person.convertToUserGroup(persons));
         final String studentNumber = getStudent().getNumber().toString();
         final String title = getFinalFullTitle().getContent();
         final String subject = getMessage("message.thesis.reject.submission.email.subject", studentNumber);
         final String body = getMessage("message.thesis.reject.submission.email.body", studentNumber, title, rejectionComment);
 
         //
-        final Sender sender = ScientificCouncilUnit.getScientificCouncilUnit().getUnitBasedSenderSet().iterator().next();
 
-        new Message(sender, sender.getConcreteReplyTos(), recipient.asCollection(), subject, body, "");
+        Message.from(ScientificCouncilUnit.getScientificCouncilUnit().getSender())
+                .replyToSender()
+                .to(Person.convertToUserGroup(persons))
+                .subject(subject)
+                .textBody(body)
+                .send();
     }
 
     protected String getMessage(final String key, final Object... args) {
@@ -1293,7 +1293,7 @@ public class Thesis extends Thesis_Base {
                 final ExecutionDegree executionDegree = degreeCurricularPlan.getExecutionDegreeByYear(executionYear);
                 if (executionDegree != null) {
                     for (ScientificCommission member : executionDegree.getScientificCommissionMembersSet()) {
-                        isMember = isMember || president == member.getPerson();
+                        isMember = president == member.getPerson();
 
                         if (isMember) {
                             break;

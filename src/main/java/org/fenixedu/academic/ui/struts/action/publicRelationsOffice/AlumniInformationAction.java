@@ -18,17 +18,8 @@
  */
 package org.fenixedu.academic.ui.struts.action.publicRelationsOffice;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -42,14 +33,13 @@ import org.fenixedu.academic.domain.alumni.AlumniReportFileBean;
 import org.fenixedu.academic.domain.person.RoleType;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.domain.util.email.EmailBean;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.dto.alumni.AlumniInfoNotUpdatedBean;
 import org.fenixedu.academic.dto.alumni.AlumniMailSendToBean;
 import org.fenixedu.academic.dto.alumni.AlumniSearchBean;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.academic.ui.struts.action.publicRelationsOffice.PublicRelationsApplication.PublicRelationsAlumniApp;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
 import org.fenixedu.bennu.struts.annotations.Mapping;
@@ -57,12 +47,13 @@ import org.fenixedu.bennu.struts.portal.EntryPoint;
 import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
 import org.joda.time.DateTime;
 import org.joda.time.YearMonthDay;
-
 import pt.ist.fenixWebFramework.renderers.components.state.IViewState;
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonPrimitive;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.*;
+import java.util.Map.Entry;
 
 @StrutsFunctionality(app = PublicRelationsAlumniApp.class, path = "search", titleKey = "link.search.alumni")
 @Mapping(path = "/alumni", module = "publicRelations")
@@ -155,9 +146,8 @@ public class AlumniInformationAction extends FenixDispatchAction {
     public ActionForward prepareRemoveRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
         EmailBean emailBean = new EmailBean();
-        final Set<Sender> availableSenders = Sender.getAvailableSenders();
-        for (Sender sender : availableSenders) {
-            if (sender.getFromName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
+        for (org.fenixedu.messaging.core.domain.Sender sender : org.fenixedu.messaging.core.domain.Sender.available()) {
+            if (sender.getName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
                 emailBean.setSender(sender);
                 break;
             }
@@ -168,20 +158,20 @@ public class AlumniInformationAction extends FenixDispatchAction {
 
     public ActionForward manageRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
-        final Set<Sender> availableSenders = Sender.getAvailableSenders();
-        Sender gepSender = getGEPSender(availableSenders);
-        List<Recipient> recipients = new ArrayList<Recipient>();
-        recipients.addAll(gepSender.getRecipientsSet());
+        final Set<org.fenixedu.messaging.core.domain.Sender> availableSenders = org.fenixedu.messaging.core.domain.Sender.available();
+        org.fenixedu.messaging.core.domain.Sender gepSender = getGEPSender(availableSenders);
+        List<Group> recipients = new ArrayList<Group>();
+        recipients.addAll(gepSender.getRecipients());
         Collections.sort(recipients, new BeanComparator("toName"));
         Collections.reverse(recipients);
         request.setAttribute("recipients", recipients);
         return mapping.findForward("manageRecipients");
     }
 
-    private Sender getGEPSender(final Set<Sender> availableSenders) {
-        Sender gepSender = null;
-        for (Sender sender : availableSenders) {
-            if (sender.getFromName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
+    private org.fenixedu.messaging.core.domain.Sender getGEPSender(final Set<org.fenixedu.messaging.core.domain.Sender> availableSenders) {
+        org.fenixedu.messaging.core.domain.Sender gepSender = null;
+        for (org.fenixedu.messaging.core.domain.Sender sender : availableSenders) {
+            if (sender.getName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
                 gepSender = sender;
                 break;
             }
@@ -201,7 +191,7 @@ public class AlumniInformationAction extends FenixDispatchAction {
     public ActionForward addRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
         AlumniMailSendToBean alumniMailSendToBean = getRenderedObject("createRecipient");
-        Sender gepSender = getGEPSender(Sender.getAvailableSenders());
+        org.fenixedu.messaging.core.domain.Sender gepSender = getGEPSender(org.fenixedu.messaging.core.domain.Sender.available());
         alumniMailSendToBean.createRecipientGroup(gepSender);
 
         return manageRecipients(mapping, actionForm, request, response);
@@ -218,7 +208,7 @@ public class AlumniInformationAction extends FenixDispatchAction {
             request.setAttribute("createRecipient", new AlumniMailSendToBean());
             return mapping.findForward("addRecipients");
         }
-        Sender gepSender = getGEPSender(Sender.getAvailableSenders());
+        org.fenixedu.messaging.core.domain.Sender gepSender = getGEPSender(org.fenixedu.messaging.core.domain.Sender.available());
         alumniInfoNotUpdatedBean.createRecipientGroup(gepSender);
 
         return manageRecipients(mapping, actionForm, request, response);

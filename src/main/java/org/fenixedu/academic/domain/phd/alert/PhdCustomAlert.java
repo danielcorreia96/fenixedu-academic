@@ -26,13 +26,12 @@ import java.util.stream.Collectors;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.LocalDate;
 
 public class PhdCustomAlert extends PhdCustomAlert_Base {
@@ -130,9 +129,11 @@ public class PhdCustomAlert extends PhdCustomAlert_Base {
         }
 
         if (isToSendMail()) {
-            final Recipient recipient = new Recipient(getTargetAccessGroup());
-            new Message(getSender(), recipient, buildMailSubject(), buildMailBody());
-
+            Message.from(getSender())
+                    .to(getTargetAccessGroup())
+                    .subject(buildMailSubject())
+                    .textBody(buildMailBody())
+                    .send();
         }
 
     }

@@ -18,19 +18,7 @@
  */
 package org.fenixedu.academic.ui.struts.action.publicRelationsOffice;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.io.CharStreams;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -44,11 +32,10 @@ import org.fenixedu.academic.domain.contacts.PartyContact;
 import org.fenixedu.academic.domain.contacts.Phone;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.domain.student.Student;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.academic.ui.struts.action.messaging.EmailsDA;
 import org.fenixedu.academic.util.Bundle;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
@@ -57,10 +44,16 @@ import org.fenixedu.bennu.struts.portal.EntryPoint;
 import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
 import org.fenixedu.commons.spreadsheet.StyledExcelSpreadsheet;
 import org.joda.time.DateTime;
-
-import com.google.common.io.CharStreams;
-
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.util.*;
 
 @StrutsFunctionality(app = PublicRelationsApplication.class, path = "alumni-cerimony",
         titleKey = "label.publicRelationOffice.alumniCerimony.inquiries")
@@ -199,14 +192,14 @@ public class AlumniCerimonyDA extends FenixDispatchAction {
     public ActionForward sendEmail(ActionMapping mapping, ActionForm form, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
         final CerimonyInquiry cerimonyInquiry = getDomainObject(request, "cerimonyInquiryId");
-        final Sender sender = getPublicRelationsSender();
-        final Recipient recipient = cerimonyInquiry.createRecipient();
-        return EmailsDA.sendEmail(request, sender, recipient);
+        final org.fenixedu.messaging.core.domain.Sender sender = getPublicRelationsSender();
+        final Group recipient = cerimonyInquiry.createRecipient();
+        return EmailsDA.sendEmail(request, sender, Collections.singleton(recipient));
     }
 
-    private Sender getPublicRelationsSender() {
-        for (final Sender sender : Sender.getAvailableSenders()) {
-            if (sender.getFromName().equalsIgnoreCase("Gabinete de Comunica��o e Rela��es P�blicas")) {
+    private org.fenixedu.messaging.core.domain.Sender getPublicRelationsSender() {
+        for (final org.fenixedu.messaging.core.domain.Sender sender : org.fenixedu.messaging.core.domain.Sender.available()) {
+            if (sender.getName().equalsIgnoreCase("Gabinete de Comunica��o e Rela��es P�blicas")) {
                 return sender;
             }
         }

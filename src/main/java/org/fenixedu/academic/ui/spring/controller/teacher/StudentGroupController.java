@@ -27,11 +27,10 @@ import org.fenixedu.academic.domain.Professorship;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.StudentGroup;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.ui.struts.action.teacher.ManageExecutionCourseDA;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.domain.groups.PersistentDynamicGroup;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.security.CSRFTokenBean;
@@ -168,17 +167,17 @@ public class StudentGroupController extends ExecutionCourseController {
                 studentGroup.getGrouping().getName() + "-" + BundleUtil.getString(Bundle.APPLICATION, "label.group")
                         + studentGroup.getGroupNumber();
 
-        ArrayList<Recipient> recipients = new ArrayList<Recipient>();
-        recipients.add(Recipient.newInstance(
-                label,
+        ArrayList<Group> recipients = new ArrayList<>();
+        recipients.add(
                 Group.users(studentGroup.getAttendsSet().stream().map(Attends::getRegistration).map(Registration::getPerson)
-                        .map(Person::getUser).filter(Objects::nonNull).sorted(User.COMPARATOR_BY_NAME))));
+                        .map(Person::getUser).filter(Objects::nonNull).sorted(User.COMPARATOR_BY_NAME))
+                );
         String sendEmailUrl =
                 UriBuilder
-                        .fromUri("/messaging/emails.do")
-                        .queryParam("method", "newEmail")
-                        .queryParam("sender", ExecutionCourseSender.newInstance(executionCourse).getExternalId())
-                        .queryParam("recipient", recipients.stream().filter(r -> r != null).map(r -> r.getExternalId()).toArray())
+                        .fromUri("/messaging/message")
+                        //.queryParam("method", "newEmail")
+                        .queryParam("sender", executionCourse.getSender().getExternalId())
+                        //.queryParam("recipient", recipients.stream().filter(r -> r != null).map(r -> r.toPersistentGroup().getExternalId()).toArray())
                         .build().toString();
         String sendEmailWithChecksumUrl =
                 GenericChecksumRewriter.injectChecksumInUrl(request.getContextPath(), sendEmailUrl, session);

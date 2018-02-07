@@ -35,6 +35,6 @@ public class UnitMailSenderAction extends FenixDispatchAction {
 
     public ActionForward prepare(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
-        return EmailsDA.sendEmail(request, getUnit(request).getOneUnitBasedSender());
+        return EmailsDA.sendEmail(request, getUnit(request).getSender(), null);
     }
 }
