@@ -27,20 +27,31 @@ import org.fenixedu.academic.domain.Installation;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.ConcreteReplyTo;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.predicate.RolePredicates;
 import org.fenixedu.academic.service.services.exceptions.FenixServiceException;
 import org.fenixedu.academic.util.Bundle;
-import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 
+import org.fenixedu.messaging.core.domain.Message;
+import org.fenixedu.messaging.core.domain.MessagingSystem;
+import org.fenixedu.messaging.core.template.DeclareMessageTemplate;
+import org.fenixedu.messaging.core.template.TemplateParameter;
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
+@DeclareMessageTemplate(
+        id = "org.fenixedu.academic.service.changeStudentsShift.message.template",
+        description = "changeStudentsShift.message.template.description",
+        subject = "changeStudentsShift.message.template.subject",
+        text = "changeStudentsShift.message.template.text",
+        parameters = {
+                @TemplateParameter(id = "oldShift", description = "changeStudentsShift.message.template.parameter.oldShift"),
+                @TemplateParameter(id = "newShift", description = "changeStudentsShift.message.template.parameter.newShift"),
+        },
+        bundle = Bundle.RESOURCE_MANAGER
+)
 public class ChangeStudentsShift {
 
     @Atomic
@@ -63,32 +74,26 @@ public class ChangeStudentsShift {
             }
         }
 
-        final Set<Person> recievers = new HashSet<Person>();
+        final Set<Person> receivers = new HashSet<Person>();
 
         oldShift.getStudentsSet().removeAll(registrations);
         if (newShift != null) {
             newShift.getStudentsSet().addAll(registrations);
         }
         for (final Registration registration : registrations) {
-            recievers.add(registration.getPerson());
+            receivers.add(registration.getPerson());
         }
-
-        final String subject = getString("changeStudentsShift.email.subject");
 
         final String groupName = getString("changeStudentsShift.email.groupName", oldShift.getNome());
 
-        final String messagePrefix = getString("changeStudentsShift.email.body", oldShift.getNome());
-
-        final String messagePosfix =
-                newShift == null ? getString("changeStudentsShift.email.body.notNewShift") : getString(
-                        "changeStudentsShift.email.body.newShift", oldShift.getNome());
-
-        final String message = messagePrefix + messagePosfix;
-
-        Recipient recipient = new Recipient(groupName, Person.convertToUserGroup(recievers));
-        Sender sender = Bennu.getInstance().getSystemSender();
-        String gopEmailAddress = Installation.getInstance().getInstituitionalEmailAddress("gop");
-        new Message(sender, new ConcreteReplyTo(gopEmailAddress).asCollection(), recipient.asCollection(), subject, message, "");
+        Message.fromSystem()
+                .replyTo(Installation.getInstance().getInstituitionalEmailAddress("gop"))
+                .to(Person.convertToUserGroup(receivers))
+                .template("org.fenixedu.academic.service.changeStudentsShift.message.template")
+                    .parameter("oldShift", oldShift)
+                    .parameter("newShift", newShift)
+                    .and()
+                .send();
     }
 
     private static String getString(final String key, final String... args) {

@@ -27,14 +27,14 @@ import org.fenixedu.academic.domain.Professorship;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.StudentGroup;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.ui.struts.action.teacher.ManageExecutionCourseDA;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.domain.User;
+import org.fenixedu.bennu.core.domain.groups.PersistentDynamicGroup;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.spring.security.CSRFTokenBean;
+import org.fenixedu.messaging.core.ui.MessageBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 import org.springframework.web.servlet.view.RedirectView;
 import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.GenericChecksumRewriter;
@@ -163,27 +164,20 @@ public class StudentGroupController extends ExecutionCourseController {
 
     @RequestMapping(value = "/sendEmail/{studentGroup}", method = RequestMethod.GET)
     public RedirectView sendEmail(Model model, HttpServletRequest request, HttpSession session,
-            @PathVariable StudentGroup studentGroup) {
+            @PathVariable StudentGroup studentGroup, final RedirectAttributes redirectAttributes) {
         String label =
                 studentGroup.getGrouping().getName() + "-" + BundleUtil.getString(Bundle.APPLICATION, "label.group")
                         + studentGroup.getGroupNumber();
 
-        ArrayList<Recipient> recipients = new ArrayList<Recipient>();
-        recipients.add(Recipient.newInstance(
-                label,
-                Group.users(studentGroup.getAttendsSet().stream().map(Attends::getRegistration).map(Registration::getPerson)
-                        .map(Person::getUser).filter(Objects::nonNull).sorted(User.COMPARATOR_BY_NAME))));
-        String sendEmailUrl =
-                UriBuilder
-                        .fromUri("/messaging/emails.do")
-                        .queryParam("method", "newEmail")
-                        .queryParam("sender", ExecutionCourseSender.newInstance(executionCourse).getExternalId())
-                        .queryParam("recipient", recipients.stream().filter(r -> r != null).map(r -> r.getExternalId()).toArray())
-                        .build().toString();
-        String sendEmailWithChecksumUrl =
-                GenericChecksumRewriter.injectChecksumInUrl(request.getContextPath(), sendEmailUrl, session);
-        return new RedirectView(sendEmailWithChecksumUrl, true);
+        Group group = Group.users(studentGroup.getAttendsSet().stream().map(Attends::getRegistration).map(Registration::getPerson)
+                        .map(Person::getUser).filter(Objects::nonNull).sorted(User.COMPARATOR_BY_NAME));
 
+        MessageBean bean = new MessageBean();
+        bean.setLockedSender(executionCourse.getSender());
+        bean.addAdHocRecipient(group);
+        bean.selectRecipient(group);
+        redirectAttributes.addFlashAttribute("messageBean",bean);
+        return new RedirectView("/messaging/message", true);
     }
 
     @RequestMapping(value = "/deleteStudentGroup/{studentGroup}", method = RequestMethod.POST)

@@ -20,6 +20,7 @@ package org.fenixedu.academic.ui.struts.action.messaging;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.UriBuilder;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -35,6 +36,12 @@ public class UnitMailSenderAction extends FenixDispatchAction {
 
     public ActionForward prepare(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) throws Exception {
-        return EmailsDA.sendEmail(request, getUnit(request).getOneUnitBasedSender());
+        String sendEmailUrl =
+                UriBuilder
+                        .fromUri("/messaging/message")
+                        .queryParam("sender", getUnit(request).getSender().getExternalId())
+                        .build().toString();
+        response.sendRedirect(sendEmailUrl);
+        return null;
     }
 }

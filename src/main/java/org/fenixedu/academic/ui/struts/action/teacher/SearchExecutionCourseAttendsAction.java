@@ -18,43 +18,26 @@
  */
 package org.fenixedu.academic.ui.struts.action.teacher;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.DynaActionForm;
-import org.fenixedu.academic.domain.Attends;
+import org.apache.struts.action.*;
+import org.fenixedu.academic.domain.*;
 import org.fenixedu.academic.domain.Attends.StudentAttendsStateType;
-import org.fenixedu.academic.domain.DegreeCurricularPlan;
-import org.fenixedu.academic.domain.ExecutionCourse;
-import org.fenixedu.academic.domain.ExecutionDegree;
-import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.accessControl.SearchDegreeStudentsGroup;
-import org.fenixedu.academic.domain.util.email.CoordinatorSender;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.dto.teacher.executionCourse.SearchExecutionCourseAttendsBean;
 import org.fenixedu.academic.ui.struts.action.coordinator.DegreeCoordinatorIndex;
-import org.fenixedu.academic.ui.struts.action.messaging.EmailsDA;
 import org.fenixedu.academic.ui.struts.action.teacher.executionCourse.ExecutionCourseBaseAction;
 import org.fenixedu.academic.util.CollectionPager;
 import org.fenixedu.academic.util.WorkingStudentSelectionType;
-import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.struts.annotations.Mapping;
-
+import org.fenixedu.messaging.core.ui.MessageBean;
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
 import pt.ist.fenixframework.FenixFramework;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.UriBuilder;
+import java.io.IOException;
+import java.util.*;
 
 @Mapping(path = "/searchECAttends", module = "teacher", functionality = ManageExecutionCourseDA.class)
 public class SearchExecutionCourseAttendsAction extends ExecutionCourseBaseAction {
@@ -169,29 +152,35 @@ public class SearchExecutionCourseAttendsAction extends ExecutionCourseBaseActio
     }
 
     public ActionForward sendEmail(ActionMapping mapping, ActionForm form, HttpServletRequest request,
-            HttpServletResponse response) {
-        ExecutionCourse executionCourse;
-        Group studentsGroup = null;
+            HttpServletResponse response) throws IOException {
+        MessageBean messageBean = new MessageBean();
         String label;
-        Sender sender;
         SearchExecutionCourseAttendsBean bean = getRenderedObject("mailViewState");
         if (bean != null) {
-            executionCourse = bean.getExecutionCourse();
-            studentsGroup = bean.getAttendsGroup();
+            messageBean.setLockedSender(bean.getExecutionCourse().getSender());
+            messageBean.addAdHocRecipient(bean.getAttendsGroup());
+            messageBean.selectRecipient(bean.getAttendsGroup());
             label = bean.getLabel();
-            sender = ExecutionCourseSender.newInstance(executionCourse);
         } else {
             SearchDegreeStudentsGroup degreeStudentsGroup =
                     SearchDegreeStudentsGroup.parse((String) getFromRequestOrForm(request, (DynaActionForm) form, "searchGroup"));
             label = degreeStudentsGroup.getLabel();
             String executionDegreeId = (String) getFromRequestOrForm(request, (DynaActionForm) form, "executionDegreeId");
-            studentsGroup = degreeStudentsGroup.getUserGroup();
             ExecutionDegree executionDegree = FenixFramework.getDomainObject(executionDegreeId);
-            sender = CoordinatorSender.newInstance(executionDegree.getDegree());
+            messageBean.setLockedSender(executionDegree.getDegree().getSender());
+            messageBean.addAdHocRecipient(degreeStudentsGroup.getUserGroup());
+            messageBean.selectRecipient(degreeStudentsGroup.getUserGroup());
         }
-
-        Recipient recipient = Recipient.newInstance(label, studentsGroup);
-        return EmailsDA.sendEmail(request, sender, recipient);
+        String sendEmailUrl =
+                UriBuilder
+                        .fromUri("/messaging/message")
+                        .queryParam("sender", messageBean.getSender().getExternalId())
+                        .queryParam("senderLocked",messageBean.isSenderLocked())
+                        .queryParam("adHocRecipients", messageBean.getAdHocRecipients().toArray())
+                        .queryParam("selectedRecipients", messageBean.getSelectedRecipients().toArray())
+                        .build().toString();
+        response.sendRedirect(sendEmailUrl);
+        return null;
     }
 
     public ActionForward search(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) {

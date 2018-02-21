@@ -25,6 +25,7 @@ import java.util.Collections;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.UriBuilder;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -39,9 +40,6 @@ import org.fenixedu.academic.domain.mobility.outbound.OutboundMobilityCandidacyC
 import org.fenixedu.academic.domain.mobility.outbound.OutboundMobilityCandidacyPeriod;
 import org.fenixedu.academic.domain.mobility.outbound.OutboundMobilityCandidacyPeriodConfirmationOption;
 import org.fenixedu.academic.domain.mobility.outbound.OutboundMobilityCandidacySubmission;
-import org.fenixedu.academic.domain.util.email.EmailBean;
-import org.fenixedu.academic.domain.util.email.PersonSender;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.ui.struts.action.academicAdministration.AcademicAdministrationApplication.AcademicAdminCandidaciesApp;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
@@ -55,6 +53,7 @@ import org.fenixedu.bennu.struts.portal.EntryPoint;
 import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
 import org.fenixedu.commons.spreadsheet.Spreadsheet;
 
+import org.fenixedu.messaging.core.ui.MessageBean;
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
 import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.GenericChecksumRewriter;
 
@@ -64,8 +63,7 @@ import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.GenericChecksumR
 @Forwards({ @Forward(name = "prepare", path = "/mobility/outbound/OutboundMobilityCandidacy.jsp"),
         @Forward(name = "viewContest", path = "/mobility/outbound/viewContest.jsp"),
         @Forward(name = "manageCandidacies", path = "/mobility/outbound/manageCandidacies.jsp"),
-        @Forward(name = "viewCandidate", path = "/mobility/outbound/viewCandidate.jsp"),
-        @Forward(name = "sendEmail", path = "/messaging/emails.do?method=newEmail") })
+        @Forward(name = "viewCandidate", path = "/mobility/outbound/viewCandidate.jsp")})
 public class OutboundMobilityCandidacyDA extends FenixDispatchAction {
 
     @EntryPoint
@@ -438,7 +436,7 @@ public class OutboundMobilityCandidacyDA extends FenixDispatchAction {
     }
 
     public ActionForward sendEmailToCandidates(final ActionMapping mapping, final ActionForm actionForm,
-            final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+            final HttpServletRequest request, final HttpServletResponse response) throws Exception {
         final OutboundMobilityCandidacyPeriod period = getDomainObject(request, "candidacyPeriodOid");
         final OutboundMobilityCandidacyContestGroup mobilityGroup = getDomainObject(request, "mobilityGroupOid");
 
@@ -449,21 +447,22 @@ public class OutboundMobilityCandidacyDA extends FenixDispatchAction {
                 Group.users(period.getOutboundMobilityCandidacySubmissionSet().stream()
                         .filter(s -> s.hasContestInGroup(mobilityGroup)).map(s -> s.getRegistration().getPerson().getUser()));
 
-        final Recipient recipient = Recipient.newInstance(toGroupName, group);
-        final EmailBean bean = new EmailBean();
-        bean.setRecipients(Collections.singletonList(recipient));
+        final MessageBean bean = new MessageBean();
 
-        final Person person = AccessControl.getPerson();
-        if (person != null) {
-            final PersonSender sender = person.getSender();
-            if (sender != null) {
-                bean.setSender(sender);
-            }
-        }
+        bean.setLockedSender(AccessControl.getPerson().getSender());
+        bean.addAdHocRecipient(group);
+        bean.selectRecipient(group);
 
-        request.setAttribute("emailBean", bean);
-
-        return mapping.findForward("sendEmail");
+        String sendEmailUrl =
+                UriBuilder
+                        .fromUri("/messaging/message")
+                        .queryParam("sender", bean.getSender().getExternalId())
+                        .queryParam("senderLocked",bean.isSenderLocked())
+                        .queryParam("adHocRecipients", bean.getAdHocRecipients().toArray())
+                        .queryParam("selectedRecipients", bean.getSelectedRecipients().toArray())
+                        .build().toString();
+        response.sendRedirect(sendEmailUrl);
+        return null;
     }
 
     public ActionForward deleteOption(final ActionMapping mapping, final ActionForm actionForm, final HttpServletRequest request,
