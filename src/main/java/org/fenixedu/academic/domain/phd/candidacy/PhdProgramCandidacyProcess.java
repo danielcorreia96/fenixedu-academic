@@ -535,7 +535,7 @@ public class PhdProgramCandidacyProcess extends PhdProgramCandidacyProcess_Base 
         return hasPhdProgram() ? getPhdProgram().getDegree().getLastActiveDegreeCurricularPlan() : null;
     }
 
-    PhdProgram getPhdProgram() {
+    public PhdProgram getPhdProgram() {
         return getIndividualProgramProcess().getPhdProgram();
     }
 

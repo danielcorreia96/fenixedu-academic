@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Locale;
 
 import org.fenixedu.academic.domain.ExecutionYear;
+import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.phd.InternalPhdParticipant;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramDocumentType;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
@@ -29,12 +30,11 @@ import org.fenixedu.academic.domain.phd.PhdParticipant;
 import org.fenixedu.academic.domain.phd.PhdProgramProcessDocument;
 import org.fenixedu.academic.domain.phd.alert.AlertService.AlertMessage;
 import org.fenixedu.academic.domain.phd.thesis.activities.PhdThesisActivity;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.ReplyTo;
 import org.fenixedu.academic.util.Bundle;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
 
@@ -124,11 +124,18 @@ public class PhdReporterReviewAlert extends PhdReporterReviewAlert_Base {
             InternalPhdParticipant internalParticipant = (InternalPhdParticipant) participant;
             new PhdAlertMessage(getProcess(), internalParticipant.getPerson(), getFormattedSubject(), buildBody(getProcess(),
                     participant));
-            new Message(getSender(), new Recipient(Collections.singleton(internalParticipant.getPerson())), buildMailSubject(),
-                    buildMailBody());
+            Group tos = Person.convertToUserGroup(Collections.singleton(internalParticipant.getPerson()));
+            Message.from(getSender())
+                    .to(tos)
+                    .subject(buildMailSubject())
+                    .textBody(buildMailBody())
+                    .send();
         } else {
-            new Message(getSender(), Collections.<ReplyTo> emptyList(), Collections.<Recipient> emptyList(), buildMailSubject(),
-                    buildMailBody(), Collections.singleton(participant.getEmail()));
+            Message.from(getSender())
+                    .singleBcc(participant.getEmail())
+                    .subject(buildMailSubject())
+                    .textBody(buildMailBody())
+                    .send();
         }
 
     }

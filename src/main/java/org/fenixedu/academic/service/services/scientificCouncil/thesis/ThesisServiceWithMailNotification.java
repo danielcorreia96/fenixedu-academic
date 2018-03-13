@@ -19,22 +19,18 @@
 package org.fenixedu.academic.service.services.scientificCouncil.thesis;
 
 import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.thesis.Thesis;
 import org.fenixedu.academic.domain.thesis.ThesisEvaluationParticipant;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.PersonSender;
-import org.fenixedu.academic.domain.util.email.Sender;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.util.Bundle;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.commons.i18n.I18N;
+import org.fenixedu.messaging.core.domain.Message;
 
 public abstract class ThesisServiceWithMailNotification {
 
@@ -46,8 +42,11 @@ public abstract class ThesisServiceWithMailNotification {
     abstract void process(Thesis thesis);
 
     private void sendEmail(Thesis thesis) {
-        Sender sender = PersonSender.newInstance(AccessControl.getPerson());
-        new Message(sender, null, null, getSubject(thesis), getMessage(thesis), getEmails(thesis));
+        Message.from(AccessControl.getPerson().getSender())
+                .singleBcc(getEmails(thesis))
+                .subject(getSubject(thesis))
+                .textBody(getMessage(thesis))
+                .send();
     }
 
     protected String getMessage(String key, Object... args) {

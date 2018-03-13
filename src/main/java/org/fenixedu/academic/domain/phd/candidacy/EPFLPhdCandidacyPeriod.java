@@ -28,10 +28,25 @@ import org.fenixedu.academic.util.phd.EPFLPhdCandidacyProcessProperties;
 import org.fenixedu.academic.util.phd.PhdProperties;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
+import org.fenixedu.messaging.core.template.DeclareMessageTemplate;
+import org.fenixedu.messaging.core.template.TemplateParameter;
 import org.joda.time.DateTime;
 
 import pt.ist.fenixframework.Atomic;
-
+@DeclareMessageTemplate(id = "phd.epfl.referee.link.email.message.template",
+        description = "phd.epfl.referee.link.email.message.description",
+        subject = "phd.epfl.referee.link.email.message.subject",
+        text = "phd.epfl.referee.link.email.message.body",
+        parameters = {
+                @TemplateParameter(id = "candidateName", description = "phd.epfl.referee.link.email.message.parameter.candidateName"),
+                @TemplateParameter(id = "refereeLink", description = "phd.epfl.referee.link.email.message.parameter.refereeLink"),
+                @TemplateParameter(id = "hashCodeValue", description = "phd.epfl.referee.link.email.message.parameter.hashCodeValue"),
+                @TemplateParameter(id = "programFocusArea", description = "phd.epfl.referee.link.email.message.parameter.programFocusArea"),
+                @TemplateParameter(id = "candidacyPeriodEndDate", description = "phd.epfl.referee.link.email.message.parameter.candidacyPeriodEndDate")
+        },
+        bundle = Bundle.PHD
+)
 public class EPFLPhdCandidacyPeriod extends EPFLPhdCandidacyPeriod_Base {
 
     protected EPFLPhdCandidacyPeriod() {
@@ -124,11 +139,21 @@ public class EPFLPhdCandidacyPeriod extends EPFLPhdCandidacyPeriod_Base {
     }
 
     @Override
-    public String getEmailMessageBodyForRefereeForm(final PhdCandidacyReferee referee) {
-        return String.format(BundleUtil.getString(Bundle.PHD, "message.phd.epfl.email.body.referee"), referee
-                .getPhdProgramCandidacyProcess().getIndividualProgramProcess().getPhdProgramFocusArea().getName().getContent(),
-                EPFLPhdCandidacyProcessProperties.getConfiguration().getPublicCandidacyRefereeFormLink(), referee.getValue(),
-                referee.getPhdProgramCandidacyProcess().getPublicPhdCandidacyPeriod().getEnd().toString("yyyy-MM-dd HH:mm"));
+    public void sendEmailForRefereeForm(final PhdCandidacyReferee referee) {
+        String candidacyPeriodEndDate = referee.getPhdProgramCandidacyProcess().getPublicPhdCandidacyPeriod().getEnd().toString("yyyy-MM-dd HH:mm");
+        String refereeLink = EPFLPhdCandidacyProcessProperties.getConfiguration().getPublicCandidacyRefereeFormLink();
+        String programFocusArea = referee.getPhdProgramCandidacyProcess().getIndividualProgramProcess().getPhdProgramFocusArea().getName().getContent();
+
+        Message.fromSystem().replyToSender()
+                .singleBcc(referee.getEmail())
+                .template("phd.epfl.referee.link.email.message.template")
+                    .parameter("candidateName", referee.getCandidatePerson().getName())
+                    .parameter("refereeLink", refereeLink)
+                    .parameter("hashCodeValue", referee.getValue())
+                    .parameter("programFocusArea", programFocusArea)
+                    .parameter("candidacyPeriodEndDate", candidacyPeriodEndDate)
+                .and()
+                .wrapped().send();
     }
 
     @Override

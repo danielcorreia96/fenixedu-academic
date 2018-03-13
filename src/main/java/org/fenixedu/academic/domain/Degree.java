@@ -39,12 +39,17 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
+import org.fenixedu.academic.domain.accessControl.CoordinatorGroup;
+import org.fenixedu.academic.domain.accessControl.StudentGroup;
+import org.fenixedu.academic.domain.accessControl.TeacherGroup;
+import org.fenixedu.academic.domain.accessControl.UnitGroup;
 import org.fenixedu.academic.domain.administrativeOffice.AdministrativeOffice;
 import org.fenixedu.academic.domain.curricularPeriod.CurricularPeriod;
 import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.domain.degree.degreeCurricularPlan.DegreeCurricularPlanState;
 import org.fenixedu.academic.domain.degreeStructure.CycleType;
 import org.fenixedu.academic.domain.exceptions.DomainException;
+import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.academic.domain.person.RoleType;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.domain.student.Student;
@@ -55,8 +60,10 @@ import org.fenixedu.academic.domain.thesis.ThesisState;
 import org.fenixedu.academic.domain.time.calendarStructure.AcademicInterval;
 import org.fenixedu.academic.domain.time.calendarStructure.AcademicPeriod;
 import org.fenixedu.academic.predicate.AcademicPredicates;
+import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.util.CoreConfiguration;
 import org.fenixedu.commons.i18n.I18N;
@@ -65,6 +72,7 @@ import org.fenixedu.spaces.domain.Space;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Strings;
+import pt.ist.fenixframework.Atomic;
 
 public class Degree extends Degree_Base implements Comparable<Degree> {
     public static final String CREATED_SIGNAL = "academic.degree.create";
@@ -1401,6 +1409,37 @@ public class Degree extends Degree_Base implements Comparable<Degree> {
         }
 
         super.setCode(code);
+    }
+
+    @Override
+    public org.fenixedu.messaging.core.domain.Sender getSender() {
+        org.fenixedu.messaging.core.domain.Sender sender = super.getSender();
+        return sender == null ? buildDefaultSender() : sender;
+    }
+
+    @Atomic
+    protected org.fenixedu.messaging.core.domain.Sender buildDefaultSender() {
+        Group current = CoordinatorGroup.get(this);
+        Group teachers = TeacherGroup.get(this);
+        Group students = org.fenixedu.academic.domain.accessControl.StudentGroup.get(this, null);
+        List<Group> cycleGroups = getDegreeType().getCycleTypes().stream().map(cycleType ->
+                org.fenixedu.academic.domain.accessControl.StudentGroup.get(this, cycleType)
+        ).collect(Collectors.toList());
+        org.fenixedu.messaging.core.domain.Sender sender = org.fenixedu.messaging.core.domain.Sender
+                .from(Installation.getInstance().getInstituitionalEmailAddress("noreply"))
+                .as(createFromName())
+                .replyTo(AccessControl.getPerson().getDefaultEmailAddressValue())
+                .members(CoordinatorGroup.get(this))
+                .recipients(cycleGroups)
+                .recipients(current,teachers,students)
+                .recipients(RoleType.TEACHER.actualGroup(), StudentGroup.get())
+                .build();
+        setSender(sender);
+        return sender;
+    }
+
+    public String createFromName() {
+        return String.format("%s (%s: %s)", Unit.getInstitutionAcronym(), getSigla(), "Coordenação");
     }
 
 }

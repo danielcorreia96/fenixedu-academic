@@ -107,7 +107,7 @@ public abstract class PhdCandidacyPeriod extends PhdCandidacyPeriod_Base {
         super.edit(start, end);
     }
 
-    public abstract String getEmailMessageBodyForRefereeForm(final PhdCandidacyReferee referee);
+    public abstract void sendEmailForRefereeForm(final PhdCandidacyReferee referee);
 
     public abstract LocalizedString getEmailMessageSubjectForMissingCandidacyValidation(
             final PhdIndividualProgramProcess process);

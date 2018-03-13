@@ -419,5 +419,4 @@ public abstract class FenixDispatchAction extends DispatchAction implements Exce
     protected void atomic(Runnable runnable) {
         FenixFramework.atomic(runnable);
     }
-
 }

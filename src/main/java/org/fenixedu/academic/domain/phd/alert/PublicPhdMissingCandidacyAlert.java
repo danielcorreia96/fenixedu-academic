@@ -18,17 +18,14 @@
  */
 package org.fenixedu.academic.domain.phd.alert;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.fenixedu.academic.FenixEduAcademicConfiguration;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.phd.candidacy.PhdProgramPublicCandidacyHashCode;
-import org.fenixedu.academic.domain.util.email.Message;
-import org.fenixedu.academic.domain.util.email.Recipient;
 import org.fenixedu.academic.util.Bundle;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
+import org.fenixedu.messaging.core.domain.Message;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -92,11 +89,15 @@ public class PublicPhdMissingCandidacyAlert extends PublicPhdMissingCandidacyAle
 
     @Override
     protected void generateMessage() {
-        new Message(getSender(), null, Collections.<Recipient> emptyList(), buildMailSubject(), buildMailBody(), getEmail());
+        Message.from(getSender())
+                .singleBcc(getEmail())
+                .subject(buildMailSubject())
+                .textBody(buildMailBody())
+                .send();
     }
 
-    private Set<String> getEmail() {
-        return Collections.singleton(getCandidacyHashCode().getEmail());
+    private String getEmail() {
+        return getCandidacyHashCode().getEmail();
     }
 
     @Override
