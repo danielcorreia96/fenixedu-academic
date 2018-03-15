@@ -41,11 +41,6 @@ import org.fenixedu.academic.domain.alumni.AlumniReportFile;
 import org.fenixedu.academic.domain.alumni.AlumniReportFileBean;
 import org.fenixedu.academic.domain.person.RoleType;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.EmailBean;
-import org.fenixedu.academic.domain.util.email.Recipient;
-import org.fenixedu.academic.domain.util.email.Sender;
-import org.fenixedu.academic.dto.alumni.AlumniInfoNotUpdatedBean;
-import org.fenixedu.academic.dto.alumni.AlumniMailSendToBean;
 import org.fenixedu.academic.dto.alumni.AlumniSearchBean;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.academic.ui.struts.action.publicRelationsOffice.PublicRelationsApplication.PublicRelationsAlumniApp;
@@ -57,7 +52,6 @@ import org.fenixedu.bennu.struts.portal.EntryPoint;
 import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
 import org.joda.time.DateTime;
 import org.joda.time.YearMonthDay;
-
 import pt.ist.fenixWebFramework.renderers.components.state.IViewState;
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
 
@@ -143,93 +137,6 @@ public class AlumniInformationAction extends FenixDispatchAction {
             data.add(dataEntry);
         }
         return data.toString();
-    }
-
-    public ActionForward prepareAddRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        request.setAttribute("createRecipient", new AlumniMailSendToBean());
-        request.setAttribute("notUpdatedInfoRecipient", new AlumniInfoNotUpdatedBean());
-        return mapping.findForward("addRecipients");
-    }
-
-    public ActionForward prepareRemoveRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        EmailBean emailBean = new EmailBean();
-        final Set<Sender> availableSenders = Sender.getAvailableSenders();
-        for (Sender sender : availableSenders) {
-            if (sender.getFromName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
-                emailBean.setSender(sender);
-                break;
-            }
-        }
-        request.setAttribute("emailBean", emailBean);
-        return mapping.findForward("removeRecipients");
-    }
-
-    public ActionForward manageRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        final Set<Sender> availableSenders = Sender.getAvailableSenders();
-        Sender gepSender = getGEPSender(availableSenders);
-        List<Recipient> recipients = new ArrayList<Recipient>();
-        recipients.addAll(gepSender.getRecipientsSet());
-        Collections.sort(recipients, new BeanComparator("toName"));
-        Collections.reverse(recipients);
-        request.setAttribute("recipients", recipients);
-        return mapping.findForward("manageRecipients");
-    }
-
-    private Sender getGEPSender(final Set<Sender> availableSenders) {
-        Sender gepSender = null;
-        for (Sender sender : availableSenders) {
-            if (sender.getFromName().equals(GABINETE_ESTUDOS_PLANEAMENTO)) {
-                gepSender = sender;
-                break;
-            }
-        }
-        return gepSender;
-    }
-
-    public ActionForward selectDegreeType(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        request.setAttribute("notUpdatedInfoRecipient", new AlumniInfoNotUpdatedBean());
-        request.setAttribute("createRecipient", getRenderedObject("createRecipient"));
-
-        RenderUtils.invalidateViewState();
-        return mapping.findForward("addRecipients");
-    }
-
-    public ActionForward addRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        AlumniMailSendToBean alumniMailSendToBean = getRenderedObject("createRecipient");
-        Sender gepSender = getGEPSender(Sender.getAvailableSenders());
-        alumniMailSendToBean.createRecipientGroup(gepSender);
-
-        return manageRecipients(mapping, actionForm, request, response);
-    }
-
-    public ActionForward addNotUpdatedInfoRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        AlumniInfoNotUpdatedBean alumniInfoNotUpdatedBean = getRenderedObject("notUpdatedInfoRecipient");
-        if (!alumniInfoNotUpdatedBean.getFormationInfo() && !alumniInfoNotUpdatedBean.getProfessionalInfo()
-                && !alumniInfoNotUpdatedBean.getPersonalDataInfo()) {
-            RenderUtils.invalidateViewState();
-            addActionMessage(request, "label.alumni.choose.formationOrProfessionalOrPersonal");
-            request.setAttribute("notUpdatedInfoRecipient", alumniInfoNotUpdatedBean);
-            request.setAttribute("createRecipient", new AlumniMailSendToBean());
-            return mapping.findForward("addRecipients");
-        }
-        Sender gepSender = getGEPSender(Sender.getAvailableSenders());
-        alumniInfoNotUpdatedBean.createRecipientGroup(gepSender);
-
-        return manageRecipients(mapping, actionForm, request, response);
-    }
-
-    public ActionForward removeRecipients(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        EmailBean emailBean = getRenderedObject("emailBean");
-        emailBean.setRecipients(null);
-
-        return manageRecipients(mapping, actionForm, request, response);
     }
 
     public ActionForward generateRegisteredAlumniPartialReport(ActionMapping mapping, ActionForm actionForm,

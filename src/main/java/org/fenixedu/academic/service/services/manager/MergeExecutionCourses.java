@@ -55,7 +55,6 @@ import org.fenixedu.academic.domain.messaging.ConversationThread;
 import org.fenixedu.academic.domain.messaging.ExecutionCourseForum;
 import org.fenixedu.academic.domain.messaging.ForumSubscription;
 import org.fenixedu.academic.domain.student.Registration;
-import org.fenixedu.academic.domain.util.email.ExecutionCourseSender;
 import org.fenixedu.academic.service.ServiceMonitoring;
 import org.fenixedu.academic.service.services.exceptions.FenixServiceException;
 import org.fenixedu.academic.service.services.exceptions.InvalidArgumentsServiceException;
@@ -428,8 +427,8 @@ public class MergeExecutionCourses {
 
     private static void copySenderMessages(ExecutionCourse executionCourseFrom, ExecutionCourse executionCourseTo) {
         if (executionCourseFrom.getSender() != null) {
-            ExecutionCourseSender courseSenderTo = ExecutionCourseSender.newInstance(executionCourseTo);
-            courseSenderTo.getMessagesSet().addAll(executionCourseFrom.getSender().getMessagesSet());
+            org.fenixedu.messaging.core.domain.Sender courseSenderTo = executionCourseTo.getSender();
+            courseSenderTo.getMessageSet().addAll(executionCourseFrom.getSender().getMessageSet());
         }
     }
 

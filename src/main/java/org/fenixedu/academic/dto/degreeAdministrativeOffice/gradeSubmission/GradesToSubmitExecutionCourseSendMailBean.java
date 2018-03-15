@@ -126,7 +126,7 @@ public class GradesToSubmitExecutionCourseSendMailBean implements Serializable {
                 builder.append(" (").append(email).append(")");
             }
 
-            builder.append(",");
+            builder.append("\n");
         }
 
         if (builder.length() > 0) {

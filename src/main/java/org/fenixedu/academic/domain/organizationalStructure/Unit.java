@@ -33,14 +33,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
-import org.fenixedu.academic.domain.Country;
-import org.fenixedu.academic.domain.Degree;
-import org.fenixedu.academic.domain.Department;
-import org.fenixedu.academic.domain.ExternalCurricularCourse;
-import org.fenixedu.academic.domain.NonAffiliatedTeacher;
+import org.fenixedu.academic.domain.*;
+import org.fenixedu.academic.domain.accessControl.UnitGroup;
 import org.fenixedu.academic.domain.administrativeOffice.AdministrativeOffice;
 import org.fenixedu.academic.domain.exceptions.DomainException;
-import org.fenixedu.academic.domain.util.email.UnitBasedSender;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.LocaleUtils;
 import org.fenixedu.bennu.core.domain.Bennu;
@@ -48,6 +44,7 @@ import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.commons.StringNormalizer;
 import org.fenixedu.commons.i18n.LocalizedString;
+import org.fenixedu.messaging.core.domain.Sender;
 import org.fenixedu.spaces.domain.Space;
 import org.joda.time.YearMonthDay;
 
@@ -513,16 +510,21 @@ public class Unit extends Unit_Base {
         return (Collection<Unit>) getParentParties(AccountabilityTypeEnum.ORGANIZATIONAL_STRUCTURE, Unit.class);
     }
 
+    @Override
+    public org.fenixedu.messaging.core.domain.Sender getSender() {
+        org.fenixedu.messaging.core.domain.Sender sender = super.getSender();
+        return sender == null ? buildDefaultSender() : sender;
+    }
+
     @Atomic
-    /*
-     * @See UnitMailSenderAction
-     */
-    public UnitBasedSender getOneUnitBasedSender() {
-        if (!getUnitBasedSenderSet().isEmpty()) {
-            return getUnitBasedSenderSet().iterator().next();
-        } else {
-            return UnitBasedSender.newInstance(this);
-        }
+    protected org.fenixedu.messaging.core.domain.Sender buildDefaultSender() {
+        org.fenixedu.messaging.core.domain.Sender sender = org.fenixedu.messaging.core.domain.Sender
+                .from(Installation.getInstance().getInstituitionalEmailAddress("noreply"))
+                .as(String.format("%s (%s)", Unit.getInstitutionAcronym(), getName()))
+                .members(UnitGroup.recursiveWorkers(this))
+                .build();
+        setSender(sender);
+        return sender;
     }
 
     public int getUnitDepth() {

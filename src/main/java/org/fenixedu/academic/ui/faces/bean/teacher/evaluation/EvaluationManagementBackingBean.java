@@ -793,7 +793,7 @@ public class EvaluationManagementBackingBean extends FenixBackingBean {
 
     public String editWrittenTest() throws Exception {
         final List<String> executionCourseIDs = new ArrayList<String>();
-        executionCourseIDs.add(this.getExecutionCourseID().toString());
+        executionCourseIDs.add(this.getExecutionCourseID());
 
         ExecutionCourse executionCourse = FenixFramework.getDomainObject(getExecutionCourseID());
 

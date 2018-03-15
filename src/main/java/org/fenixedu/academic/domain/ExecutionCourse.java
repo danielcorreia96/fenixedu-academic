@@ -22,25 +22,15 @@ import static org.fenixedu.academic.predicate.AccessControl.check;
 
 import java.math.BigDecimal;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
+import org.fenixedu.academic.domain.accessControl.StudentGroup;
+import org.fenixedu.academic.domain.accessControl.TeacherGroup;
+import org.fenixedu.academic.domain.accessControl.TeacherResponsibleOfExecutionCourseGroup;
 import org.fenixedu.academic.domain.curriculum.CurricularCourseType;
 import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.domain.degreeStructure.BibliographicReferences;
@@ -50,6 +40,7 @@ import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.executionCourse.SummariesSearchBean;
 import org.fenixedu.academic.domain.messaging.ExecutionCourseForum;
 import org.fenixedu.academic.domain.organizationalStructure.DepartmentUnit;
+import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.domain.student.Student;
 import org.fenixedu.academic.domain.student.WeeklyWorkLoad;
@@ -67,6 +58,7 @@ import org.fenixedu.academic.util.DateFormatUtil;
 import org.fenixedu.academic.util.LocaleUtils;
 import org.fenixedu.academic.util.ProposalState;
 import org.fenixedu.bennu.core.domain.Bennu;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.fenixedu.bennu.core.signals.DomainObjectEvent;
 import org.fenixedu.bennu.core.signals.Signal;
@@ -388,7 +380,7 @@ public class ExecutionCourse extends ExecutionCourse_Base {
     public void delete() {
         DomainException.throwWhenDeleteBlocked(getDeletionBlockers());
         if (getSender() != null) {
-            getSender().getRecipientsSet().clear();
+            getSender().getRecipients().clear();
             getSender().delete();
         }
         if (getEvaluationMethod() != null) {
@@ -2196,6 +2188,34 @@ public class ExecutionCourse extends ExecutionCourse_Base {
 
     public boolean isHasSender() {
         return getSender() != null;
+    }
+
+    @Override
+    public org.fenixedu.messaging.core.domain.Sender getSender() {
+        org.fenixedu.messaging.core.domain.Sender sender = super.getSender();
+        return sender == null ? buildDefaultSender() : sender;
+    }
+
+    @Atomic
+    protected org.fenixedu.messaging.core.domain.Sender buildDefaultSender() {
+        org.fenixedu.messaging.core.domain.Sender sender = org.fenixedu.messaging.core.domain.Sender
+                .from(Installation.getInstance().getInstituitionalEmailAddress("noreply"))
+                .as(createFromName())
+                .replyTo(getEmail())
+                .members(TeacherGroup.get(this))
+                .recipients(TeacherGroup.get(this))
+                .recipients(StudentGroup.get(this))
+                .recipients(TeacherResponsibleOfExecutionCourseGroup.get(this))
+                .build();
+        setSender(sender);
+        return sender;
+    }
+
+    public String createFromName() {
+        String degreeName = getDegreePresentationString();
+        String courseName = getNome();
+        String period = getExecutionPeriod().getQualifiedName().replace('/', '-');
+        return String.format("%s (%s: %s, %s)", Unit.getInstitutionAcronym(), degreeName, courseName, period);
     }
 
     /*
