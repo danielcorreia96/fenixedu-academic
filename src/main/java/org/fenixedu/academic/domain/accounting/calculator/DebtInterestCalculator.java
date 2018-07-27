@@ -132,9 +132,8 @@ public class DebtInterestCalculator {
     }
 
     public List<AccountingEntry> getAccountingEntries() {
-        return Stream.concat(debts.stream(),
-                getCreditEntryStream()).sorted(Comparator.comparing(AccountingEntry::getCreated)
-                                                         .thenComparing(AccountingEntry::getDate))
+        return Stream.concat(debts.stream(), getCreditEntryStream())
+                .sorted(Comparator.comparing(AccountingEntry::getCreated).thenComparing(AccountingEntry::getDate))
                 .collect(Collectors.toList());
     }
 
@@ -242,7 +241,10 @@ public class DebtInterestCalculator {
     }
 
     private static String toString(Map<LocalDate, BigDecimal> map) {
-        return map.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(e -> String.format("%s -> %s", e.getKey(), e.getValue().toPlainString())).collect(Collectors.joining("\n"));
+        return map.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> String.format("%s -> %s", e.getKey(), e.getValue().toPlainString()))
+                .collect(Collectors.joining("\n"));
     }
 
     public String jsonDebts() {

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +29,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.fenixedu.academic.FenixEduAcademicConfiguration;
 import org.fenixedu.academic.domain.DomainObjectUtil;
@@ -238,75 +236,45 @@ public abstract class Event extends Event_Base {
     }
 
     public Set<Entry> getPositiveEntries() {
-        final Set<Entry> result = new HashSet<Entry>();
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.getToAccountEntry().getAmountWithAdjustment().isPositive()) {
-                result.add(transaction.getToAccountEntry());
-            }
-        }
-
-        return result;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment().isPositive())
+                .map(AccountingTransaction::getToAccountEntry)
+                .collect(Collectors.toSet());
     }
 
     public Set<Entry> getEntriesWithoutReceipt() {
-        final Set<Entry> result = new HashSet<Entry>();
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (!transaction.isSourceAccountFromParty(getPerson())) {
-                continue;
-            }
-
-            final Entry entry = transaction.getToAccountEntry();
-            if (!entry.isAssociatedToAnyActiveReceipt() && entry.isAmountWithAdjustmentPositive()) {
-                result.add(entry);
-            }
-        }
-
-        return result;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.isSourceAccountFromParty(getPerson()))
+                .map(AccountingTransaction::getToAccountEntry)
+                .filter(entry -> !entry.isAssociatedToAnyActiveReceipt() && entry.isAmountWithAdjustmentPositive())
+                .collect(Collectors.toSet());
     }
 
     public List<AccountingTransaction> getNonAdjustingTransactions() {
-        final List<AccountingTransaction> result = new ArrayList<AccountingTransaction>();
-
-        for (final AccountingTransaction transaction : super.getAccountingTransactionsSet()) {
-            if (!transaction.isAdjustingTransaction() && transaction.getAmountWithAdjustment().isPositive()) {
-                result.add(transaction);
-            }
-        }
-        return result;
+        return getNonAdjustingTransactionStream().collect(Collectors.toList());
     }
 
     public Stream<AccountingTransaction> getNonAdjustingTransactionStream() {
         return super.getAccountingTransactionsSet().stream()
-            .filter(at -> !at.isAdjustingTransaction() && at.getAmountWithAdjustment().isPositive());
+                .filter(transaction -> !transaction.isAdjustingTransaction())
+                .filter(transaction -> transaction.getAmountWithAdjustment().isPositive());
     }
 
     public List<AccountingTransaction> getAllAdjustedAccountingTransactions() {
-        final List<AccountingTransaction> result = new ArrayList<AccountingTransaction>();
-
-        for (final AccountingTransaction transaction : super.getAccountingTransactionsSet()) {
-            if (transaction.isAdjustingTransaction()) {
-                result.add(transaction);
-            }
-        }
-
-        return result;
+        return super.getAccountingTransactionsSet().stream()
+                .filter(AccountingTransaction::isAdjustingTransaction)
+                .collect(Collectors.toList());
     }
 
     public List<AccountingTransaction> getAdjustedTransactions() {
-        final List<AccountingTransaction> result = new ArrayList<AccountingTransaction>();
-
-        for (final AccountingTransaction transaction : super.getAccountingTransactionsSet()) {
-            if (!transaction.isAdjustingTransaction()) {
-                result.add(transaction);
-            }
-        }
-
-        return result;
+        return super.getAccountingTransactionsSet().stream()
+                .filter(transaction -> !transaction.isAdjustingTransaction())
+                .collect(Collectors.toList());
     }
 
     public List<AccountingTransaction> getSortedNonAdjustingTransactions() {
         final List<AccountingTransaction> result = getNonAdjustingTransactions();
-        Collections.sort(result, AccountingTransaction.COMPARATOR_BY_WHEN_REGISTERED);
+        result.sort(AccountingTransaction.COMPARATOR_BY_WHEN_REGISTERED);
 
         return result;
     }
@@ -332,13 +300,10 @@ public abstract class Event extends Event_Base {
             throw new DomainException("error.accounting.Event.cannot.calculatePayedAmount.on.invalid.events");
         }
 
-        Money payedAmount = Money.ZERO;
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.getToAccountEntry().getEntryType().equals(entryType)) {
-                payedAmount = payedAmount.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-        return payedAmount;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.getToAccountEntry().getEntryType().equals(entryType))
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public Money getPayedAmount(final DateTime until) {
@@ -346,14 +311,10 @@ public abstract class Event extends Event_Base {
             throw new DomainException("error.accounting.Event.cannot.calculatePayedAmount.on.invalid.events");
         }
 
-        Money payedAmount = Money.ZERO;
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (until == null || !transaction.getWhenRegistered().isAfter(until)) {
-                payedAmount = payedAmount.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return payedAmount;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> until == null || !transaction.getWhenRegistered().isAfter(until))
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public Money getPayedAmountBetween(final DateTime startDate, final DateTime endDate) {
@@ -361,15 +322,11 @@ public abstract class Event extends Event_Base {
             throw new DomainException("error.accounting.Event.cannot.calculatePayedAmountBetween.on.invalid.events");
         }
 
-        Money payedAmount = Money.ZERO;
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (!transaction.getWhenRegistered().isBefore(startDate) && !transaction.getWhenRegistered().isAfter(endDate)) {
-                payedAmount = payedAmount.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return payedAmount;
-
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> !transaction.getWhenRegistered().isBefore(startDate))
+                .filter(transaction -> !transaction.getWhenRegistered().isAfter(endDate))
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     private Money getPayedAmountUntil(final int civilYear) {
@@ -377,14 +334,10 @@ public abstract class Event extends Event_Base {
             throw new DomainException("error.accounting.Event.cannot.calculatePayedAmountUntil.on.invalid.events");
         }
 
-        Money result = Money.ZERO;
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.getWhenRegistered().getYear() <= civilYear) {
-                result = result.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return result;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.getWhenRegistered().getYear() <= civilYear)
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public Money getPayedAmountFor(final int civilYear) {
@@ -392,15 +345,10 @@ public abstract class Event extends Event_Base {
             throw new DomainException("error.accounting.Event.cannot.calculatePayedAmount.on.invalid.events");
         }
 
-        Money amountForCivilYear = Money.ZERO;
-        for (final AccountingTransaction accountingTransaction : getNonAdjustingTransactions()) {
-            if (accountingTransaction.isPayed(civilYear)) {
-                amountForCivilYear = amountForCivilYear.add(accountingTransaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return amountForCivilYear;
-
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.isPayed(civilYear))
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public Money getMaxDeductableAmountForLegalTaxes(final int civilYear) {
@@ -426,45 +374,27 @@ public abstract class Event extends Event_Base {
     }
 
     private Money calculatePayedAmountByPersonFor(final int civilYear) {
-        Money result = Money.ZERO;
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.isPayed(civilYear) && transaction.isSourceAccountFromParty(getPerson())) {
-                result = result.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return result;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.isPayed(civilYear))
+                .filter(transaction -> transaction.isSourceAccountFromParty(getPerson()))
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public boolean hasPaymentsByPersonForCivilYear(final int civilYear) {
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.isSourceAccountFromParty(getPerson()) && transaction.isPayed(civilYear)) {
-                return true;
-            }
-        }
-
-        return false;
+        return getNonAdjustingTransactionStream().anyMatch(transaction -> transaction.isSourceAccountFromParty(getPerson()) && transaction.isPayed(civilYear));
     }
 
     private Money calculatePayedAmountByOtherPartiesFor(final int civilYear) {
-        Money result = Money.ZERO;
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.isPayed(civilYear) && !transaction.isSourceAccountFromParty(getPerson())) {
-                result = result.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return result;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.isPayed(civilYear))
+                .filter(transaction -> !transaction.isSourceAccountFromParty(getPerson()))
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public boolean hasPaymentsForCivilYear(final int civilYear) {
-        for (final AccountingTransaction accountingTransaction : getNonAdjustingTransactions()) {
-            if (accountingTransaction.isPayed(civilYear)) {
-                return true;
-            }
-        }
-
-        return false;
+        return getNonAdjustingTransactionStream().anyMatch(accountingTransaction -> accountingTransaction.isPayed(civilYear));
     }
 
     public final void recalculateState(final DateTime whenRegistered) {
@@ -479,16 +409,13 @@ public abstract class Event extends Event_Base {
         final DateTime previousStateDate = getEventStateDate();
         final EventState previousState = super.getEventState();
 
-        if (isOpen()) {
-            if (canCloseEvent(whenRegistered)) {
-                closeNonProcessedCodes();
-                closeEvent();
-            }
-        } else {
-            if (!canCloseEvent(hasEventCloseDate() ? getEventCloseDate() : whenRegistered)) {
-                changeState(EventState.OPEN, new DateTime());
-                reopenCancelledCodes();
-            }
+        if (isOpen() && canCloseEvent(whenRegistered)) {
+            closeNonProcessedCodes();
+            closeEvent();
+        }
+        else if (!canCloseEvent(hasEventCloseDate() ? getEventCloseDate() : whenRegistered)) {
+            changeState(EventState.OPEN, new DateTime());
+            reopenCancelledCodes();
         }
 
         // state does not change so keep previous date
@@ -499,15 +426,11 @@ public abstract class Event extends Event_Base {
     }
 
     protected void reopenCancelledCodes() {
-        for (final AccountingEventPaymentCode paymentCode : getCancelledPaymentCodes()) {
-            paymentCode.setState(PaymentCodeState.NEW);
-        }
+        getCancelledPaymentCodes().forEach(paymentCode -> paymentCode.setState(PaymentCodeState.NEW));
     }
 
     protected void closeNonProcessedCodes() {
-        for (final AccountingEventPaymentCode paymentCode : getNonProcessedPaymentCodes()) {
-            paymentCode.setState(PaymentCodeState.CANCELLED);
-        }
+        getNonProcessedPaymentCodes().forEach(paymentCode -> paymentCode.setState(PaymentCodeState.CANCELLED));
     }
 
     /**
@@ -538,7 +461,7 @@ public abstract class Event extends Event_Base {
         return getDueDateAmountMap(getPostingRule(), when);
     }
 
-    public Map getDueDateAmountMap(PostingRule postingRule, DateTime when) {
+    public Map<LocalDate, Money> getDueDateAmountMap(PostingRule postingRule, DateTime when) {
         return Collections.singletonMap(getDueDateByPaymentCodes().toLocalDate(), postingRule.doCalculationForAmountToPay(this, when));
     }
 
@@ -569,46 +492,46 @@ public abstract class Event extends Event_Base {
             builder.fine(date, amount.getAmount());
         });
 
-        getNonAdjustingTransactions().forEach(t -> {
-            if (!t.getWhenProcessed().isAfter(when)) {
-                builder.payment(t.getExternalId(), t.getWhenProcessed(), t.getWhenRegistered().toLocalDate(), t
-                        .getDescriptionForEntryType(postingRule.getEntryType()).toString(),
-                        t.getAmountWithAdjustment().getAmount());
-            }
-        });
+        getNonAdjustingTransactionStream()
+                .filter(t -> !t.getWhenProcessed().isAfter(when))
+                .forEach(t -> builder.payment(t.getExternalId(), t.getWhenProcessed(), t.getWhenRegistered().toLocalDate(),
+                        t.getDescriptionForEntryType(postingRule.getEntryType()).toString(),
+                        t.getAmountWithAdjustment().getAmount()));
 
-        getDebtExemptions().forEach(e -> {
-            if (!e.getWhenCreated().isAfter(when)) {
-                builder.debtExemption(e.getExternalId(),e.getWhenCreated(), e.getWhenCreated().toLocalDate(), e.getDescription
-                        ().toString(),e.getExemptionAmount(baseAmount).getAmount());
-            }
-        });
+        getDebtExemptions()
+                .filter(e -> !e.getWhenCreated().isAfter(when))
+                .forEach(e -> {
+                    builder.debtExemption(e.getExternalId(), e.getWhenCreated(), e.getWhenCreated().toLocalDate(),
+                            e.getDescription().toString(), e.getExemptionAmount(baseAmount).getAmount());
+                });
 
-        this.getDiscountsSet().forEach(d -> {
-            if (!d.getWhenCreated().isAfter(when)) {
-                builder.debtExemption(d.getExternalId(), d.getWhenCreated(), d.getWhenCreated().toLocalDate(),"Desconto",
-                        d.getAmount().getAmount());
-            }
-        });
+        getDiscountStream()
+                .filter(d -> !d.getWhenCreated().isAfter(when))
+                .forEach(d -> {
+                    builder.debtExemption(d.getExternalId(), d.getWhenCreated(), d.getWhenCreated().toLocalDate(), "Desconto",
+                            d.getAmount().getAmount());
+                });
 
-        getExemptionsSet()
-            .stream()
-            .filter(e -> !e.getWhenCreated().isAfter(when))
-            .filter(FixedAmountPenaltyExemption.class::isInstance)
-            .map(FixedAmountPenaltyExemption.class::cast)
-            .forEach(e -> {
-                if (e.isForInterest()) {
-                    builder.interestExemption(e.getExternalId(),e.getWhenCreated(), e.getWhenCreated().toLocalDate(), e
-                            .getDescription().toString(), e.getExemptionAmount(baseAmount).getAmount());
-                }
-            });
+        getExemptionsSet().stream()
+                .filter(e -> !e.getWhenCreated().isAfter(when))
+                .filter(FixedAmountPenaltyExemption.class::isInstance)
+                .map(FixedAmountPenaltyExemption.class::cast)
+                .filter(FixedAmountPenaltyExemption::isForInterest)
+                .forEach(e -> {
+                    builder.interestExemption(e.getExternalId(), e.getWhenCreated(), e.getWhenCreated().toLocalDate(),
+                            e.getDescription().toString(), e.getExemptionAmount(baseAmount).getAmount());
+                });
 
         builder.setToApplyInterest(FenixEduAcademicConfiguration.isToUseGlobalInterestRateTableForEventPenalties(this));
         return builder.build();
     }
 
     private Stream<Exemption> getDebtExemptions() {
-        return this.getExemptionsSet().stream().filter(e -> !e.isPenaltyExemption());
+        return getExemptionsSet().stream().filter(e -> !e.isPenaltyExemption());
+    }
+
+    private Stream<Discount> getDiscountStream() {
+        return getDiscountsSet().stream();
     }
 
     private Set<LocalDate> getDebtFineExemptions(DateTime when) {
@@ -724,41 +647,23 @@ public abstract class Event extends Event_Base {
     }
 
     protected List<AccountingEventPaymentCode> updatePaymentCodes() {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     protected List<AccountingEventPaymentCode> createPaymentCodes() {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     public List<AccountingEventPaymentCode> getNonProcessedPaymentCodes() {
-        final List<AccountingEventPaymentCode> result = new ArrayList<AccountingEventPaymentCode>();
-        for (final AccountingEventPaymentCode paymentCode : super.getPaymentCodesSet()) {
-            if (paymentCode.isNew()) {
-                result.add(paymentCode);
-            }
-        }
-        return result;
+        return super.getPaymentCodesSet().stream().filter(PaymentCode::isNew).collect(Collectors.toList());
     }
 
     public boolean hasNonProcessedPaymentCodes() {
-        for (final AccountingEventPaymentCode paymentCode : super.getPaymentCodesSet()) {
-            if (paymentCode.isNew()) {
-                return true;
-            }
-        }
-        return false;
+        return super.getPaymentCodesSet().stream().anyMatch(PaymentCode::isNew);
     }
 
     public List<AccountingEventPaymentCode> getCancelledPaymentCodes() {
-        final List<AccountingEventPaymentCode> result = new ArrayList<AccountingEventPaymentCode>();
-        for (final AccountingEventPaymentCode paymentCode : super.getPaymentCodesSet()) {
-            if (paymentCode.isCancelled()) {
-                result.add(paymentCode);
-            }
-        }
-
-        return result;
+        return super.getPaymentCodesSet().stream().filter(PaymentCode::isCancelled).collect(Collectors.toList());
     }
 
     public Set<AccountingEventPaymentCode> getAllPaymentCodes() {
@@ -786,16 +691,7 @@ public abstract class Event extends Event_Base {
     }
 
     public static List<Event> readNotCancelled() {
-        final List<Event> result = new ArrayList<Event>();
-
-        for (final Event event : Bennu.getInstance().getAccountingEventsSet()) {
-            if (!event.isCancelled()) {
-                result.add(event);
-            }
-        }
-
-        return result;
-
+        return Bennu.getInstance().getAccountingEventsSet().stream().filter(event -> !event.isCancelled()).collect(Collectors.toList());
     }
 
     public PaymentCodeState getPaymentCodeStateFor(final PaymentMode paymentMode) {
@@ -836,19 +732,17 @@ public abstract class Event extends Event_Base {
     }
 
     protected DateTime getEventCloseDate() {
-        for (final AccountingTransaction transaction : getSortedNonAdjustingTransactions()) {
-            if (canCloseEvent(transaction.getWhenRegistered())) {
-                return transaction.getWhenRegistered();
-            }
-        }
-
-        return null;
-
+        return getSortedNonAdjustingTransactions().stream()
+                .filter(transaction -> canCloseEvent(transaction.getWhenRegistered()))
+                .findFirst()
+                .map(AccountingTransaction::getWhenRegistered).orElse(null);
     }
 
     private Money calculatePayedAmountByPerson() {
-        return getNonAdjustingTransactions().stream().filter(t -> t.isSourceAccountFromParty(getPerson())).map(t -> t
-                .getToAccountEntry().getAmountWithAdjustment()).reduce(Money.ZERO, Money::add);
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> transaction.isSourceAccountFromParty(getPerson()))
+                .map(transaction -> transaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public final void forceChangeState(EventState state, DateTime when) {
@@ -893,25 +787,17 @@ public abstract class Event extends Event_Base {
     }
 
     public Money calculateOtherPartiesPayedAmount() {
-        Money result = Money.ZERO;
-        for (final AccountingTransaction accountingTransaction : getNonAdjustingTransactions()) {
-            if (!accountingTransaction.isSourceAccountFromParty(getParty())) {
-                result = result.add(accountingTransaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return result;
+        return getNonAdjustingTransactionStream()
+                .filter(accountingTransaction -> !accountingTransaction.isSourceAccountFromParty(getParty()))
+                .map(accountingTransaction -> accountingTransaction.getToAccountEntry().getAmountWithAdjustment())
+                .reduce(Money.ZERO, Money::add);
     }
 
     public Set<Entry> getOtherPartyEntries() {
-        final Set<Entry> result = new HashSet<Entry>();
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (!transaction.isSourceAccountFromParty(getPerson())) {
-                result.add(transaction.getToAccountEntry());
-            }
-        }
-
-        return result;
+        return getNonAdjustingTransactionStream()
+                .filter(transaction -> !transaction.isSourceAccountFromParty(getPerson()))
+                .map(AccountingTransaction::getToAccountEntry)
+                .collect(Collectors.toSet());
     }
 
     public void rollbackCompletly() {
@@ -921,9 +807,7 @@ public abstract class Event extends Event_Base {
 
         changeState(EventState.OPEN, new DateTime());
 
-        for (final PaymentCode paymentCode : getExistingPaymentCodes()) {
-            paymentCode.setState(PaymentCodeState.NEW);
-        }
+        getExistingPaymentCodes().forEach(paymentCode -> paymentCode.setState(PaymentCodeState.NEW));
     }
 
     public Set<AccountingEventPaymentCode> getExistingPaymentCodes() {
@@ -959,11 +843,7 @@ public abstract class Event extends Event_Base {
     }
 
     public boolean canBeCanceled() {
-        if (isClosed() || !getNonAdjustingTransactions().isEmpty() || !getDiscountsSet().isEmpty() ||
-                !getExemptionsSet().isEmpty()) {
-            return false;
-        }
-        return true;
+        return !isClosed() && getNonAdjustingTransactions().isEmpty() && getDiscountsSet().isEmpty() && getExemptionsSet().isEmpty();
     }
     
     protected void checkRulesToDelete() {
@@ -974,28 +854,15 @@ public abstract class Event extends Event_Base {
     }
 
     public static List<Event> readBy(final EventType eventType) {
-
-        final List<Event> result = new ArrayList<Event>();
-        for (final Event event : Bennu.getInstance().getAccountingEventsSet()) {
-            if (event.getEventType() == eventType) {
-                result.add(event);
-            }
-        }
-
-        return result;
-
+        return Bennu.getInstance().getAccountingEventsSet().stream()
+                .filter(event -> event.getEventType() == eventType)
+                .collect(Collectors.toList());
     }
 
     public static List<Event> readWithPaymentsByPersonForCivilYear(int civilYear) {
-        final List<Event> result = new ArrayList<Event>();
-        for (final Event event : readNotCancelled()) {
-            if (event.hasPaymentsByPersonForCivilYear(civilYear)) {
-                result.add(event);
-            }
-        }
-
-        return result;
-
+        return readNotCancelled().stream()
+                .filter(event -> event.hasPaymentsByPersonForCivilYear(civilYear))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -1018,38 +885,21 @@ public abstract class Event extends Event_Base {
     }
 
     public List<PenaltyExemption> getPenaltyExemptions() {
-        final List<PenaltyExemption> result = new ArrayList<PenaltyExemption>();
-
-        for (final Exemption exemption : getExemptionsSet()) {
-            if (exemption instanceof PenaltyExemption) {
-                result.add((PenaltyExemption) exemption);
-            }
-        }
-
-        return result;
+        return getExemptionsSet().stream()
+                .filter(exemption -> exemption instanceof PenaltyExemption)
+                .map(exemption -> (PenaltyExemption) exemption)
+                .collect(Collectors.toList());
     }
 
     public boolean hasAnyPenaltyExemptionsFor(Class type) {
-        for (final Exemption exemption : getExemptionsSet()) {
-            if (exemption.getClass().equals(type)) {
-                return true;
-            }
-        }
-
-        return false;
-
+        return getExemptionsSet().stream().anyMatch(exemption -> exemption.getClass().equals(type));
     }
 
     public List<PenaltyExemption> getPenaltyExemptionsFor(Class type) {
-        final List<PenaltyExemption> result = new ArrayList<PenaltyExemption>();
-
-        for (final Exemption exemption : getExemptionsSet()) {
-            if (exemption.getClass().equals(type)) {
-                result.add((PenaltyExemption) exemption);
-            }
-        }
-
-        return result;
+        return getExemptionsSet().stream()
+                .filter(exemption -> exemption.getClass().equals(type))
+                .map(exemption -> (PenaltyExemption) exemption)
+                .collect(Collectors.toList());
 
     }
 
@@ -1098,7 +948,8 @@ public abstract class Event extends Event_Base {
     }
 
     private AccountingTransactionDetailDTO createAccountingTransactionDetailForTransfer(final AccountingTransaction transaction) {
-        final String comments = transaction.getEvent().getClass().getName() + ":" + transaction.getEvent().getExternalId() + "," + transaction.getClass().getName() + ":" + transaction.getExternalId();
+        final String comments = String.format("%s:%s,%s:%s", transaction.getEvent().getClass().getName(), transaction.getEvent().getExternalId(),
+                        transaction.getClass().getName(), transaction.getExternalId());
 
         return new AccountingTransactionDetailDTO(transaction.getTransactionDetail().getWhenRegistered(), PaymentMode.CASH, comments);
 
@@ -1121,7 +972,7 @@ public abstract class Event extends Event_Base {
     }
 
     public Set<EntryType> getPossibleEntryTypesForDeposit() {
-        return Collections.EMPTY_SET;
+        return Collections.emptySet();
     }
 
     public boolean isDepositSupported() {
@@ -1133,11 +984,7 @@ public abstract class Event extends Event_Base {
     }
 
     public Money getTotalDiscount() {
-        Money result = Money.ZERO;
-        for (final Discount discount : getDiscountsSet()) {
-            result = result.add(discount.getAmount());
-        }
-        return result;
+        return getDiscountStream().map(Discount_Base::getAmount).reduce(Money.ZERO, Money::add);
     }
 
     public boolean isPaymentPlanChangeAllowed() {
@@ -1187,7 +1034,7 @@ public abstract class Event extends Event_Base {
     public abstract Unit getOwnerUnit();
 
     public SortedSet<AccountingTransaction> getSortedTransactionsForPresentation() {
-        final SortedSet<AccountingTransaction> result = new TreeSet<AccountingTransaction>(AccountingTransaction.COMPARATOR_BY_WHEN_REGISTERED);
+        final SortedSet<AccountingTransaction> result = new TreeSet<>(AccountingTransaction.COMPARATOR_BY_WHEN_REGISTERED);
         result.addAll(getAdjustedTransactions());
         return result;
     }
@@ -1203,23 +1050,19 @@ public abstract class Event extends Event_Base {
 
     public List<String> getOperationsAfter(DateTime when) {
         List<String> result = new ArrayList<>();
-        getNonAdjustingTransactions().forEach(e -> {
-            if (e.getWhenProcessed().isAfter(when)) {
-                result.add(getOperationLabel(e));
-            }
-        });
 
-        getDebtExemptions().forEach(e -> {
-            if (e.getWhenCreated().isAfter(when)) {
-                result.add(getOperationsAfter(e));
-            }
-        });
+        getNonAdjustingTransactionStream()
+                .filter(e -> e.getWhenProcessed().isAfter(when))
+                .map(this::getOperationLabel).forEach(result::add);
 
-        this.getDiscountsSet().forEach(d -> {
-            if (d.getWhenCreated().isAfter(when)) {
-                result.add(getOperationLabel(d));
-            }
-        });
+        getDebtExemptions()
+                .filter(e -> e.getWhenCreated().isAfter(when))
+                .map(this::getOperationsAfter).forEach(result::add);
+
+        getDiscountStream()
+                .filter(d -> d.getWhenCreated().isAfter(when))
+                .map(this::getOperationLabel).forEach(result::add);
+
         return result;
     }
 
@@ -1228,14 +1071,12 @@ public abstract class Event extends Event_Base {
     }
 
     private String getOperationsAfter(Exemption e) {
-        return BundleUtil.getString(Bundle.ACADEMIC, "label.accounting.operation.after.exemption", e.getDescription().toString(),e
-                .getWhenCreated()
-                .toString());
+        return BundleUtil.getString(Bundle.ACADEMIC, "label.accounting.operation.after.exemption", e.getDescription().toString(),
+                e.getWhenCreated().toString());
     }
 
     private String getOperationLabel(AccountingTransaction e) {
-        return BundleUtil.getString(Bundle.ACADEMIC, "label.accounting.operation.after.transaction", e
-                .getWhenProcessed().toString());
+        return BundleUtil.getString(Bundle.ACADEMIC, "label.accounting.operation.after.transaction", e.getWhenProcessed().toString());
     }
 
 }

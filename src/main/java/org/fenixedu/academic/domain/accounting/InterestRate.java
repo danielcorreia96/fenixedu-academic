@@ -143,8 +143,8 @@ public class InterestRate extends InterestRate_Base {
 
             @Override
             public String toString() {
-                return String.format("%s (%s) / %s x %s %% x %s = %s", InterestRateBean.toString(overlap), numberOfDays, NUMBER_OF_DAYS_PER_YEAR, rate.toPlainString(), amount.toPlainString(),
-                    result.toPlainString());
+                return String.format("%s (%s) / %s x %s %% x %s = %s", InterestRateBean.toString(overlap), numberOfDays, NUMBER_OF_DAYS_PER_YEAR,
+                        rate.toPlainString(), amount.toPlainString(), result.toPlainString());
             }
         }
 
@@ -186,7 +186,7 @@ public class InterestRate extends InterestRate_Base {
         public String toString() {
             StringBuilder builder = new StringBuilder();
             BigDecimal interest = getInterest();
-            builder.append(String.format("%s - %s + %s = %s%n", InterestRateBean.toString(interval), amount.toPlainString(), interest.toPlainString(), amount.add(interest).toPlainString()));
+            builder.append(String.format("%s - %s + %s = %s%n", toString(interval), amount.toPlainString(), interest.toPlainString(), amount.add(interest).toPlainString()));
             partials.stream().sorted(Comparator.comparing(p -> p.overlap.getEnd())).forEach(p -> {
                 builder.append(String.format("\t%s%n", p.toString()));
             });
@@ -219,6 +219,6 @@ public class InterestRate extends InterestRate_Base {
 
     @Override
     public String toString() {
-        return "InterestRate{" + "start=" + getStart() + ", end=" + getEnd() + ", value=" + getValue() + ", externalId='" + getExternalId() + '\'' + "} " + super.toString();
+        return String.format("InterestRate{start=%s, end=%s, value=%s, externalId='%s'} %s", getStart(), getEnd(), getValue(), getExternalId(), super.toString());
     }
 }

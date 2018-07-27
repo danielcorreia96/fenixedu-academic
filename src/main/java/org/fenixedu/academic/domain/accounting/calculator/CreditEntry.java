@@ -62,9 +62,9 @@ public abstract class CreditEntry extends AccountingEntry implements Cloneable {
 
     public void addPartialPayment(PartialPayment partialPayment) {
         if (partialPayment.getAmount().compareTo(getUnusedAmount()) <= 0) {
-            this.partialPayments.add(partialPayment);
+            partialPayments.add(partialPayment);
         } else {
-            throw new UnsupportedOperationException("amount greater than unused: " + partialPayment.getAmount() + ", " + getUnusedAmount());
+            throw new UnsupportedOperationException(String.format("amount greater than unused: %s, %s", partialPayment.getAmount(), getUnusedAmount()));
         }
     }
 
@@ -114,10 +114,9 @@ public abstract class CreditEntry extends AccountingEntry implements Cloneable {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" + "date=" + getDate() + ", amount=" + getAmount() + ", partialPayments=" +
-                partialPayments + ", unusedAmount=" + getUnusedAmount() + ", usedAmount=" +
-                   getUsedAmount()
-                   + ", usedAmountInDebts=" + getUsedAmountInDebts() + ", usedAmountInInterests=" + getUsedAmountInInterests() + '}';
+        return String.format("%s{date=%s, amount=%s, partialPayments=%s, unusedAmount=%s, usedAmount=%s, usedAmountInDebts=%s, usedAmountInInterests=%s}",
+                        getClass().getSimpleName(), getDate(), getAmount(), partialPayments, getUnusedAmount(), getUsedAmount(),
+                        getUsedAmountInDebts(), getUsedAmountInInterests());
     }
 
 }
