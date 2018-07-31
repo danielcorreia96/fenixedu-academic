@@ -3,6 +3,7 @@ package org.fenixedu.academic.ui.spring.controller;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
@@ -10,6 +11,7 @@ import javax.servlet.ServletContext;
 import org.fenixedu.academic.domain.accounting.Event;
 import org.fenixedu.academic.domain.accounting.calculator.CreditEntry;
 import org.fenixedu.academic.domain.accounting.calculator.Debt;
+import org.fenixedu.academic.domain.accounting.calculator.DebtExemption;
 import org.fenixedu.academic.domain.accounting.calculator.DebtInterestCalculator;
 import org.fenixedu.academic.domain.accounting.calculator.Payment;
 import org.fenixedu.academic.ui.spring.service.AccountingManagementAccessControlService;
@@ -96,31 +98,49 @@ public abstract class AccountingController {
         List<Debt> debtsOrderedByDueDate = debtInterestCalculator.getDebtsOrderedByDueDate();
         Debt debt = debtsOrderedByDueDate.stream().filter(d -> d.getDueDate().equals(debtDueDate)).findAny()
                 .orElseThrow(UnsupportedOperationException::new);
-        final List<AccountingManagementService.PaymentSummary> paymentSummaries =
-                accountingManagementService.createPaymentSummaries(debt);
-        paymentSummaries.sort(Comparator.comparing(AccountingManagementService.PaymentSummary::getCreated).reversed());
 
         model.addAttribute("eventId", event.getExternalId());
         model.addAttribute("eventDescription", event.getDescription());
         model.addAttribute("debtIndex", debtsOrderedByDueDate.indexOf(debt) + 1);
         model.addAttribute("debt", debt);
-        model.addAttribute("payments", paymentSummaries);
+        model.addAttribute("payments", accountingManagementService.createPaymentSummaries(debt));
         return view("event-debt-details");
     }
 
-    @RequestMapping("{event}/{paymentId}/details")
-    public String paymentDetails(@PathVariable Event event, @PathVariable String paymentId, Model model) {
+    @RequestMapping("{event}/{creditEntryId}/details")
+    public String creditEntryDetails(@PathVariable Event event, @PathVariable String creditEntryId, Model model) {
         accessControlService.checkEventOwnerOrPaymentManager(event, Authenticate.getUser());
         final DebtInterestCalculator debtInterestCalculator = event.getDebtInterestCalculator(new DateTime());
-        final Payment payment = debtInterestCalculator.getPaymentById(paymentId).orElseThrow(UnsupportedOperationException::new);
+        final CreditEntry creditEntry = getCreditEntryById(debtInterestCalculator, creditEntryId);
         model.addAttribute("eventId", event.getExternalId());
-        model.addAttribute("payment", payment);
-        model.addAttribute("transactionDetail", FenixFramework.getDomainObject(paymentId));
-        model.addAttribute("processedDate", payment.getCreated());
-        model.addAttribute("registeredDate", payment.getDate());
-        model.addAttribute("amount", payment.getAmount());
-        model.addAttribute("payments", accountingManagementService.createPaymentSummaries(payment));
-        return view("event-payment-details");
+        model.addAttribute("payment", creditEntry);
+        model.addAttribute("transactionDetail", FenixFramework.getDomainObject(creditEntryId));
+        model.addAttribute("processedDate", creditEntry.getCreated());
+        model.addAttribute("registeredDate", creditEntry.getDate());
+        model.addAttribute("amount", creditEntry.getAmount());
+        model.addAttribute("payments", accountingManagementService.createPaymentSummaries(creditEntry));
+        if (creditEntry instanceof Payment)
+            return view("event-payment-details");
+        else if (creditEntry instanceof DebtExemption){
+            return view("event-debtExemption-details");
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private CreditEntry getCreditEntryById(DebtInterestCalculator debtInterestCalculator, String creditEntryId) {
+        final Optional<Payment> paymentById = debtInterestCalculator.getPaymentById(creditEntryId);
+        if (paymentById.isPresent()) {
+            return paymentById.get();
+        }
+
+        final Optional<DebtExemption> debtExemptionById = debtInterestCalculator.getDebtExemptionById(creditEntryId);
+        if (debtExemptionById.isPresent()) {
+            return debtExemptionById.get();
+        }
+
+        throw new UnsupportedOperationException();
     }
 
     protected String view(String view) {

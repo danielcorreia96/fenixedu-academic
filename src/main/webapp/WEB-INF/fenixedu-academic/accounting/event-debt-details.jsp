@@ -94,6 +94,7 @@
                     <tr>
                         <th>Data de processamento</th>
                         <th>Data de criação</th>
+                        <th>Tipo</th>
                         <th>Pago</th>
                         <th>Divida</th>
                         <th>Juros</th>
@@ -111,6 +112,7 @@
                         <tr>
                             <td><time datetime="${paymentSummary.created.toString('yyyy-MM-dd')}"><c:out value="${paymentSummary.created.toString('dd/MM/yyyy')}"/> </time></td>
                             <td><time datetime="${paymentSummary.date.toString('yyyy-MM-dd')}"><c:out value="${paymentSummary.date.toString('dd/MM/yyyy')}"/> </time></td>
+                            <td><c:out value="${paymentSummary.typeDescription.content}"/></td>
                             <td><c:out value="${paymentSummary.amount.toPlainString()}"/><span>€</span></td>
                             <td><c:out value="${paymentSummary.amountUsedInDebt.toPlainString()}"/><span>€</span></td>
                             <td><c:out value="${paymentSummary.amountUsedInInterest.toPlainString()}"/><span>€</span></td>

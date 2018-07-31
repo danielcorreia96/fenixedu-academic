@@ -148,7 +148,7 @@
     <div class="row">
         <div class="col-md-12">
             <header>
-                <h2>Pagamentos</h2>
+                <h2>Pagamentos/Isenções</h2>
             </header>
         </div>
     </div>
@@ -185,7 +185,7 @@
                         <td><c:out value="${payment.amount}"/><span>€</span></td>
                         <td><c:out value="${payment.usedAmountInDebts}"/><span>€</span></td>
                         <td><c:out value="${payment.usedAmountInInterests}"/><span>€</span></td>
-                        <td style="text-align: right;"><a href="${paymentUrl}">Ver Pagamento</a></td>
+                        <td style="text-align: right;"><a href="${paymentUrl}">Ver Detalhes</a></td>
                     </tr>
                 </c:forEach>
                 </c:if>

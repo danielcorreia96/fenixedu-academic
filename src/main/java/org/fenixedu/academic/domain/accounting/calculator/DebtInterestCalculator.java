@@ -112,11 +112,19 @@ public class DebtInterestCalculator {
     }
 
     public Stream<Payment> getPayments() {
-        return this.creditEntries.stream().filter(c -> c.getClass().equals(Payment.class)).map(Payment.class::cast);
+        return creditEntries.stream().filter(c -> c.getClass().equals(Payment.class)).map(Payment.class::cast);
     }
 
     public Optional<Payment> getPaymentById(String id) {
         return getPayments().filter(p -> p.getId().equals(id)).findAny();
+    }
+
+    public Stream<DebtExemption> getDebtExemptions() {
+        return creditEntries.stream().filter(c -> c.getClass().equals(DebtExemption.class)).map(DebtExemption.class::cast);
+    }
+
+    public Optional<DebtExemption> getDebtExemptionById(String id) {
+        return getDebtExemptions().filter(de -> de.getId().equals(id)).findAny();
     }
 
     private List<CreditEntry> getCreditEntriesByCreationDate() {
