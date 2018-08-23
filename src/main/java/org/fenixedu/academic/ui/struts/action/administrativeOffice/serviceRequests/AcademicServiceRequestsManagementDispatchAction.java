@@ -21,7 +21,6 @@ package org.fenixedu.academic.ui.struts.action.administrativeOffice.serviceReque
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -216,8 +215,8 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
 
     private List<AcademicServiceRequestSituation> getAcademicServiceRequestSituations(AcademicServiceRequest serviceRequest) {
         final List<AcademicServiceRequestSituation> result =
-                new ArrayList<AcademicServiceRequestSituation>(serviceRequest.getAcademicServiceRequestSituationsSet());
-        Collections.sort(result, AcademicServiceRequestSituation.COMPARATOR_BY_MOST_RECENT_SITUATION_DATE_AND_ID);
+                new ArrayList<>(serviceRequest.getAcademicServiceRequestSituationsSet());
+        result.sort(AcademicServiceRequestSituation.COMPARATOR_BY_MOST_RECENT_SITUATION_DATE_AND_ID);
         return result;
     }
 
@@ -238,7 +237,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward processNewAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response) throws FenixServiceException {
+            HttpServletRequest request, HttpServletResponse response) {
 
         final RegistrationAcademicServiceRequest academicServiceRequest = getAndSetAcademicServiceRequest(request);
 
@@ -270,7 +269,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward sendAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
         final RegistrationAcademicServiceRequest serviceRequest = getAndSetAcademicServiceRequest(request);
         final AcademicServiceRequestBean requestBean = (AcademicServiceRequestBean) getObjectFromViewState("serviceRequestBean");
@@ -301,7 +300,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward receiveAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
         final RegistrationAcademicServiceRequest serviceRequest = getAndSetAcademicServiceRequest(request);
         final AcademicServiceRequestBean requestBean = (AcademicServiceRequestBean) getObjectFromViewState("serviceRequestBean");
@@ -324,14 +323,14 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward prepareRejectAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response) throws FenixServiceException {
+            HttpServletRequest request, HttpServletResponse response) {
 
         getAndSetAcademicServiceRequest(request);
         return mapping.findForward("prepareRejectAcademicServiceRequest");
     }
 
     public ActionForward rejectAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
         final RegistrationAcademicServiceRequest academicServiceRequest = getAndSetAcademicServiceRequest(request);
         final String justification = ((AcademicServiceRequestsManagementForm) actionForm).getJustification();
@@ -351,14 +350,14 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward prepareCancelAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response) throws FenixServiceException {
+            HttpServletRequest request, HttpServletResponse response) {
 
         getAndSetAcademicServiceRequest(request);
         return mapping.findForward("prepareCancelAcademicServiceRequest");
     }
 
     public ActionForward cancelAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
         final RegistrationAcademicServiceRequest academicServiceRequest = getAndSetAcademicServiceRequest(request);
         final String justification = ((AcademicServiceRequestsManagementForm) actionForm).getJustification();
@@ -378,7 +377,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward prepareConcludeAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response) throws FenixServiceException {
+            HttpServletRequest request, HttpServletResponse response) {
 
         final RegistrationAcademicServiceRequest academicServiceRequest = getAndSetAcademicServiceRequest(request);
         AcademicServiceRequestsManagementForm form = (AcademicServiceRequestsManagementForm) actionForm;
@@ -446,7 +445,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward deliveredAcademicServiceRequest(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response) throws FenixServiceException {
+            HttpServletRequest request, HttpServletResponse response) {
 
         final RegistrationAcademicServiceRequest academicServiceRequest = getAndSetAcademicServiceRequest(request);
 
@@ -484,10 +483,9 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
         request.setAttribute("remainingRequests", remainingRequests);
         request.setAttribute("specificRequests", specificRequests);
 
-        final CollectionPager<AcademicServiceRequest> pager =
-                new CollectionPager<AcademicServiceRequest>(sorted, REQUESTS_PER_PAGE);
+        final CollectionPager<AcademicServiceRequest> pager = new CollectionPager<>(sorted, REQUESTS_PER_PAGE);
         request.setAttribute("collectionPager", pager);
-        request.setAttribute("numberOfPages", Integer.valueOf(pager.getNumberOfPages()));
+        request.setAttribute("numberOfPages", pager.getNumberOfPages());
 
         final String pageParameter = request.getParameter("pageNumber");
         final Integer page = StringUtils.isEmpty(pageParameter) ? Integer.valueOf(1) : Integer.valueOf(pageParameter);
@@ -520,7 +518,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
 
         final String orderDir =
                 StringUtils.isEmpty(orderParameter) ? DEFAULT_ORDER_DIR : orderParameter.substring(
-                        orderParameter.indexOf(ORDER_MARKER) + 1, orderParameter.length());
+                        orderParameter.indexOf(ORDER_MARKER) + 1);
         final boolean orderAsc = Arrays.asList(ASC_ORDER_DIR).contains(orderDir);
 
         if (orderGetter.equals(REQUEST_NUMBER_YEAR)) {
@@ -530,8 +528,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
             return orderAsc ? AcademicServiceRequest.EXECUTION_YEAR_AND_OID_COMPARATOR : new ReverseComparator(
                     AcademicServiceRequest.EXECUTION_YEAR_AND_OID_COMPARATOR);
         } else if (orderGetter.equals(REGISTRATION_NUMBER) || orderGetter.equals(DESCRIPTION)
-                || orderGetter.equals(URGENT_REQUEST) || orderGetter.equals(REGISTRATION_NUMBER)
-                || orderGetter.equals(REQUEST_DATE) || orderGetter.equals(ACTIVE_SITUATION_DATE)) {
+                || orderGetter.equals(URGENT_REQUEST) || orderGetter.equals(REQUEST_DATE) || orderGetter.equals(ACTIVE_SITUATION_DATE)) {
             final ComparatorChain chain = new ComparatorChain();
             chain.addComparator(orderAsc ? new BeanComparator(orderGetter) : new ReverseComparator(
                     new BeanComparator(orderGetter)));
@@ -544,7 +541,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
 
     private Collection<AcademicServiceRequest> getAndRemoveSpecificRequests(final AcademicServiceRequestBean bean,
             final Collection<AcademicServiceRequest> remainingRequests) {
-        final Collection<AcademicServiceRequest> result = new HashSet<AcademicServiceRequest>();
+        final Collection<AcademicServiceRequest> result = new HashSet<>();
 
         for (Iterator<AcademicServiceRequest> iter = remainingRequests.iterator(); iter.hasNext();) {
             final AcademicServiceRequest academicServiceRequest = iter.next();
@@ -598,7 +595,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
     }
 
     public ActionForward createServiceRequest(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
         try {
             executeFactoryMethod();

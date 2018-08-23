@@ -21,9 +21,9 @@ package org.fenixedu.academic.ui.struts.action.residenceManagement;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,6 +37,8 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.fenixedu.academic.domain.accounting.Event;
+import org.fenixedu.academic.domain.accounting.Event_Base;
 import org.fenixedu.academic.domain.accounting.ResidenceEvent;
 import org.fenixedu.academic.domain.organizationalStructure.ResidenceManagementUnit;
 import org.fenixedu.academic.domain.residence.ResidenceMonth;
@@ -67,37 +69,25 @@ import pt.ist.fenixframework.FenixFramework;
 public class ResidenceManagementDispatchAction extends FenixDispatchAction {
 
     public ActionForward missingPayments(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
-        List<ResidenceEvent> results = new ArrayList<ResidenceEvent>();
-        for (ResidenceMonth month : rootDomainObject.getResidenceMonths0Set()) {
-            for (ResidenceEvent residenceEvent : month.getEventsSet()) {
-                if (residenceEvent.isInDebt()) {
-                    results.add(residenceEvent);
-                }
-            }
-        }
-        Collections.sort(results, new Comparator<ResidenceEvent>() {
-            @Override
-            public int compare(ResidenceEvent o1, ResidenceEvent o2) {
-                return o1.getEventStateDate().compareTo(o2.getEventStateDate());
-            }
-        });
+            HttpServletResponse response) {
+        List<ResidenceEvent> results = rootDomainObject.getResidenceMonths0Set().stream()
+                        .flatMap(month -> month.getEventsSet().stream())
+                        .filter(Event::isInDebt)
+                        .sorted(Comparator.comparing(Event_Base::getEventStateDate))
+                        .collect(Collectors.toList());
         request.setAttribute("list", results);
         return mapping.findForward("missingPayments");
     }
 
     public ActionForward importCurrentDebts(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) {
         ImportResidenceEventBean bean = getRenderedObject("importFile");
         if (bean == null) {
             ResidenceMonth month = getResidenceMonth(request);
             bean = month != null ? new ImportResidenceEventBean(month) : new ImportResidenceEventBean();
         } else {
 
-            List<ResidenceEventBean> sucessful = new ArrayList<ResidenceEventBean>();
-            List<ResidenceEventBean> unsucessful = new ArrayList<ResidenceEventBean>();
-
-            List<ResidenceEventBean> process = null;
+            List<ResidenceEventBean> process;
             try {
                 process = processCurrentDebts(bean);
             } catch (InvalidSpreadSheetName exception) {
@@ -113,6 +103,8 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
                 return mapping.findForward("importCurrentDebt");
             }
 
+            List<ResidenceEventBean> sucessful = new ArrayList<>();
+            List<ResidenceEventBean> unsucessful = new ArrayList<>();
             for (ResidenceEventBean eventBean : process) {
                 if (eventBean.getStatus()) {
                     sucessful.add(eventBean);
@@ -132,7 +124,7 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
     }
 
     public ActionForward importData(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) {
 
         ImportResidenceEventBean bean = getRenderedObject("importFile");
         if (bean == null) {
@@ -140,10 +132,7 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
             bean = month != null ? new ImportResidenceEventBean(month) : new ImportResidenceEventBean();
         } else {
 
-            List<ResidenceEventBean> sucessful = new ArrayList<ResidenceEventBean>();
-            List<ResidenceEventBean> unsucessful = new ArrayList<ResidenceEventBean>();
-
-            List<ResidenceEventBean> process = null;
+            List<ResidenceEventBean> process;
             try {
                 process = process(bean);
             } catch (InvalidSpreadSheetName exception) {
@@ -159,6 +148,8 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
                 return mapping.findForward("importCurrentDebt");
             }
 
+            List<ResidenceEventBean> sucessful = new ArrayList<>();
+            List<ResidenceEventBean> unsucessful = new ArrayList<>();
             for (ResidenceEventBean eventBean : process) {
                 if (eventBean.getStatus()) {
                     sucessful.add(eventBean);
@@ -177,27 +168,27 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
     }
 
     public ActionForward invalid(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) {
         ImportResidenceEventBean bean = getRenderedObject("importFile");
         request.setAttribute("importFileBean", bean);
         return mapping.findForward("importData");
     }
 
     public ActionForward editPaymentLimitDay(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) {
         return editResidencePriceTableProperty(mapping, actionForm, request, response, "editPaymentLimitDay");
     }
 
     public ActionForward editRoomValues(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) {
 
         return editResidencePriceTableProperty(mapping, actionForm, request, response, "editRoomValues");
     }
 
     private ActionForward editResidencePriceTableProperty(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response, String forwardName) throws Exception {
+            HttpServletRequest request, HttpServletResponse response, String forwardName) {
 
-        ResidenceManagementUnit unit = getManagementUnit(request);
+        ResidenceManagementUnit unit = Bennu.getInstance().getResidenceManagementUnit();
         ResidenceMonth month = getResidenceMonth(request);
         request.setAttribute("residenceMonth", month);
         request.setAttribute("priceTable", unit.getResidencePriceTable());
@@ -205,17 +196,13 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
         return mapping.findForward(forwardName);
     }
 
-    private ResidenceManagementUnit getManagementUnit(HttpServletRequest request) {
-        return Bennu.getInstance().getResidenceManagementUnit();
-    }
-
     private ResidenceMonth getResidenceMonth(HttpServletRequest request) {
         String oid = request.getParameter("monthOID");
-        return oid == null ? null : FenixFramework.<ResidenceMonth> getDomainObject(oid);
+        return oid == null ? null : FenixFramework.getDomainObject(oid);
     }
 
     public ActionForward generateDebts(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) {
 
         ResidentListsHolderBean listHolder = getRenderedObject("importList");
         ImportResidenceEventBean eventBean = getRenderedObject("dateBean");
@@ -230,7 +217,7 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
     }
 
     @Atomic
-    public void makePayments(List<ResidenceEventBean> events, HttpServletRequest request) throws Exception {
+    public void makePayments(List<ResidenceEventBean> events, HttpServletRequest request) {
         for (ResidenceEventBean event : events) {
             ResidenceDebtEventBean debtEvent = (ResidenceDebtEventBean) event;
             PayResidenceEvent.run(getLoggedPerson(request).getUser(), debtEvent.getEventObject(), debtEvent.getPaidDateObject());
@@ -255,7 +242,7 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
     }
 
     private List<ResidenceEventBean> process(ImportResidenceEventBean bean) throws IOException, InvalidSpreadSheetName {
-        List<ResidenceEventBean> beans = new ArrayList<ResidenceEventBean>();
+        List<ResidenceEventBean> beans = new ArrayList<>();
 
         POIFSFileSystem fs = new POIFSFileSystem(bean.getFile());
         HSSFWorkbook wb = new HSSFWorkbook(fs);
@@ -277,7 +264,7 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
             String userName = getValueFromColumnMayBeNull(row, 1);
             String fiscalNumber = getValueFromColumnMayBeNull(row, 2);
             String name = getValueFromColumnMayBeNull(row, 3);
-            Double roomValue = new Double(row.getCell((short) 4).getNumericCellValue());
+            Double roomValue = row.getCell((short) 4).getNumericCellValue();
             beans.add(new ResidenceEventBean(userName, fiscalNumber, name, roomValue, room));
 
             i++;
@@ -287,7 +274,7 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
 
     private List<ResidenceEventBean> processCurrentDebts(ImportResidenceEventBean bean) throws IOException,
             InvalidSpreadSheetName {
-        List<ResidenceEventBean> beans = new ArrayList<ResidenceEventBean>();
+        List<ResidenceEventBean> beans = new ArrayList<>();
 
         POIFSFileSystem fs = new POIFSFileSystem(bean.getFile());
         HSSFWorkbook wb = new HSSFWorkbook(fs);
@@ -309,9 +296,9 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
             String userName = getValueFromColumnMayBeNull(row, 1);
             String fiscalNumber = getValueFromColumnMayBeNull(row, 2);
             String name = getValueFromColumnMayBeNull(row, 3);
-            Double roomValue = new Double(row.getCell((short) 4).getNumericCellValue());
+            Double roomValue = row.getCell((short) 4).getNumericCellValue();
             String paidDate = getDateFromColumn(row, 5);
-            Double roomValuePaid = new Double(row.getCell((short) 6).getNumericCellValue());
+            Double roomValuePaid = row.getCell((short) 6).getNumericCellValue();
             ResidenceDebtEventBean residenceDebtEventBean =
                     new ResidenceDebtEventBean(userName, fiscalNumber, name, roomValue, room, paidDate, roomValuePaid);
             residenceDebtEventBean.setMonth(bean.getResidenceMonth());
@@ -348,7 +335,7 @@ public class ResidenceManagementDispatchAction extends FenixDispatchAction {
 
     private String getValueFromColumn(HSSFRow row, int i) {
         try {
-            return new Integer(new Double(row.getCell((short) i).getNumericCellValue()).intValue()).toString();
+            return Integer.toString(new Double(row.getCell((short) i).getNumericCellValue()).intValue());
         } catch (NumberFormatException e) {
             return row.getCell((short) i).getStringCellValue();
         } catch (IllegalStateException e) {

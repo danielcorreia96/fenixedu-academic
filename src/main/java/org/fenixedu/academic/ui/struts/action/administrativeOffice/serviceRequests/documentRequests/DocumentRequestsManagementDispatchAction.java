@@ -20,6 +20,7 @@ package org.fenixedu.academic.ui.struts.action.administrativeOffice.serviceReque
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -51,7 +52,6 @@ import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.dto.degreeAdministrativeOffice.serviceRequest.documentRequest.certificates.ExamDateCertificateExamSelectionBean;
 import org.fenixedu.academic.dto.serviceRequests.DocumentRequestCreateBean;
 import org.fenixedu.academic.service.factoryExecutors.DocumentRequestCreator;
-import org.fenixedu.academic.service.services.exceptions.FenixServiceException;
 import org.fenixedu.academic.ui.struts.action.administrativeOffice.serviceRequests.AcademicServiceRequestsManagementDispatchAction;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
 import org.fenixedu.bennu.core.security.Authenticate;
@@ -93,22 +93,19 @@ public class DocumentRequestsManagementDispatchAction extends FenixDispatchActio
         final IDocumentRequest documentRequest = getDocumentRequest(request);
         GeneratedDocument doc = documentRequest.getLastGeneratedDocument();
         if (doc != null) {
-            final ServletOutputStream writer = response.getOutputStream();
-            try {
+            try (ServletOutputStream writer = response.getOutputStream()) {
                 response.setContentLength(doc.getSize().intValue());
                 response.setContentType("application/pdf");
                 response.addHeader("Content-Disposition", "attachment; filename=" + doc.getFilename());
                 writer.write(doc.getContent());
                 writer.flush();
-            } finally {
-                writer.close();
             }
         }
         return null;
     }
 
     public ActionForward printDocument(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws IOException, FenixServiceException {
+            HttpServletResponse response) throws IOException {
         final IDocumentRequest documentRequest = getDocumentRequest(request);
         try {
             byte[] data = documentRequest.generateDocument();
@@ -204,14 +201,14 @@ public class DocumentRequestsManagementDispatchAction extends FenixDispatchActio
         final DocumentRequestType requestType = requestCreateBean.getChosenDocumentRequestType();
         if (requestType.equals(DocumentRequestType.EXTRA_CURRICULAR_CERTIFICATE)) {
             List<Enrolment> enrolments = curricularPlan.getExtraCurricularApprovedEnrolmentsNotInDismissal();
-            if (enrolments.size() == 0) {
+            if (enrolments.isEmpty()) {
                 addActionMessage("warning", request, "warning.ExtraCurricularCertificateRequest.no.enrolments.available");
             }
             requestCreateBean.setEnrolments(enrolments);
         }
         if (requestType.equals(DocumentRequestType.STANDALONE_ENROLMENT_CERTIFICATE)) {
             List<Enrolment> enrolments = curricularPlan.getStandaloneApprovedEnrolmentsNotInDismissal();
-            if (enrolments.size() == 0) {
+            if (enrolments.isEmpty()) {
                 addActionMessage("warning", request, "warning.StandaloneEnrolmentCertificateRequest.no.enrolments.available");
             }
             requestCreateBean.setEnrolments(enrolments);
@@ -298,21 +295,15 @@ public class DocumentRequestsManagementDispatchAction extends FenixDispatchActio
             return Collections.emptyList();
         }
 
-        final List<Exam> result = new ArrayList<Exam>();
-        for (final String examId : examIds) {
-            Exam exam = (Exam) FenixFramework.getDomainObject(examId);
-            if (!exam.isExamsMapPublished()) {
-                continue;
-            }
-            result.add(exam);
-        }
-
-        return result;
+        return Arrays.stream(examIds)
+                .map(examId -> (Exam) FenixFramework.getDomainObject(examId))
+                .filter(Exam::isExamsMapPublished)
+                .collect(Collectors.toList());
 
     }
 
     public ActionForward create(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
         final DocumentRequestCreateBean documentRequestCreateBean = getRenderedObject();
         final Registration registration = documentRequestCreateBean.getRegistration();
@@ -346,15 +337,15 @@ public class DocumentRequestsManagementDispatchAction extends FenixDispatchActio
             Set<Degree> degrees =
                     AcademicAccessRule.getDegreesAccessibleToFunction(AcademicOperationType.SERVICE_REQUESTS,
                             Authenticate.getUser()).collect(Collectors.toSet());
-            Set<Enrolment> aprovedEnrolments = new HashSet<Enrolment>();
+            Set<Enrolment> aprovedEnrolments = new HashSet<>();
             for (Degree degree : degrees) {
                 for (final Registration registration : documentRequestCreateBean.getStudent().getRegistrationsFor(degree)) {
                     aprovedEnrolments.addAll(registration.getApprovedEnrolments());
                 }
             }
-            documentRequestCreateBean.setEnrolments(new ArrayList<Enrolment>(aprovedEnrolments));
+            documentRequestCreateBean.setEnrolments(new ArrayList<>(aprovedEnrolments));
         } else {
-            documentRequestCreateBean.setEnrolments(new ArrayList<Enrolment>());
+            documentRequestCreateBean.setEnrolments(new ArrayList<>());
         }
         RenderUtils.invalidateViewState();
         request.setAttribute("documentRequestCreateBean", documentRequestCreateBean);

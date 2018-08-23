@@ -36,7 +36,6 @@ import org.fenixedu.academic.dto.VariantBean;
 import org.fenixedu.academic.dto.residenceManagement.ImportResidenceEventBean;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.service.services.accounting.CancelResidenceEvent;
-import org.fenixedu.academic.service.services.exceptions.FenixServiceException;
 import org.fenixedu.academic.service.services.residenceManagement.CreateResidencePaymentCodes;
 import org.fenixedu.academic.service.services.residenceManagement.PayResidenceEvent;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
@@ -80,7 +79,7 @@ public class ResidenceEventManagementDispatchAction extends FenixDispatchAction 
     }
 
     public ActionForward generatePaymentCodes(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) {
 
         ResidenceMonth month = getResidenceMonth(request);
         CreateResidencePaymentCodes.run(month.getEventsSet());
@@ -111,7 +110,7 @@ public class ResidenceEventManagementDispatchAction extends FenixDispatchAction 
     }
 
     public ActionForward cancelResidenceEvent(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
         ResidenceEvent residenceEvent = FenixFramework.getDomainObject(request.getParameter("event"));
 
         try {
@@ -124,7 +123,7 @@ public class ResidenceEventManagementDispatchAction extends FenixDispatchAction 
     }
 
     public ActionForward preparePayResidenceEvent(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
         ResidenceEvent residenceEvent = FenixFramework.getDomainObject(request.getParameter("event"));
         VariantBean bean = new VariantBean();
@@ -139,9 +138,9 @@ public class ResidenceEventManagementDispatchAction extends FenixDispatchAction 
     }
 
     public ActionForward payResidenceEvent(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) throws FenixServiceException {
+            HttpServletResponse response) {
 
-        ResidenceEvent residenceEvent = (ResidenceEvent) FenixFramework.getDomainObject(request.getParameter("event"));
+        ResidenceEvent residenceEvent = FenixFramework.getDomainObject(request.getParameter("event"));
         YearMonthDay date = getRenderedObject("date");
 
         try {

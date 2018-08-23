@@ -30,7 +30,6 @@ public class PayResidenceEvent {
 
     @Atomic
     public static void run(User user, ResidenceEvent event, YearMonthDay date) {
-        event.process(user, event.calculateEntries(), new AccountingTransactionDetailDTO(date.toDateTimeAtMidnight(),
-                PaymentMode.CASH));
+        event.process(user, event.calculateEntries(), new AccountingTransactionDetailDTO(date.toDateTimeAtMidnight(), PaymentMode.CASH));
     }
 }

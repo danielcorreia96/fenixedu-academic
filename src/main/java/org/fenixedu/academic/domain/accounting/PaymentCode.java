@@ -245,12 +245,7 @@ public abstract class PaymentCode extends PaymentCode_Base {
             final String sibsTransactionId, final String comments);
 
     public PaymentCodeMapping getOldPaymentCodeMapping(final ExecutionYear executionYear) {
-        for (final PaymentCodeMapping mapping : getOldPaymentCodeMappingsSet()) {
-            if (mapping.has(executionYear)) {
-                return mapping;
-            }
-        }
-        return null;
+        return getOldPaymentCodeMappingsSet().stream().filter(mapping -> mapping.has(executionYear)).findFirst().orElse(null);
     }
 
     protected static PaymentCodeGenerator getPaymentCodeGenerator(PaymentCodeType paymentCodeType) {
@@ -261,12 +256,9 @@ public abstract class PaymentCode extends PaymentCode_Base {
         if (StringUtils.isEmpty(code)) {
             return null;
         }
-        for (final PaymentCode paymentCode : Bennu.getInstance().getPaymentCodesSet()) {
-            if (paymentCode.getCode().equals(code)) {
-                return paymentCode;
-            }
-        }
-        return null;
+        return Bennu.getInstance().getPaymentCodesSet().stream()
+                .filter(paymentCode -> paymentCode.getCode().equals(code))
+                .findFirst().orElse(null);
     }
 
     public static boolean canGenerateNewCode(Class<? extends PaymentCode> paymentCodeClass, PaymentCodeType paymentCodeType,

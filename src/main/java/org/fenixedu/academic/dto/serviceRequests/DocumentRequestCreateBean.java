@@ -139,8 +139,8 @@ public class DocumentRequestCreateBean extends RegistrationAcademicServiceReques
 
     public DocumentRequestCreateBean(Registration registration) {
         super(registration);
-        this.enrolments = new ArrayList<Enrolment>();
-        this.exams = new ArrayList<Exam>();
+        this.enrolments = new ArrayList<>();
+        this.exams = new ArrayList<>();
         pastRequestDate = new LocalDate();
         this.registrationProtocol = registration.getRegistrationProtocol();
 
@@ -265,7 +265,7 @@ public class DocumentRequestCreateBean extends RegistrationAcademicServiceReques
      */
     public Collection<String> getWarningsToReport() {
         if (warningsToReport == null) {
-            warningsToReport = new HashSet<String>();
+            warningsToReport = new HashSet<>();
 
             if (chosenDocumentRequestType == DocumentRequestType.APPROVEMENT_CERTIFICATE) {
                 if (chosenDocumentPurposeType == DocumentPurposeType.PROFESSIONAL) {
@@ -293,8 +293,7 @@ public class DocumentRequestCreateBean extends RegistrationAcademicServiceReques
     public void setPurpose(DocumentPurposeType chosenDocumentPurposeType, String otherPurpose) {
 
         otherPurpose = otherPurpose.trim();
-        if (chosenDocumentPurposeType != null && chosenDocumentPurposeType.equals(DocumentPurposeType.OTHER)
-                && (otherPurpose == null || otherPurpose.length() == 0)) {
+        if (chosenDocumentPurposeType != null && chosenDocumentPurposeType == DocumentPurposeType.OTHER && otherPurpose.isEmpty()) {
             throw new DomainException("DocumentRequestCreateBean.error.other.purpose.required");
         }
 
@@ -359,7 +358,7 @@ public class DocumentRequestCreateBean extends RegistrationAcademicServiceReques
     }
 
     final public boolean getHasAdditionalInformation() {
-        return getChosenDocumentRequestType() == null ? false : getChosenDocumentRequestType().getHasAdditionalInformation();
+        return getChosenDocumentRequestType() != null && getChosenDocumentRequestType().getHasAdditionalInformation();
     }
 
     final public boolean getHasCycleTypeDependency() {
@@ -411,39 +410,19 @@ public class DocumentRequestCreateBean extends RegistrationAcademicServiceReques
     }
 
     public List<Enrolment> getEnrolments() {
-        final List<Enrolment> result = new ArrayList<Enrolment>();
-        for (final Enrolment each : this.enrolments) {
-            result.add(each);
-        }
-
-        return result;
+        return new ArrayList<>(this.enrolments);
     }
 
     public void setEnrolments(List<Enrolment> enrolments) {
-        final List<Enrolment> enrolmentsToSet = new ArrayList<Enrolment>();
-        for (final Enrolment enrolment : enrolments) {
-            enrolmentsToSet.add(enrolment);
-        }
-
-        this.enrolments = enrolmentsToSet;
+        this.enrolments = new ArrayList<>(enrolments);
     }
 
     public List<Exam> getExams() {
-        final List<Exam> result = new ArrayList<Exam>();
-        for (final Exam each : this.exams) {
-            result.add(each);
-        }
-
-        return result;
+        return new ArrayList<>(this.exams);
     }
 
     public void setExams(List<Exam> exams) {
-        final List<Exam> result = new ArrayList<Exam>();
-        for (final Exam each : exams) {
-            result.add(each);
-        }
-
-        this.exams = result;
+        this.exams = new ArrayList<>(exams);
     }
 
     public ExecutionSemester getExecutionPeriod() {

@@ -54,26 +54,19 @@ public class CreatePaymentsForEvents {
 
     private static List<Entry> createEntries(final User responsibleUser, final Collection<EntryDTO> entryDTOs,
             final PaymentMode paymentMode, final DateTime whenRegistered) {
-        final Map<Event, Collection<EntryDTO>> entryDTOsByEvent = splitEntryDTOsByEvent(entryDTOs);
-        final List<Entry> resultingEntries = new ArrayList<Entry>();
+        final List<Entry> resultingEntries = new ArrayList<>();
 
-        for (final Map.Entry<Event, Collection<EntryDTO>> entry : entryDTOsByEvent.entrySet()) {
-            resultingEntries.addAll(entry.getKey().process(responsibleUser, entry.getValue(),
-                    new AccountingTransactionDetailDTO(whenRegistered, paymentMode)));
-
-        }
+        splitEntryDTOsByEvent(entryDTOs).forEach((event, entrydtos) ->
+                resultingEntries.addAll(event.process(responsibleUser, entrydtos, new AccountingTransactionDetailDTO(whenRegistered, paymentMode))));
 
         return resultingEntries;
     }
 
     private static Map<Event, Collection<EntryDTO>> splitEntryDTOsByEvent(Collection<EntryDTO> entryDTOs) {
-        final Map<Event, Collection<EntryDTO>> result = new HashMap<Event, Collection<EntryDTO>>();
+        final Map<Event, Collection<EntryDTO>> result = new HashMap<>();
 
         for (final EntryDTO entryDTO : entryDTOs) {
-            Collection<EntryDTO> entryDTOsByEvent = result.get(entryDTO.getEvent());
-            if (entryDTOsByEvent == null) {
-                result.put(entryDTO.getEvent(), entryDTOsByEvent = new ArrayList<EntryDTO>());
-            }
+            Collection<EntryDTO> entryDTOsByEvent = result.computeIfAbsent(entryDTO.getEvent(), k -> new ArrayList<>());
             entryDTOsByEvent.add(entryDTO);
         }
 

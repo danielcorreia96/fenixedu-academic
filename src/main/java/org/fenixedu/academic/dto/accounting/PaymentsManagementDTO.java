@@ -24,6 +24,7 @@ package org.fenixedu.academic.dto.accounting;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.Person;
@@ -60,7 +61,7 @@ public class PaymentsManagementDTO implements Serializable {
     public PaymentsManagementDTO(Person person) {
         setPerson(person);
         setContributorParty(person);
-        setEntryDTOs(new ArrayList<EntryDTO>());
+        setEntryDTOs(new ArrayList<>());
         setUsingContributorParty(true);
     }
 
@@ -105,13 +106,7 @@ public class PaymentsManagementDTO implements Serializable {
     }
 
     public List<EntryDTO> getSelectedEntries() {
-        final List<EntryDTO> result = new ArrayList<EntryDTO>();
-        for (final EntryDTO each : getEntryDTOs()) {
-            if (each.isSelected()) {
-                result.add(each);
-            }
-        }
-        return result;
+        return getEntryDTOs().stream().filter(EntryDTO::isSelected).collect(Collectors.toList());
     }
 
     public Money getTotalAmountToPay() {
@@ -134,8 +129,8 @@ public class PaymentsManagementDTO implements Serializable {
             this.contributorNumber = contributorParty.getSocialSecurityNumber();
             this.contributorAddress =
                     contributorParty.getAddress()
-                            + (!StringUtils.isEmpty(contributorParty.getAreaCode()) ? contributorParty.getAreaCode() + " "
-                                    + contributorParty.getAreaOfAreaCode() : null);
+                            + (StringUtils.isEmpty(contributorParty.getAreaCode()) ? null :
+                            contributorParty.getAreaCode() + ' ' + contributorParty.getAreaOfAreaCode());
         }
     }
 

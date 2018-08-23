@@ -42,14 +42,14 @@ import org.fenixedu.bennu.struts.portal.StrutsFunctionality;
 public class ResidenceRoleManagementDA extends FenixDispatchAction {
 
     public ActionForward addResidenceRoleManagemenToPerson(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response) throws Exception {
+            HttpServletRequest request, HttpServletResponse response) {
         DynamicGroup group = getResidenceRoleManagement();
         group.mutator().changeGroup(group.underlyingGroup().grant(getResidenceRoleManagementBean().getPerson().getUser()));
         return residencePersonsManagement(mapping, actionForm, request, response);
     }
 
     public ActionForward removeResidenceRoleManagemenToPerson(ActionMapping mapping, ActionForm actionForm,
-            HttpServletRequest request, HttpServletResponse response) throws Exception {
+            HttpServletRequest request, HttpServletResponse response) {
         User user = User.findByUsername(request.getParameter("userToRemove"));
         DynamicGroup group = getResidenceRoleManagement();
         group.mutator().changeGroup(group.underlyingGroup().revoke(user));
