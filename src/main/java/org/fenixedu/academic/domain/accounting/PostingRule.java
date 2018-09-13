@@ -273,8 +273,7 @@ public abstract class PostingRule extends PostingRule_Base {
         if (transactionDetailDTO instanceof SibsTransactionDetailDTO) {
             final SibsTransactionDetailDTO sibsTransactionDetailDTO = (SibsTransactionDetailDTO) transactionDetailDTO;
 
-            DateTime whenRegistered = getWhenRegisteredForEvent(event, sibsTransactionDetailDTO)
-                    ;
+            DateTime whenRegistered = getWhenRegisteredForEvent(event, sibsTransactionDetailDTO);
 
             return new SibsTransactionDetail(sibsTransactionDetailDTO.getSibsDetailLine(), whenRegistered,
                     sibsTransactionDetailDTO.getSibsTransactionId(), sibsTransactionDetailDTO.getSibsCode(),
@@ -287,12 +286,14 @@ public abstract class PostingRule extends PostingRule_Base {
 
     /**
      * Returns effective date of payment for event.
+     * If the entry has a null amount, then it is a reusable payment code and returns the registered date of the payment
      * If the payment is registered after the due date of the entry, returns the registered date of the payment
      * Otherwise, returns the creation date of the entry (for freezing purposes of penalty calculations)
      */
     private DateTime getWhenRegisteredForEvent(Event event, SibsTransactionDetailDTO sibsTransactionDetailDTO) {
         return event.getEventPaymentCodeEntrySet().stream()
                 .filter(entry -> entry.getPaymentCode().getCode().equals(sibsTransactionDetailDTO.getSibsCode()))
+                .filter(entry -> entry.getAmount() != null)
                 .filter(entry -> !sibsTransactionDetailDTO.getWhenRegistered().toLocalDate().isAfter(entry.getDueDate()))
                 .findAny()
                 .map(EventPaymentCodeEntry::getCreated)
