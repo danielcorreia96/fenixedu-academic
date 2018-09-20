@@ -11,7 +11,6 @@ import org.fenixedu.academic.ui.spring.service.AccountingManagementService;
 import org.fenixedu.academic.ui.spring.service.AccountingManagementService.PaymentSummary;
 import org.fenixedu.academic.util.Money;
 import org.fenixedu.bennu.core.domain.User;
-import org.fenixedu.bennu.core.security.Authenticate;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.springframework.ui.Model;
@@ -66,8 +65,8 @@ public abstract class AccountingController {
     }
 
     @RequestMapping("{event}/details")
-    public String details(@PathVariable Event event, @RequestParam(value = "date", defaultValue = "#{new org.joda.time.DateTime()}") DateTime date, @ModelAttribute("error") String error, Model model) {
-        accessControlService.checkEventOwnerOrPaymentManager(event, Authenticate.getUser());
+    public String details(@PathVariable Event event, @RequestParam(value = "date", defaultValue = "#{new org.joda.time.DateTime()}") DateTime date,  Model model, User loggedUser) {
+        accessControlService.checkEventOwnerOrPaymentManager(event, loggedUser);
 
         final DebtInterestCalculator debtInterestCalculator = event.getDebtInterestCalculator(date);
         final List<CreditEntry> creditEntries = debtInterestCalculator.getCreditEntries();
@@ -87,16 +86,16 @@ public abstract class AccountingController {
         model.addAttribute("eventFineAmountToPay", debtInterestCalculator.getDueFineAmount());
         model.addAttribute("eventOriginalAmountToPay", event.getOriginalAmountToPay());
 
-        model.addAttribute("isEventOwner", accessControlService.isEventOwner(event, Authenticate.getUser()));
-        model.addAttribute("isPaymentManager", accessControlService.isPaymentManager(event, Authenticate.getUser()));
-        model.addAttribute("isAdvancedPaymentManager", accessControlService.isAdvancedPaymentManager(event, Authenticate.getUser()));
+        model.addAttribute("isEventOwner", accessControlService.isEventOwner(event, loggedUser));
+        model.addAttribute("isPaymentManager", accessControlService.isPaymentManager(event, loggedUser));
+        model.addAttribute("isAdvancedPaymentManager", accessControlService.isAdvancedPaymentManager(event, loggedUser));
 
         return view("event-details");
     }
 
     @RequestMapping("{event}/debt/{debtDueDate}/details")
-    public String debtDetails(@PathVariable Event event, @PathVariable LocalDate debtDueDate, Model model) {
-        accessControlService.checkEventOwnerOrPaymentManager(event, Authenticate.getUser());
+    public String debtDetails(@PathVariable Event event, @PathVariable LocalDate debtDueDate, Model model, User loggedUser) {
+        accessControlService.checkEventOwnerOrPaymentManager(event, loggedUser);
 
         final DebtInterestCalculator debtInterestCalculator = event.getDebtInterestCalculator(new DateTime());
         List<Debt> debtsOrderedByDueDate = debtInterestCalculator.getDebtsOrderedByDueDate();
@@ -115,14 +114,14 @@ public abstract class AccountingController {
         model.addAttribute("debt", debt);
         model.addAttribute("payments", paymentSummaries);
 
-        model.addAttribute("isEventOwner", accessControlService.isEventOwner(event, Authenticate.getUser()));
+        model.addAttribute("isEventOwner", accessControlService.isEventOwner(event, loggedUser));
 
         return view("event-debt-details");
     }
 
     @RequestMapping("{event}/creditEntry/{creditEntryId}/details")
-    public String creditEntryDetails(@PathVariable Event event, @PathVariable String creditEntryId, Model model) {
-        accessControlService.checkEventOwnerOrPaymentManager(event, Authenticate.getUser());
+    public String creditEntryDetails(@PathVariable Event event, @PathVariable String creditEntryId, Model model, User loggedUser) {
+        accessControlService.checkEventOwnerOrPaymentManager(event, loggedUser);
 
         final DebtInterestCalculator calculator = event.getDebtInterestCalculator(new DateTime());
         final CreditEntry creditEntry = calculator.getCreditEntryById(creditEntryId).orElseThrow(UnsupportedOperationException::new);

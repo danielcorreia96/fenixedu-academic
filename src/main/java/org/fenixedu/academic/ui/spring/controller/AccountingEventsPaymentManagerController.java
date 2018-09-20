@@ -18,7 +18,6 @@ import org.fenixedu.academic.service.services.accounting.DeleteExemption;
 import org.fenixedu.academic.ui.spring.service.AccountingManagementAccessControlService;
 import org.fenixedu.academic.ui.spring.service.AccountingManagementService;
 import org.fenixedu.bennu.core.domain.User;
-import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -31,17 +30,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.GenericChecksumRewriter;
 import pt.ist.fenixframework.DomainObject;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by Sérgio Silva (hello@fenixedu.org).
@@ -62,7 +56,12 @@ public class AccountingEventsPaymentManagerController extends AccountingControll
 
     @Override
     public String entrypointUrl() {
-        return REQUEST_MAPPING + "/back/{user}";
+        return REQUEST_MAPPING + "/{user}";
+    }
+
+    @RequestMapping
+    public String entrypoint(User loggedUser) {
+        return "redirect:" + REQUEST_MAPPING + "/" + loggedUser.getUsername();
     }
 
     @RequestMapping("{event}/summary")
@@ -74,17 +73,6 @@ public class AccountingEventsPaymentManagerController extends AccountingControll
         model.addAttribute("creditEntries", debtInterestCalculator.getCreditEntries());
         model.addAttribute("debtCalculator", debtInterestCalculator);
         return view("event-summary");
-    }
-
-    @RequestMapping("back/{user}")
-    public void view(@PathVariable User user, HttpSession httpSession, HttpServletResponse response) {
-        //TODO : fix this with new entrypoint interface for manager (lets deprecate it)
-        final String url = "/academicAdministration/paymentsManagement.do?method=showEvents&personId=" + user.getPerson().getExternalId();
-        try {
-            response.sendRedirect(servletContext.getContextPath() + GenericChecksumRewriter.injectChecksumInUrl(servletContext.getContextPath(), url, httpSession));
-        } catch (IOException e) {
-            throw new Error(e);
-        }
     }
 
     @RequestMapping("{event}/delete/{transaction}")

@@ -14,7 +14,6 @@ import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.Money;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
-import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -57,20 +56,19 @@ public class AccountingEventForOwnerController extends AccountingController {
     }
 
     @RequestMapping
-    public String entrypoint() {
-        return "redirect:" + REQUEST_MAPPING + "/" + Authenticate.getUser().getUsername();
+    public String entrypoint(User loggedUser) {
+        return "redirect:" + REQUEST_MAPPING + "/" + loggedUser.getUsername();
     }
 
     @RequestMapping(value = "{event}/pay", method = RequestMethod.GET)
-    public String doPayment(@PathVariable Event event, Model model) {
-        accessControlService.checkEventOwner(event, Authenticate.getUser());
-
+    public String doPayment(@PathVariable Event event, Model model, User loggedUser) {
+        accessControlService.checkEventOwner(event, loggedUser);
         final DebtInterestCalculator debtInterestCalculator = event.getDebtInterestCalculator(new DateTime());
 
         if (debtInterestCalculator.getTotalDueAmount().compareTo(BigDecimal.ZERO) < 1) {
             logger.warn("Hacky user {} tried to access payment interface for event {}",
-                    Optional.ofNullable(Authenticate.getUser()).map(User::getUsername).orElse("---"), event.getExternalId());
-            return entrypoint();
+                    Optional.ofNullable(loggedUser).map(User::getUsername).orElse("---"), event.getExternalId());
+            return entrypoint(loggedUser);
         }
 
         if (debtInterestCalculator.hasDueInterestAmount()) {
@@ -100,9 +98,9 @@ public class AccountingEventForOwnerController extends AccountingController {
 
     }
 
-    @RequestMapping(value = "{event}/paymentRef/{paymentCodeEntry}", method = RequestMethod.GET)
-    public String showPaymentReference(@PathVariable Event event, @PathVariable EventPaymentCodeEntry paymentCodeEntry, Model model) {
-        accessControlService.checkEventOwner(event, Authenticate.getUser());
+    @RequestMapping(value = "{event}/paymentRef/{paymentCodeEntry}")
+    public String showPaymentReference(@PathVariable Event event, @PathVariable EventPaymentCodeEntry paymentCodeEntry, Model model, User loggedUser) {
+        accessControlService.checkEventOwner(event, loggedUser);
 
         model.addAttribute("paymentCodeEntry", paymentCodeEntry);
         model.addAttribute("maxDaysBetweenPromiseAndPayment", FenixEduAcademicConfiguration.getConfiguration().getMaxDaysBetweenPromiseAndPayment());
@@ -110,19 +108,19 @@ public class AccountingEventForOwnerController extends AccountingController {
     }
 
     @RequestMapping(value = "{event}/pay", method = RequestMethod.POST)
-    public String generatePaymentCodeEntry(@PathVariable Event event, @RequestParam BigDecimal totalAmount, Model model) {
-        accessControlService.checkEventOwner(event, Authenticate.getUser());
+    public String generatePaymentCodeEntry(@PathVariable Event event, @RequestParam BigDecimal totalAmount, Model model, User loggedUser) {
+        accessControlService.checkEventOwner(event, loggedUser);
 
         final long currentNewCodes = event.getEventPaymentCodeEntrySet().stream().filter(entry -> entry.getPaymentCode().isNew()).count();
         final Integer maxNewPaymentCodesPerEvent = FenixEduAcademicConfiguration.getConfiguration().getMaxNewPaymentCodesPerEvent();
 
         if (currentNewCodes == maxNewPaymentCodesPerEvent) {
             model.addAttribute("error", BundleUtil.getString(Bundle.ACADEMIC, "block.entry.creation.max.new.payment.codes", maxNewPaymentCodesPerEvent.toString()));
-            return doPayment(event, model);
+            return doPayment(event, model, loggedUser);
         }
         else if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
             model.addAttribute("error", BundleUtil.getString(Bundle.ACADEMIC, "block.entry.creation.not.positive.total.amount"));
-            return doPayment(event, model);
+            return doPayment(event, model, loggedUser);
         }
         else {
             final EventPaymentCodeEntry paymentCodeEntry = EventPaymentCodeEntry.create(event, new Money(totalAmount));
@@ -130,7 +128,7 @@ public class AccountingEventForOwnerController extends AccountingController {
         }
     }
 
-    private List<EventPaymentCodeEntry> getSortedEventPaymentCodeEntries(@PathVariable Event event) {
+    private List<EventPaymentCodeEntry> getSortedEventPaymentCodeEntries(Event event) {
         return event.getEventPaymentCodeEntrySet().stream()
                 .sorted(Comparator.comparing(EventPaymentCodeEntry::getCreated).reversed())
                 .collect(Collectors.toList());

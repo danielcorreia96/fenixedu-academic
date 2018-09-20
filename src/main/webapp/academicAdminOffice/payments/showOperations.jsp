@@ -33,6 +33,7 @@
 </html:messages>
 
 <bean:define id="personId" name="person" property="externalId" />
+<bean:define id="username" name="person" property="username"/>
 <fr:form action='<%= "/payments.do?personId=" + personId %>'>
 
 	<input type="hidden" name="method" value=""/>
@@ -60,6 +61,14 @@
 		<li><html:link action="<%="/payments.do?method=showEvents&amp;personId=" + personId %>">
 			<bean:message bundle="ACADEMIC_OFFICE_RESOURCES" key="label.payments.currentEvents" />
 		</html:link></li>
+	</ul>
+	<ul>
+		<li>
+			<html:link href="<%= request.getContextPath() + "/accounting-management/" + username %>">
+				<bean:message bundle="ACADEMIC_OFFICE_RESOURCES" key="label.payments.show.events"/>
+			</html:link>
+		</li>
+	</ul>
 		<%--<li><html:link action="<%="/payments.do?method=showExternalEvents&amp;personId=" + personId %>">--%>
 			<%--<bean:message bundle="ACADEMIC_OFFICE_RESOURCES" key="label.scolarships.external" />--%>
 		<%--</html:link></li>--%>
@@ -76,12 +85,6 @@
 		<%--<li><html:link action="<%="/payments.do?method=showEventsWithPayments&amp;personId=" + personId%>">--%>
 			<%--<bean:message bundle="ACADEMIC_OFFICE_RESOURCES" key="label.payments.extract" />--%>
 		<%--</html:link></li>--%>
-	</ul>
-	<ul>
-		<li><html:link action="<%="/paymentsManagement.do?method=showEvents&personId=" + personId%>">
-			<bean:message bundle="ACADEMIC_OFFICE_RESOURCES" key="label.advanced.payments" />
-		</html:link></li>
-	</ul>
 	<%--<strong><bean:message bundle="ACADEMIC_OFFICE_RESOURCES" key="label.documents"/></strong>--%>
 	<%--<ul>--%>
 		<%--<li><html:link action="<%="/generatedDocuments.do?method=showAnnualIRSDocumentsInPayments&amp;personId=" + personId%>">--%>
