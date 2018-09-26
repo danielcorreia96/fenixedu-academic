@@ -21,67 +21,39 @@
  */
 package org.fenixedu.academic.ui.struts.action.administrativeOffice.payments;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.fenixedu.academic.domain.Person;
-import org.fenixedu.academic.domain.accounting.Entry;
-import org.fenixedu.academic.domain.accounting.EntryType;
 import org.fenixedu.academic.domain.accounting.Event;
-import org.fenixedu.academic.domain.accounting.EventType;
-import org.fenixedu.academic.domain.accounting.Exemption;
 import org.fenixedu.academic.domain.accounting.PaymentMode;
 import org.fenixedu.academic.domain.accounting.Receipt;
-import org.fenixedu.academic.domain.accounting.events.gratuity.ExternalScholarshipGratuityContributionEvent;
-import org.fenixedu.academic.domain.accounting.events.gratuity.ExternalScholarshipGratuityExemption;
-import org.fenixedu.academic.domain.accounting.events.gratuity.GratuityEvent;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.exceptions.DomainExceptionWithLabelFormatter;
-import org.fenixedu.academic.domain.phd.debts.ExternalScholarshipPhdGratuityContribuitionEvent;
-import org.fenixedu.academic.domain.phd.debts.PhdGratuityExternalScholarshipExemption;
-import org.fenixedu.academic.dto.accounting.AccountingTransactionDetailDTO;
 import org.fenixedu.academic.dto.accounting.EntryDTO;
 import org.fenixedu.academic.dto.accounting.PaymentsManagementDTO;
-import org.fenixedu.academic.dto.accounting.SelectableEntryBean;
 import org.fenixedu.academic.service.services.accounting.CreatePaymentsForEvents;
 import org.fenixedu.academic.ui.struts.FenixActionForm;
-import org.fenixedu.academic.ui.struts.action.administrativeOffice.payments.ExternalScholarshipManagementDebtsDA.AmountBean;
 import org.fenixedu.academic.ui.struts.action.administrativeOffice.student.SearchForStudentsDA;
 import org.fenixedu.academic.ui.struts.action.base.FenixDispatchAction;
-import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.struts.annotations.Forward;
 import org.fenixedu.bennu.struts.annotations.Forwards;
 import org.fenixedu.bennu.struts.annotations.Mapping;
 import org.joda.time.DateTime;
-
 import pt.ist.fenixWebFramework.renderers.utils.RenderUtils;
-import pt.ist.fenixframework.Atomic;
-import pt.ist.fenixframework.FenixFramework;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapping(path = "/payments", module = "academicAdministration", formBeanClass = FenixActionForm.class,
         functionality = SearchForStudentsDA.class)
 @Forwards({ @Forward(name = "showOperations", path = "/academicAdminOffice/payments/showOperations.jsp"),
-        @Forward(name = "showContribution", path = "/academicAdminOffice/payments/showContribution.jsp"),
-        @Forward(name = "showExternalEvents", path = "/academicAdminOffice/payments/showExternalEvents.jsp"),
         @Forward(name = "showEvents", path = "/academicAdminOffice/payments/showEvents.jsp"),
-        @Forward(name = "showEventsWithPayments", path = "/academicAdminOffice/payments/showEventsWithPayments.jsp"),
-        @Forward(name = "showPaymentsForEvent", path = "/academicAdminOffice/payments/showPaymentsForEvent.jsp"),
         @Forward(name = "preparePayment", path = "/academicAdminOffice/payments/preparePayment.jsp"),
-        @Forward(name = "preparePrintGuide", path = "/academicAdministration/guides.do?method=preparePrintGuide"),
-        @Forward(name = "showReceipt", path = "/academicAdministration/receipts.do?method=prepareShowReceipt"),
-        @Forward(name = "showEventsWithPaymentCodes", path = "/academicAdminOffice/payments/showEventsWithPaymentCodes.jsp"),
-        @Forward(name = "showPaymentCodesForEvent", path = "/academicAdminOffice/payments/showPaymentCodesForEvent.jsp") })
+})
 public class PaymentsManagementDispatchAction extends FenixDispatchAction {
 
     protected PaymentsManagementDTO searchNotPayedEventsForPerson(Person person) {
@@ -106,73 +78,6 @@ public class PaymentsManagementDispatchAction extends FenixDispatchAction {
         }
 
         return mapping.findForward("showEvents");
-    }
-
-    public ActionForward showExternalEvents(ActionMapping mapping, ActionForm form, HttpServletRequest request,
-            HttpServletResponse response) {
-        Person person = getPerson(request);
-
-        Set<Event> events = person.getGratuityEvents().stream().map(GratuityEvent::getExternalScholarshipGratuityExemption)
-                .filter(Objects::nonNull)
-                .map(ExternalScholarshipGratuityExemption::getExternalScholarshipGratuityContributionEvent).filter(Event::isOpen)
-                .collect(Collectors.toSet());
-
-        Set<Event> phdEvents =
-                person.getEventsByEventType(EventType.PHD_GRATUITY).stream().flatMap(e -> e.getExemptionsSet().stream())
-                        .filter(e -> e instanceof PhdGratuityExternalScholarshipExemption)
-                        .map(e -> (PhdGratuityExternalScholarshipExemption) e)
-                        .map(PhdGratuityExternalScholarshipExemption::getExternalScholarshipPhdGratuityContribuitionEvent)
-                        .filter(Event::isOpen).collect(Collectors.toSet());
-
-        request.setAttribute("events", events);
-        request.setAttribute("phdEvents", phdEvents);
-        request.setAttribute("person", person);
-        return mapping.findForward("showExternalEvents");
-    }
-
-    public ActionForward prepareLiquidation(ActionMapping mapping, ActionForm form, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        String eventId = request.getParameter("eventId");
-        Event event = FenixFramework.getDomainObject(eventId == null ? (String) request.getAttribute("eventId") : eventId);
-
-        request.setAttribute("event", event);
-        request.setAttribute("person", getOriginalDebtor(event));
-        AmountBean bean = new AmountBean();
-        bean.setValue(event.getAmountToPay());
-        request.setAttribute("bean", bean);
-        return mapping.findForward("showContribution");
-    }
-
-    @Atomic
-    public ActionForward liquidate(ActionMapping mapping, ActionForm form, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        String eventId = request.getParameter("externalId");
-        Event event = FenixFramework.getDomainObject(eventId == null ? (String) request.getAttribute("externalId") : eventId);
-
-        AmountBean bean = getRenderedObject("bean");
-        List<EntryDTO> list = new ArrayList<EntryDTO>();
-        list.add(new EntryDTO(EntryType.EXTERNAL_SCOLARSHIP_PAYMENT, event, bean.getValue()));
-        event.process(Authenticate.getUser(), list, new AccountingTransactionDetailDTO(bean.getPaymentDate(), PaymentMode.CASH));
-
-        request.setAttribute("personId", getOriginalDebtor(event).getExternalId());
-        return showExternalEvents(mapping, form, request, response);
-    }
-
-    public ActionForward cancel(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) {
-
-        String eventId = request.getParameter("externalId");
-        Event event = FenixFramework.getDomainObject(eventId == null ? (String) request.getAttribute("externalId") : eventId);
-
-        request.setAttribute("personId", getOriginalDebtor(event).getExternalId());
-        return showExternalEvents(mapping, form, request, response);
-    }
-
-    protected List<SelectableEntryBean> getSelectableEntryBeans(final Set<Entry> entries, final Collection<Entry> entriesToSelect) {
-        return entries.stream()
-                .map(entry -> new SelectableEntryBean(entriesToSelect.contains(entry), entry))
-                .collect(Collectors.toList());
     }
 
     public ActionForward preparePayment(ActionMapping mapping, ActionForm form, HttpServletRequest request,
@@ -277,16 +182,6 @@ public class PaymentsManagementDispatchAction extends FenixDispatchAction {
         return getDomainObject(request, "personId");
     }
 
-
-    private Person getOriginalDebtor(Event event) {
-        Exemption exemption =
-                ((event instanceof ExternalScholarshipGratuityContributionEvent) ? ((ExternalScholarshipGratuityContributionEvent) event)
-                        .getExternalScholarshipGratuityExemption() : ((ExternalScholarshipPhdGratuityContribuitionEvent) event)
-                        .getPhdGratuityExternalScholarshipExemption());
-
-        return exemption.getEvent().getPerson();
-    }
-
     public ActionForward preparePaymentInvalid(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
             HttpServletResponse response) {
 
@@ -326,56 +221,8 @@ public class PaymentsManagementDispatchAction extends FenixDispatchAction {
         return mapping.findForward("showOperations");
     }
 
-    public ActionForward showEventsWithPayments(ActionMapping mapping, ActionForm form, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        request.setAttribute("person", getPerson(request));
-
-        return mapping.findForward("showEventsWithPayments");
-    }
-
-    public ActionForward showPaymentsForEvent(ActionMapping mapping, ActionForm form, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        request.setAttribute("person", getPerson(request));
-        request.setAttribute("event", getEvent(request));
-
-        return mapping.findForward("showPaymentsForEvent");
-    }
-
     protected Event getEvent(HttpServletRequest request) {
         return getDomainObject(request, "eventId");
-    }
-
-    public ActionForward preparePrintGuide(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) {
-        return mapping.findForward("preparePrintGuide");
-    }
-
-    public ActionForward showEventsWithPaymentCodes(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        final Person person = getPerson(request);
-        request.setAttribute("person", person);
-        request.setAttribute("eventsWithPaymentCodes", searchOpenEventsWithPaymentCodes(request, person));
-
-        return mapping.findForward("showEventsWithPaymentCodes");
-    }
-
-    public ActionForward showPaymentCodesForEvent(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        final Event event = getEvent(request);
-        request.setAttribute("event", event);
-        request.setAttribute("accountingEventPaymentCodes", event.getNonProcessedPaymentCodes());
-
-        return mapping.findForward("showPaymentCodesForEvent");
-    }
-
-    private Collection<Event> searchOpenEventsWithPaymentCodes(HttpServletRequest request, final Person person) {
-        return person.getNotPayedEvents().stream()
-                .filter(event -> event.isOpen() && event.hasNonProcessedPaymentCodes())
-                .collect(Collectors.toSet());
     }
 
 }

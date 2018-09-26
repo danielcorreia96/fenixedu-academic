@@ -72,14 +72,6 @@ public class CreditNotesManagementDA extends PaymentsManagementDispatchAction {
 
     }
 
-    public ActionForward showCreditNotes(ActionMapping mapping, ActionForm form, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        request.setAttribute("receipt", getReceiptFromViewState("receipt"));
-
-        return mapping.findForward("list");
-    }
-
     private Receipt getReceiptFromViewState(String viewStateId) {
         return (Receipt) getObjectFromViewState(viewStateId);
     }
