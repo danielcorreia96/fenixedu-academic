@@ -120,22 +120,6 @@ public class PaymentsManagementDispatchAction extends FenixDispatchAction {
         return entries.stream().filter(EntryDTO::isForPenalty).collect(Collectors.toList());
     }
 
-    public ActionForward preparePaymentUsingContributorPartyPostback(ActionMapping mapping, ActionForm form,
-            HttpServletRequest request, HttpServletResponse response) {
-        final PaymentsManagementDTO paymentsManagementDTO =
-                (PaymentsManagementDTO) getObjectFromViewState("paymentsManagementDTO-edit");
-
-        RenderUtils.invalidateViewState("paymentsManagementDTO-edit");
-
-        paymentsManagementDTO.setContributorParty(null);
-        paymentsManagementDTO.setContributorNumber(null);
-        paymentsManagementDTO.setContributorName(null);
-
-        request.setAttribute("paymentsManagementDTO", paymentsManagementDTO);
-
-        return mapping.findForward("preparePayment");
-    }
-
     public ActionForward doPayment(ActionMapping mapping, ActionForm form, HttpServletRequest request,
             HttpServletResponse response) {
 
@@ -153,15 +137,12 @@ public class PaymentsManagementDispatchAction extends FenixDispatchAction {
         //This is here to force the load of the relation to debug a possible bug in FenixFramework
         paymentsManagementDTO.getPerson().getReceiptsSet().size();
         try {
-            final Receipt receipt =
-                    CreatePaymentsForEvents.run(getUserView(request).getPerson().getUser(),
-                            paymentsManagementDTO.getSelectedEntries(), PaymentMode.CASH,
-                            paymentsManagementDTO.isDifferedPayment(), paymentsManagementDTO.getPaymentDate(),
-                            paymentsManagementDTO.getPerson(), paymentsManagementDTO.getContributorName(),
-                            paymentsManagementDTO.getContributorNumber(), paymentsManagementDTO.getContributorAddress());
+
+            CreatePaymentsForEvents.run(getUserView(request).getPerson().getUser(),
+                    paymentsManagementDTO.getSelectedEntries(), PaymentMode.CASH,
+                    paymentsManagementDTO.getPaymentDate());
 
             request.setAttribute("personId", paymentsManagementDTO.getPerson().getExternalId());
-            request.setAttribute("receiptID", receipt.getExternalId());
 
             return mapping.findForward("showReceipt");
 
@@ -180,14 +161,6 @@ public class PaymentsManagementDispatchAction extends FenixDispatchAction {
 
     protected Person getPerson(HttpServletRequest request) {
         return getDomainObject(request, "personId");
-    }
-
-    public ActionForward preparePaymentInvalid(ActionMapping mapping, ActionForm actionForm, HttpServletRequest request,
-            HttpServletResponse response) {
-
-        request.setAttribute("paymentsManagementDTO", RenderUtils.getViewState("paymentsManagementDTO-edit").getMetaObject()
-                .getObject());
-        return mapping.findForward("preparePayment");
     }
 
     public ActionForward prepareShowEventsInvalid(ActionMapping mapping, ActionForm form, HttpServletRequest request,

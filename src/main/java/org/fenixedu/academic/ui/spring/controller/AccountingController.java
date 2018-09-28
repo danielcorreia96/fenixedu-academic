@@ -49,15 +49,15 @@ public abstract class AccountingController {
     @RequestMapping("{user}")
     public String events(@PathVariable User user, Model model, User loggedUser) {
         if (loggedUser == user || accessControlService.isPaymentManager(loggedUser)) {
-            model.addAttribute("name", user.getPerson().getPresentationName());
-            model.addAttribute("idDocumentType", user.getPerson().getIdDocumentType().getLocalizedName());
-            model.addAttribute("idDocument", user.getPerson().getDocumentIdNumber());
+            model.addAttribute("person", user.getPerson());
 
             model.addAttribute("openEvents", user.getPerson().getEventsSet().stream().filter(Event::isOpen).sorted(Comparator
                     .comparing(Event::getWhenOccured).reversed()).collect(Collectors.toList()));
 
             model.addAttribute("otherEvents", user.getPerson().getEventsSet().stream().filter(e -> !e.isOpen()).sorted(Comparator
                     .comparing(Event::getWhenOccured).reversed()).collect(Collectors.toList()));
+
+            model.addAttribute("isPaymentManager", accessControlService.isPaymentManager(loggedUser));
 
             return view("events");
         }

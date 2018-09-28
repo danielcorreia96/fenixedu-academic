@@ -40,15 +40,15 @@
                     <div class="overall-description">
                         <dl>
                             <dt><spring:message code="label.name" text="Name"/></dt>
-                            <dd><c:out value="${name}"/></dd>
+                            <dd><c:out value="${person.presentationName}"/></dd>
                         </dl>
                         <dl>
                             <dt><spring:message code="label.document.id.type" text="ID Document Type"/></dt>
-                            <dd><c:out value="${idDocumentType}"/></dd>
+                            <dd><c:out value="${person.idDocumentType.localizedName}"/></dd>
                         </dl>
                         <dl>
                             <dt><spring:message code="label.document.id" text="ID Document"/></dt>
-                            <dd><c:out value="${idDocument}"/></dd>
+                            <dd><c:out value="${person.documentIdNumber}"/></dd>
                         </dl>
                     </div>
                 </div>
@@ -57,7 +57,15 @@
         <section>
             <div class="row">
                 <div class="col-md-12">
-                    <h2><spring:message code="label.current.debts" text="Current debts"/></h2>
+                    <spring:url var="multiplePaymentsUrl" value="{user}/multiplePayments/select">
+                        <spring:param name="user" value="${person.username}"/>
+                    </spring:url>
+                    <h2>
+                        <spring:message code="label.current.debts" text="Current debts"/>
+                        <c:if test="${isPaymentManager}">
+                            <a class="btn btn-primary" href="${multiplePaymentsUrl}"><spring:message code="accounting.event.action.pay.debts" text="Pay"/></a>
+                        </c:if>
+                    </h2>
                 </div>
             </div>
             <div class="row">
@@ -66,8 +74,7 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <th style="width: 100px;"><spring:message code="accounting.event.details.creation.date"
-                                                                          text="Creation Date"/></th>
+                                <th style="width: 100px;"><spring:message code="accounting.event.details.creation.date" text="Creation Date"/></th>
                                 <th style="width: 70%;"><spring:message code="label.description" text="Description"/></th>
                                 <th><spring:message code="label.total" text="Total"/></th>
                                 <th><spring:message code="accounting.event.details.amount.pay" text="To Pay"/></th>
@@ -86,8 +93,7 @@
                                     <td style="width: 70%;"><c:out value="${event.description}"/></td>
                                     <td><c:out value="${event.totalAmount}"/></td>
                                     <td><c:out value="${event.totalAmountToPay}"/></td>
-                                    <td style="text-align: right;"><a href="${eventUrl}"><spring:message code="label.details"
-                                                                                                         text="Details"/></a></td>
+                                    <td style="text-align: right;"><a href="${eventUrl}"><spring:message code="label.details" text="Details"/></a></td>
                                 </tr>
                             </c:forEach>
                             </tbody>
@@ -108,8 +114,7 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <th style="width: 100px;"><spring:message code="accounting.event.details.creation.date"
-                                                                          text="Creation Date"/></th>
+                                <th style="width: 100px;"><spring:message code="accounting.event.details.creation.date" text="Creation Date"/></th>
                                 <th style="width: 70%;"><spring:message code="label.description" text="Description"/></th>
                                 <th><spring:message code="label.total" text="Total"/></th>
                                 <th><span class="sr-only"><spring:message code="label.actions" text="Actions"/></span></th>
@@ -131,8 +136,7 @@
                                         </c:if>
                                     </td>
                                     <td><c:out value="${event.totalAmount}"/></td>
-                                    <td style="text-align: right;"><a href="${eventUrl}"><spring:message code="label.details"
-                                                                                                         text="Details"/></a></td>
+                                    <td style="text-align: right;"><a href="${eventUrl}"><spring:message code="label.details" text="Details"/></a></td>
                                 </tr>
                             </c:forEach>
                             </tbody>

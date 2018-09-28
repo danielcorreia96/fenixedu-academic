@@ -4,19 +4,25 @@ import org.fenixedu.academic.domain.accounting.AccountingTransaction;
 import org.fenixedu.academic.domain.accounting.Discount;
 import org.fenixedu.academic.domain.accounting.Event;
 import org.fenixedu.academic.domain.accounting.Exemption;
+import org.fenixedu.academic.domain.accounting.calculator.Debt;
 import org.fenixedu.academic.domain.accounting.calculator.DebtInterestCalculator;
+import org.fenixedu.academic.domain.accounting.calculator.Fine;
+import org.fenixedu.academic.domain.accounting.calculator.Interest;
 import org.fenixedu.academic.domain.accounting.events.EventExemptionJustificationType;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.dto.accounting.AnnulAccountingTransactionBean;
 import org.fenixedu.academic.dto.accounting.CreateExemptionBean;
 import org.fenixedu.academic.dto.accounting.CreateExemptionBean.ExemptionType;
 import org.fenixedu.academic.dto.accounting.DepositAmountBean;
+import org.fenixedu.academic.dto.accounting.EntryDTO;
+import org.fenixedu.academic.dto.accounting.PaymentsManagementDTO;
 import org.fenixedu.academic.predicate.AcademicPredicates;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.service.services.accounting.AnnulAccountingTransaction;
 import org.fenixedu.academic.service.services.accounting.DeleteExemption;
 import org.fenixedu.academic.ui.spring.service.AccountingManagementAccessControlService;
 import org.fenixedu.academic.ui.spring.service.AccountingManagementService;
+import org.fenixedu.academic.util.Money;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.spring.portal.SpringFunctionality;
 import org.joda.time.DateTime;
@@ -34,8 +40,13 @@ import pt.ist.fenixframework.DomainObject;
 
 import javax.servlet.ServletContext;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by Sérgio Silva (hello@fenixedu.org).
@@ -211,7 +222,54 @@ public class AccountingEventsPaymentManagerController extends AccountingControll
         return redirectToEventDetails(event);
     }
 
+    @RequestMapping(value = "{user}/multiplePayments/select", method = RequestMethod.GET)
+    public String prepareMultiplePayments(@PathVariable User user, Model model, User loggedUser){
+        accessControlService.isPaymentManager(loggedUser);
+
+        PaymentsManagementDTO paymentsManagementDTO = new PaymentsManagementDTO(user.getPerson());
+        user.getPerson().getEventsSet().stream().map(Event::calculateEntries).forEach(paymentsManagementDTO::addEntryDTOs);
+
+        // Show penalties first then order by due date
+        paymentsManagementDTO.getEntryDTOs().sort(Comparator.comparing(EntryDTO::isForPenalty).reversed().thenComparing(EntryDTO::getDueDate));
+
+        if (paymentsManagementDTO.getTotalAmountToPay().lessOrEqualThan(Money.ZERO)) {
+            logger.warn("Hacky user {} tried to access multiple payments interface for user {}",
+                    Optional.ofNullable(loggedUser).map(User::getUsername).orElse("---"), user.getUsername());
+            return "redirect:" + REQUEST_MAPPING + "/" + user.getUsername();
+        }
+
+        model.addAttribute("paymentsManagementDTO", paymentsManagementDTO);
+        model.addAttribute("entryDTOsList", new ArrayList<EntryDTO>());
+        model.addAttribute("person", user.getPerson());
+
+        return view("events-multiple-payments-prepare");
+    }
+
+    @RequestMapping(value = "{user}/multiplePayments/confirm", method = RequestMethod.POST)
+    public String confirmMultiplePayments(@PathVariable User user, Model model, User loggedUser, @ModelAttribute List<EntryDTO> entryDTOsList) {
+        accessControlService.isPaymentManager(loggedUser);
+
+//        entryDTOS.setPaymentDate(DateTime.now());
+
+        model.addAttribute("person", user.getPerson());
+
+        return view("events-multiple-payments-confirm");
+    }
+
+
     private String redirectToEventDetails(@PathVariable Event event) {
         return String.format("redirect:%s/%s/details", REQUEST_MAPPING, event.getExternalId());
+    }
+
+    private List<Interest> getInterests(DebtInterestCalculator debtInterestCalculator) {
+        return debtInterestCalculator.getDebtsOrderedByDueDate().stream()
+                .flatMap(d -> d.getInterests().stream())
+                .collect(Collectors.toList());
+    }
+
+    private List<Fine> getFines(DebtInterestCalculator debtInterestCalculator) {
+        return debtInterestCalculator.getDebtsOrderedByDueDate().stream()
+                .flatMap(d -> d.getFines().stream())
+                .collect(Collectors.toList());
     }
 }

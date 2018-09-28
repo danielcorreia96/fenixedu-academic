@@ -383,6 +383,7 @@ public abstract class PostingRule extends PostingRule_Base {
                     bean = new EntryDTO(entryType, event, originalAmount, payedAmount, amountToPay, entryDescription, amountToPay);
                 }
 
+                bean.setDueDate(d.getDueDate());
                 result.add(bean);
             }
 
@@ -393,6 +394,7 @@ public abstract class PostingRule extends PostingRule_Base {
                 entryDescription.appendLabel(String.format(" [ %s ]  / Juros", d.getDueDate().toString("dd-MM-yyyy")));
                 e.setDescription(entryDescription);
                 e.setForPenalty(true);
+                e.setDueDate(d.getDueDate());
                 result.add(e);
             }
 
@@ -403,6 +405,7 @@ public abstract class PostingRule extends PostingRule_Base {
                 entryDescription.appendLabel(String.format(" [ %s ]  / Multa", d.getDueDate().toString("dd-MM-yyyy")));
                 e.setDescription(entryDescription);
                 e.setForPenalty(true);
+                e.setDueDate(d.getDueDate());
                 result.add(e);
             }
         });
