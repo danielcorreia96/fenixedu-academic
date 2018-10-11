@@ -34,7 +34,7 @@
     <spring:param name="event" value="${eventId}"/>
 </spring:url>
 
-<c:set var="totalAmount" value="#{debt.openAmount + debt.openInterestAmount}"/>
+<c:set var="totalAmount" value="#{debt.totalOpenAmount}"/>
 
 <div class="container-fluid">
     <header>

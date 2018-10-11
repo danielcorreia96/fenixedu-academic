@@ -128,7 +128,7 @@
                             <c:when test="${!debt.open}">
                                 <c:set var="cardClass" value="fully-paid"/>
                             </c:when>
-                            <c:when test="${debt.isAfterDueDate(currentDate) && !(debt.isToExemptInterest() || debt.isToExemptFine())}">
+                            <c:when test="${debt.totalOpenPenaltyAmount > 0 && debt.isAfterDueDate(currentDate) && !(debt.isToExemptInterest() || debt.isToExemptFine())}">
                                 <c:set var="cardClass" value="passed-limit"/>
                             </c:when>
                             <c:otherwise>
@@ -147,7 +147,7 @@
                                     <c:when test="${!debt.open}">
                                         <spring:message code="accounting.event.details.debt.paid" text="Paid"/>
                                     </c:when>
-                                    <c:when test="${debt.isAfterDueDate(currentDate) && !(debt.isToExemptInterest() || debt.isToExemptFine())}">
+                                    <c:when test="${debt.totalOpenPenaltyAmount > 0 && debt.isAfterDueDate(currentDate) && !(debt.isToExemptInterest() || debt.isToExemptFine())}">
                                         <spring:message code="accounting.event.details.debt.due.with.interest" text="Due with interest"/>
                                     </c:when>
                                     <c:otherwise>
