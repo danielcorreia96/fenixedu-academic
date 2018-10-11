@@ -22,7 +22,6 @@ import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.accounting.EntryType;
 import org.fenixedu.academic.domain.accounting.EventType;
-import org.fenixedu.academic.domain.accounting.Exemption;
 import org.fenixedu.academic.domain.administrativeOffice.AdministrativeOffice;
 import org.fenixedu.academic.domain.administrativeOffice.AdministrativeOfficeType;
 import org.fenixedu.academic.domain.candidacyProcess.secondCycle.SecondCycleIndividualCandidacy;
@@ -44,19 +43,6 @@ public class SecondCycleIndividualCandidacyEvent extends SecondCycleIndividualCa
     @Override
     protected AdministrativeOffice readAdministrativeOffice() {
         return AdministrativeOffice.readByAdministrativeOfficeType(AdministrativeOfficeType.DEGREE);
-    }
-
-    public boolean hasSecondCycleIndividualCandidacyExemption() {
-        return getSecondCycleIndividualCandidacyExemption() != null;
-    }
-
-    public SecondCycleIndividualCandidacyExemption getSecondCycleIndividualCandidacyExemption() {
-        for (final Exemption exemption : getExemptionsSet()) {
-            if (exemption instanceof SecondCycleIndividualCandidacyExemption) {
-                return (SecondCycleIndividualCandidacyExemption) exemption;
-            }
-        }
-        return null;
     }
 
     @Override public EntryType getEntryType() {

@@ -133,10 +133,6 @@ public class AdministrativeOfficeFeeAndInsuranceEvent extends AdministrativeOffi
         return getInsurancePayedAmount().lessThan(getInsuranceAmount());
     }
 
-    public boolean hasToPayAdministrativeOfficeFee() {
-        return getAdministrativeOfficeFeePayedAmount().lessThan(getAdministrativeOfficeFeeAmount());
-    }
-
     private IAdministrativeOfficeFeeAndInsurancePR getAdministrativeOfficeFeeAndInsurancePR() {
         return (IAdministrativeOfficeFeeAndInsurancePR) getPostingRule();
     }
@@ -148,11 +144,6 @@ public class AdministrativeOfficeFeeAndInsuranceEvent extends AdministrativeOffi
     public YearMonthDay getAdministrativeOfficeFeePaymentLimitDate() {
         return getPaymentEndDate() != null ? getPaymentEndDate() : ((IAdministrativeOfficeFeeAndInsurancePR) getPostingRule())
                 .getAdministrativeOfficeFeePaymentLimitDate(getStartDate(), getEndDate());
-    }
-
-    public Money getAdministrativeOfficeFeePenaltyAmount() {
-        return getAdministrativeOfficeFeeAndInsurancePR()
-                .getAdministrativeOfficeFeePenaltyAmount(this, getStartDate(), getEndDate());
     }
 
     public Money getInsuranceAmount() {
@@ -243,25 +234,6 @@ public class AdministrativeOfficeFeeAndInsuranceEvent extends AdministrativeOffi
         return labelFormatter;
     }
 
-    public boolean hasAdministrativeOfficeFeeAndInsurancePenaltyExemption() {
-        return getAdministrativeOfficeFeeAndInsurancePenaltyExemption() != null;
-    }
-
-    public AdministrativeOfficeFeeAndInsurancePenaltyExemption getAdministrativeOfficeFeeAndInsurancePenaltyExemption() {
-        return (AdministrativeOfficeFeeAndInsurancePenaltyExemption) getExemptionsSet().stream()
-                .filter(exemption -> exemption instanceof AdministrativeOfficeFeeAndInsurancePenaltyExemption)
-                .findFirst().orElse(null);
-
-    }
-
-    public boolean hasAdministrativeOfficeFeeAndInsuranceExemption() {
-        return getAdministrativeOfficeFeeAndInsuranceExemption() != null;
-    }
-
-    public Exemption getAdministrativeOfficeFeeAndInsuranceExemption() {
-        return getExemptionsSet().stream().filter(Exemption::isForAdministrativeOfficeFee).findFirst().orElse(null);
-    }
-
     @Override public void setPaymentEndDate(YearMonthDay paymentEndDate) {
         if (!isOpen()) {
             throw new DomainException(
@@ -282,43 +254,6 @@ public class AdministrativeOfficeFeeAndInsuranceEvent extends AdministrativeOffi
 
         return result;
 
-    }
-
-    public Money getInsurancePayedAmountFor(int civilYear) {
-        Money result = Money.ZERO;
-
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.getToAccountEntry().getEntryType() == EntryType.INSURANCE_FEE && transaction.isPayed(civilYear)) {
-                result = result.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return result;
-    }
-
-    public Money getAdministrativeOfficeFeePayedAmount() {
-        Money result = Money.ZERO;
-
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.getToAccountEntry().getEntryType() == EntryType.ADMINISTRATIVE_OFFICE_FEE) {
-                result = result.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return result;
-    }
-
-    public Money getAdministrativeOfficeFeePayedAmountFor(int civilYear) {
-        Money result = Money.ZERO;
-
-        for (final AccountingTransaction transaction : getNonAdjustingTransactions()) {
-            if (transaction.getToAccountEntry().getEntryType() == EntryType.ADMINISTRATIVE_OFFICE_FEE && transaction
-                    .isPayed(civilYear)) {
-                result = result.add(transaction.getToAccountEntry().getAmountWithAdjustment());
-            }
-        }
-
-        return result;
     }
 
     @Override public EntryType getEntryType() {

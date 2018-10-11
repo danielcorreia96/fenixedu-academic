@@ -18,17 +18,13 @@
  */
 package org.fenixedu.academic.domain.phd.debts;
 
-import java.util.ArrayList;
-
 import org.fenixedu.academic.domain.accounting.EntryType;
 import org.fenixedu.academic.domain.accounting.Event;
 import org.fenixedu.academic.domain.accounting.EventState;
 import org.fenixedu.academic.domain.accounting.EventType;
-import org.fenixedu.academic.domain.accounting.Exemption;
 import org.fenixedu.academic.domain.accounting.ServiceAgreementTemplate;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
-import org.fenixedu.academic.domain.phd.PhdProgramProcessState;
 import org.fenixedu.academic.util.Money;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -69,15 +65,8 @@ public class PhdGratuityPR extends PhdGratuityPR_Base {
     }
 
     public Money getGratuityByProcess(PhdIndividualProgramProcess process) {
-        ArrayList<PhdProgramProcessState> states = new ArrayList<PhdProgramProcessState>(process.getStates());
-        if (states.size() > 0 && getPhdGratuityPriceQuirksSet().size() > 0) {
-            int years = 0;
-
-            for (PhdGratuityEvent event : process.getPhdGratuityEventsSet()) {
-                if (!event.isInState(EventState.CANCELLED)) {
-                    years++;
-                }
-            }
+        if (!process.getStates().isEmpty() && !getPhdGratuityPriceQuirksSet().isEmpty()) {
+            int years = (int) process.getPhdGratuityEventsSet().stream().filter(event -> !event.isInState(EventState.CANCELLED)).count();
 
             for (PhdGratuityPriceQuirk quirk : getPhdGratuityPriceQuirksSet()) {
                 if (quirk.getYear() == years) {
@@ -85,26 +74,13 @@ public class PhdGratuityPR extends PhdGratuityPR_Base {
                 }
             }
 
-            return getGratuity();
-        } else {
-            return getGratuity();
         }
+        return getGratuity();
     }
 
     @Override
     protected Money doCalculationForAmountToPay(Event event, DateTime when) {
         return getGratuityByProcess(((PhdGratuityEvent) event).getPhdIndividualProgramProcess());
-    }
-
-    private Money adjustGratuityWithExmptions(PhdGratuityEvent phdGratuityEvent, Money gratuity) {
-        if (phdGratuityEvent.getExemptionsSet().size() > 0) {
-            for (Exemption exemption : phdGratuityEvent.getExemptionsSet()) {
-                if (exemption instanceof PhdEventExemption && !(exemption instanceof PhdGratuityFineExemption)) {
-                    gratuity = gratuity.subtract(((PhdEventExemption) exemption).getValue());
-                }
-            }
-        }
-        return gratuity;
     }
 
     public PhdGratuityPaymentPeriod getPhdGratuityPeriod(LocalDate programStartDate) {

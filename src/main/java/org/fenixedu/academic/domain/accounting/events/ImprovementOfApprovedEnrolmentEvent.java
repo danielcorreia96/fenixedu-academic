@@ -55,20 +55,6 @@ public class ImprovementOfApprovedEnrolmentEvent extends ImprovementOfApprovedEn
         return getImprovementEnrolmentEvaluationsSet();
     }
 
-    public boolean hasImprovementOfApprovedEnrolmentPenaltyExemption() {
-        return getImprovementOfApprovedEnrolmentPenaltyExemption() != null;
-    }
-
-    public ImprovementOfApprovedEnrolmentPenaltyExemption getImprovementOfApprovedEnrolmentPenaltyExemption() {
-        for (final Exemption exemption : getExemptionsSet()) {
-            if (exemption instanceof ImprovementOfApprovedEnrolmentPenaltyExemption) {
-                return (ImprovementOfApprovedEnrolmentPenaltyExemption) exemption;
-            }
-        }
-
-        return null;
-    }
-
     @Override
     public void removeImprovementEnrolmentEvaluations(EnrolmentEvaluation improvementEnrolmentEvaluations) {
         super.removeImprovementEnrolmentEvaluations(improvementEnrolmentEvaluations);

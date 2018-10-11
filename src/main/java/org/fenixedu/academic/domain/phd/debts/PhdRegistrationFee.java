@@ -20,7 +20,6 @@ package org.fenixedu.academic.domain.phd.debts;
 
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.accounting.EventType;
-import org.fenixedu.academic.domain.accounting.Exemption;
 import org.fenixedu.academic.domain.administrativeOffice.AdministrativeOffice;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
@@ -69,20 +68,6 @@ public class PhdRegistrationFee extends PhdRegistrationFee_Base {
     @Override
     protected PhdProgram getPhdProgram() {
         return getProcess().getPhdProgram();
-    }
-
-    public boolean hasPhdRegistrationFeePenaltyExemption() {
-        return getPhdRegistrationFeePenaltyExemption() != null;
-    }
-
-    public PhdRegistrationFeePenaltyExemption getPhdRegistrationFeePenaltyExemption() {
-        for (final Exemption exemption : getExemptionsSet()) {
-            if (exemption instanceof PhdRegistrationFeePenaltyExemption) {
-                return (PhdRegistrationFeePenaltyExemption) exemption;
-            }
-        }
-
-        return null;
     }
 
     @Atomic

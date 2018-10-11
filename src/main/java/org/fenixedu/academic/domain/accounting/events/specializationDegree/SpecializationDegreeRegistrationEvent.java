@@ -18,7 +18,6 @@
  */
 package org.fenixedu.academic.domain.accounting.events.specializationDegree;
 
-import org.fenixedu.academic.domain.CandidacyPeriodInDegreeCurricularPlan;
 import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.domain.ExecutionYear;
@@ -124,14 +123,6 @@ public class SpecializationDegreeRegistrationEvent extends SpecializationDegreeR
 
     private ExecutionYear getExecutionYear() {
         return getExecutionDegree().getExecutionYear();
-    }
-
-    public CandidacyPeriodInDegreeCurricularPlan getCandidacyPeriodInDegreeCurricularPlan() {
-        return getExecutionDegree().getDegreeCurricularPlan().getCandidacyPeriod(getExecutionYear());
-    }
-
-    public boolean hasCandidacyPeriodInDegreeCurricularPlan() {
-        return getExecutionDegree().getDegreeCurricularPlan().hasCandidacyPeriodFor(getExecutionYear());
     }
 
     private StudentCandidacy getCandidacy() {

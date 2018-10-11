@@ -24,9 +24,7 @@ import org.fenixedu.academic.domain.accounting.EventType;
 import org.fenixedu.academic.domain.accounting.ServiceAgreementTemplate;
 import org.fenixedu.academic.domain.accounting.events.serviceRequests.EquivalencePlanRequestEvent;
 import org.fenixedu.academic.domain.exceptions.DomainException;
-import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.Money;
-import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.joda.time.DateTime;
 
 public class EquivalencePlanRequestPR extends EquivalencePlanRequestPR_Base {
@@ -68,8 +66,8 @@ public class EquivalencePlanRequestPR extends EquivalencePlanRequestPR_Base {
 
         Money amountToPay = getAmountPerUnit();
 
-        if (planRequest.getNumberOfEquivalences() != null && planRequest.getNumberOfEquivalences().intValue() != 0) {
-            amountToPay = amountToPay.multiply(planRequest.getNumberOfEquivalences().intValue());
+        if (planRequest.getNumberOfEquivalences() != null && planRequest.getNumberOfEquivalences() != 0) {
+            amountToPay = amountToPay.multiply(planRequest.getNumberOfEquivalences());
         }
 
         if (getMaximumAmount().greaterThan(Money.ZERO)) {
@@ -85,14 +83,6 @@ public class EquivalencePlanRequestPR extends EquivalencePlanRequestPR_Base {
         deactivate();
         return new EquivalencePlanRequestPR(new DateTime().minus(1000), null, getServiceAgreementTemplate(), amountPerUnit,
                 maximumAmount);
-    }
-
-    public String getMaximumAmountDescription() {
-        if (Money.ZERO.equals(this.getMaximumAmount())) {
-            return BundleUtil.getString(Bundle.APPLICATION, "label.base.amount.plus.units.with.no.maximum.value");
-        }
-
-        return this.getMaximumAmount().getAmountAsString();
     }
 
 }

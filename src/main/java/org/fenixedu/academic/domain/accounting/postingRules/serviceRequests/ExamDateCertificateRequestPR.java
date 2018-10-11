@@ -50,7 +50,7 @@ public class ExamDateCertificateRequestPR extends ExamDateCertificateRequestPR_B
     @Override
     protected Money getAmountForPages(final Event event) {
         final CertificateRequestEvent requestEvent = (CertificateRequestEvent) event;
-        final int extraPages = requestEvent.getNumberOfPages().intValue() - 1;
+        final int extraPages = requestEvent.getNumberOfPages() - 1;
         return getAmountPerPage().multiply(BigDecimal.valueOf(extraPages < 0 ? 0 : extraPages));
     }
 

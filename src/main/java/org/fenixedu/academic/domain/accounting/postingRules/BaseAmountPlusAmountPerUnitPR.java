@@ -25,9 +25,7 @@ import org.fenixedu.academic.domain.accounting.Event;
 import org.fenixedu.academic.domain.accounting.EventType;
 import org.fenixedu.academic.domain.accounting.ServiceAgreementTemplate;
 import org.fenixedu.academic.domain.exceptions.DomainException;
-import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.Money;
-import org.fenixedu.bennu.core.i18n.BundleUtil;
 import org.joda.time.DateTime;
 
 public abstract class BaseAmountPlusAmountPerUnitPR extends BaseAmountPlusAmountPerUnitPR_Base {
@@ -93,13 +91,5 @@ public abstract class BaseAmountPlusAmountPerUnitPR extends BaseAmountPlusAmount
     }
 
     protected abstract Integer getNumberOfUnits(Event event);
-
-    public String getMaximumAmountDescription() {
-        if (Money.ZERO.equals(this.getMaximumAmount())) {
-            return BundleUtil.getString(Bundle.APPLICATION, "label.base.amount.plus.units.with.no.maximum.value");
-        }
-
-        return this.getMaximumAmount().getAmountAsString();
-    }
 
 }

@@ -56,12 +56,7 @@ public abstract class AcademicEvent extends AcademicEvent_Base {
     }
 
     public AcademicEventExemption getAcademicEventExemption() {
-        for (final Exemption exemption : getExemptionsSet()) {
-            if (exemption instanceof AcademicEventExemption) {
-                return (AcademicEventExemption) exemption;
-            }
-        }
-        return null;
+        return (AcademicEventExemption) getExemptionsSet().stream().filter(exemption -> exemption instanceof AcademicEventExemption).findFirst().orElse(null);
     }
 
     @Override

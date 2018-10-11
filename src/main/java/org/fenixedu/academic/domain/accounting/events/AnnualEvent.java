@@ -18,15 +18,13 @@
  */
 package org.fenixedu.academic.domain.accounting.events;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.fenixedu.academic.domain.ExecutionYear;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.accounting.AccountingTransaction;
-import org.fenixedu.academic.domain.accounting.Event;
 import org.fenixedu.academic.domain.accounting.EventState;
 import org.fenixedu.academic.domain.accounting.EventType;
 import org.fenixedu.academic.domain.accounting.PostingRule;
@@ -103,14 +101,7 @@ public abstract class AnnualEvent extends AnnualEvent_Base {
     }
 
     private static List<AnnualEvent> readBy(final ExecutionYear executionYear, final EventState eventState) {
-        final List<AnnualEvent> result = new ArrayList<AnnualEvent>();
-        for (final Event event : executionYear.getAnnualEventsSet()) {
-            if (event.isInState(eventState)) {
-                result.add((AnnualEvent) event);
-            }
-        }
-
-        return result;
+        return executionYear.getAnnualEventsSet().stream().filter(event -> event.isInState(eventState)).collect(Collectors.toList());
     }
 
     public static List<AnnualEvent> readNotPayedBy(final ExecutionYear executionYear) {
@@ -119,20 +110,14 @@ public abstract class AnnualEvent extends AnnualEvent_Base {
 
     static public Set<AccountingTransaction> readPaymentsFor(final Class<? extends AnnualEvent> eventClass,
             final YearMonthDay startDate, final YearMonthDay endDate) {
-        final Set<AccountingTransaction> result = new HashSet<AccountingTransaction>();
-        for (final ExecutionYear executionYear : Bennu.getInstance().getExecutionYearsSet()) {
-            for (final AnnualEvent each : executionYear.getAnnualEventsSet()) {
-                if (eventClass.equals(each.getClass()) && !each.isCancelled()) {
-                    for (final AccountingTransaction transaction : each.getNonAdjustingTransactions()) {
-                        if (transaction.isInsidePeriod(startDate, endDate)) {
-                            result.add(transaction);
-                        }
-                    }
-                }
-            }
-        }
 
-        return result;
+        return Bennu.getInstance().getExecutionYearsSet().stream()
+                .flatMap(executionYear -> executionYear.getAnnualEventsSet().stream())
+                .filter(each -> eventClass.equals(each.getClass()))
+                .filter(each -> !each.isCancelled())
+                .flatMap(each -> each.getNonAdjustingTransactions().stream())
+                .filter(transaction -> transaction.isInsidePeriod(startDate, endDate))
+                .collect(Collectors.toSet());
     }
 
     abstract protected ServiceAgreementTemplate getServiceAgreementTemplate();

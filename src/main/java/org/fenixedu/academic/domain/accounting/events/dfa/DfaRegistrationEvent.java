@@ -18,7 +18,6 @@
  */
 package org.fenixedu.academic.domain.accounting.events.dfa;
 
-import org.fenixedu.academic.domain.CandidacyPeriodInDegreeCurricularPlan;
 import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.domain.ExecutionYear;
@@ -130,24 +129,12 @@ public class DfaRegistrationEvent extends DfaRegistrationEvent_Base {
         return getExecutionDegree().getDegreeCurricularPlan().hasRegistrationPeriodFor(getExecutionYear());
     }
 
-    public CandidacyPeriodInDegreeCurricularPlan getCandidacyPeriodInDegreeCurricularPlan() {
-        return getExecutionDegree().getDegreeCurricularPlan().getCandidacyPeriod(getExecutionYear());
-    }
-
-    public boolean hasCandidacyPeriodInDegreeCurricularPlan() {
-        return getExecutionDegree().getDegreeCurricularPlan().hasCandidacyPeriodFor(getExecutionYear());
-    }
-
     private StudentCandidacy getCandidacy() {
         return getRegistration().getStudentCandidacy();
     }
 
     public DateTime getCandidacyDate() {
         return getCandidacy().getCandidacyDate();
-    }
-
-    public ExecutionYear getObsoleteExecutionYear() {
-        return getExecutionDegree().getExecutionYear();
     }
 
     @Override

@@ -34,7 +34,6 @@ import org.joda.time.DateTime;
  */
 @Deprecated
 public class DFAGratuityByEnrolmentsPR extends DFAGratuityByEnrolmentsPR_Base {
-    private static final int SCALE_FOR_INTERMEDIATE_CALCULATIONS = 8;
 
     protected DFAGratuityByEnrolmentsPR() {
         super();

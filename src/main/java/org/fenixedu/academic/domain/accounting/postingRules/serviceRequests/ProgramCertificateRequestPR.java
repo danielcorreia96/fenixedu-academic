@@ -60,7 +60,7 @@ public class ProgramCertificateRequestPR extends ProgramCertificateRequestPR_Bas
     protected Money getAmountForPages(final Event event) {
         final CertificateRequestEvent requestEvent = (CertificateRequestEvent) event;
         // remove certificate page number
-        int extraPages = requestEvent.getNumberOfPages().intValue() - 1;
+        int extraPages = requestEvent.getNumberOfPages() - 1;
         return (extraPages <= 0) ? Money.ZERO : getAmountFirstPage().add(
                 getAmountPerPage().multiply(BigDecimal.valueOf(--extraPages)));
     }

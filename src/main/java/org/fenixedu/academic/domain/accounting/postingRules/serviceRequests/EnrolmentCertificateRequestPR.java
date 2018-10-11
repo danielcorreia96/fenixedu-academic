@@ -44,17 +44,15 @@ public class EnrolmentCertificateRequestPR extends EnrolmentCertificateRequestPR
     @Override
     protected Money doCalculationForAmountToPay(Event event, DateTime when) {
         final CertificateRequestEvent requestEvent = (CertificateRequestEvent) event;
-        Money totalAmountToPay =
-                calculateAmountToPayWithUnits(requestEvent, true).add(calculateAmountToPayForPages(requestEvent));
 
-        return totalAmountToPay;
+        return calculateAmountToPayWithUnits(requestEvent, true).add(calculateAmountToPayForPages(requestEvent));
     }
 
     private Money calculateAmountToPayWithUnits(final CertificateRequestEvent requestEvent, final boolean checkUrgency) {
         Money total = checkUrgency && isUrgent(requestEvent) ? getBaseAmount().multiply(2) : getBaseAmount();
 
         final EnrolmentCertificateRequest request = (EnrolmentCertificateRequest) requestEvent.getAcademicServiceRequest();
-        if (request.getDetailed() != null && request.getDetailed().booleanValue()) {
+        if (request.getDetailed() != null && request.getDetailed()) {
             total = total.add(getAmountForUnits(requestEvent));
         }
         return total;

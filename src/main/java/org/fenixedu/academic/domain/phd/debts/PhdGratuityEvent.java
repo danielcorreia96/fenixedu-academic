@@ -49,13 +49,7 @@ public class PhdGratuityEvent extends PhdGratuityEvent_Base {
     }
 
     public boolean hasExemptionsOfType(Class cl) {
-        for (Exemption exemption : getExemptionsSet()) {
-            if (cl.isAssignableFrom(exemption.getClass())) {
-                return true;
-            }
-        }
-
-        return false;
+        return getExemptionsSet().stream().anyMatch(exemption -> cl.isAssignableFrom(exemption.getClass()));
     }
 
     protected void init(EventType eventType, Person person, int year, PhdIndividualProgramProcess process,
