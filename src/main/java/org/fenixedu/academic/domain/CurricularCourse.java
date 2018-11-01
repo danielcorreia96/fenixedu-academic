@@ -31,9 +31,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.branch.BranchType;
 import org.fenixedu.academic.domain.curricularPeriod.CurricularPeriod;
@@ -505,21 +505,10 @@ public class CurricularCourse extends CurricularCourse_Base {
 
     @SuppressWarnings("unchecked")
     public boolean hasActiveScopeInGivenSemesterForCommonAndGivenBranch(final Integer semester, final Branch branch) {
-
-        Collection<CurricularCourseScope> scopes = getScopesSet();
-
-        List<CurricularCourseScope> result = (List<CurricularCourseScope>) CollectionUtils.select(scopes, new Predicate() {
-            @Override
-            public boolean evaluate(Object obj) {
-                CurricularCourseScope curricularCourseScope = (CurricularCourseScope) obj;
-                return ((curricularCourseScope.getBranch().getBranchType().equals(BranchType.COMNBR) || curricularCourseScope
-                        .getBranch().equals(branch))
-                        && curricularCourseScope.getCurricularSemester().getSemester().equals(semester) && curricularCourseScope
-                        .isActive().booleanValue());
-            }
-        });
-
-        return !result.isEmpty();
+        return getScopesSet().stream()
+                .filter(courseScope -> courseScope.getBranch().getBranchType() == BranchType.COMNBR || courseScope.getBranch().equals(branch))
+                .filter(courseScope -> courseScope.getCurricularSemester().getSemester().equals(semester))
+                .anyMatch(CurricularCourseScope::isActive);
     }
 
     private CurricularYear getCurricularYearWithLowerYear(List<CurricularCourseScope> listOfScopes, Date date) {
@@ -531,10 +520,9 @@ public class CurricularCourse extends CurricularCourse_Base {
         CurricularYear minCurricularYear = null;
 
         for (CurricularCourseScope curricularCourseScope : listOfScopes) {
-            if (curricularCourseScope.isActive(date).booleanValue()) {
+            if (curricularCourseScope.isActive(date)) {
                 CurricularYear actualCurricularYear = curricularCourseScope.getCurricularSemester().getCurricularYear();
-                if (minCurricularYear == null
-                        || minCurricularYear.getYear().intValue() > actualCurricularYear.getYear().intValue()) {
+                if (minCurricularYear == null || minCurricularYear.getYear() > actualCurricularYear.getYear()) {
                     minCurricularYear = actualCurricularYear;
                 }
             }
@@ -694,24 +682,16 @@ public class CurricularCourse extends CurricularCourse_Base {
 
     @SuppressWarnings("unchecked")
     public List<ExecutionCourse> getExecutionCoursesByExecutionPeriod(final ExecutionSemester executionSemester) {
-        return (List<ExecutionCourse>) CollectionUtils.select(getAssociatedExecutionCoursesSet(), new Predicate() {
-            @Override
-            public boolean evaluate(Object o) {
-                ExecutionCourse executionCourse = (ExecutionCourse) o;
-                return executionCourse.getExecutionPeriod().equals(executionSemester);
-            }
-        });
+        return getAssociatedExecutionCoursesSet().stream()
+                .filter(executionCourse -> executionCourse.getExecutionPeriod().equals(executionSemester))
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
     public List<ExecutionCourse> getExecutionCoursesByExecutionYear(final ExecutionYear executionYear) {
-        return (List<ExecutionCourse>) CollectionUtils.select(getAssociatedExecutionCoursesSet(), new Predicate() {
-            @Override
-            public boolean evaluate(Object o) {
-                ExecutionCourse executionCourse = (ExecutionCourse) o;
-                return executionCourse.getExecutionPeriod().getExecutionYear().equals(executionYear);
-            }
-        });
+        return getAssociatedExecutionCoursesSet().stream()
+                .filter(executionCourse -> executionCourse.getExecutionPeriod().getExecutionYear().equals(executionYear))
+                .collect(Collectors.toList());
     }
 
     public Curriculum findLatestCurriculum() {

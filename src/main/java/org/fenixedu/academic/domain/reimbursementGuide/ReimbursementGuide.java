@@ -28,8 +28,6 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.fenixedu.academic.util.State;
 import org.fenixedu.bennu.core.domain.Bennu;
 
@@ -71,13 +69,9 @@ public class ReimbursementGuide extends ReimbursementGuide_Base {
     }
 
     public ReimbursementGuideSituation getActiveReimbursementGuideSituation() {
-        return (ReimbursementGuideSituation) CollectionUtils.find(getReimbursementGuideSituationsSet(), new Predicate() {
-            @Override
-            public boolean evaluate(Object obj) {
-                ReimbursementGuideSituation situation = (ReimbursementGuideSituation) obj;
-                return situation.getState().getState().equals(State.ACTIVE);
-            }
-        });
+        return getReimbursementGuideSituationsSet().stream()
+                .filter(situation -> situation.getState().getState().equals(State.ACTIVE))
+                .findFirst().orElse(null);
     }
 
     public static Integer generateReimbursementGuideNumber() {

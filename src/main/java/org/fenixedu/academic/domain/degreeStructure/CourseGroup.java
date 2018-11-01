@@ -34,8 +34,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.comparators.ReverseComparator;
+import org.apache.commons.collections4.Predicate;
+import org.apache.commons.collections4.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;

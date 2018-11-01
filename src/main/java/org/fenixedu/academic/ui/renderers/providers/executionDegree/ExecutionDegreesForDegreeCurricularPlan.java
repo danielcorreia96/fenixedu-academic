@@ -21,7 +21,7 @@ package org.fenixedu.academic.ui.renderers.providers.executionDegree;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.collections.comparators.ReverseComparator;
+import org.apache.commons.collections4.comparators.ReverseComparator;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.dto.administrativeOffice.ExecutionDegreeBean;

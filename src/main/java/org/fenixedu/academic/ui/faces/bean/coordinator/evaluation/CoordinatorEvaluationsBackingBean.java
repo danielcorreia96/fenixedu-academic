@@ -32,7 +32,7 @@ import java.util.TreeSet;
 import javax.faces.model.SelectItem;
 
 import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.struts.util.MessageResources;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.CurricularYear;

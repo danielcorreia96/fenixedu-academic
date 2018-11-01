@@ -21,11 +21,11 @@ package org.fenixedu.academic.service.services.gep;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
-import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.domain.ExecutionYear;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.domain.degree.degreeCurricularPlan.DegreeCurricularPlanState;
@@ -45,28 +45,19 @@ public class ListMasterDegreeStudents {
     public static Collection run(String executionYearName) {
         final ExecutionYear executionYear = ExecutionYear.readExecutionYearByName(executionYearName);
 
-        final Collection<InfoStudentCurricularPlanWithFirstTimeEnrolment> infoStudentCurricularPlans = new ArrayList();
-        final Collection<StudentCurricularPlan> studentCurricularPlans = new ArrayList();
         final Collection<DegreeCurricularPlan> masterDegreeCurricularPlans = readByDegreeTypeAndState();
-        CollectionUtils.filter(masterDegreeCurricularPlans, new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                DegreeCurricularPlan degreeCurricularPlan = (DegreeCurricularPlan) arg0;
-                for (ExecutionDegree executionDegree : degreeCurricularPlan.getExecutionDegreesSet()) {
-                    if (executionDegree.getExecutionYear().equals(executionYear)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
+        CollectionUtils.filter(masterDegreeCurricularPlans, (Predicate) arg0 -> {
+            DegreeCurricularPlan degreeCurricularPlan = (DegreeCurricularPlan) arg0;
+            return degreeCurricularPlan.getExecutionDegreesSet().stream()
+                    .anyMatch(executionDegree -> executionDegree.getExecutionYear().equals(executionYear));
         });
 
+        final Collection<StudentCurricularPlan> studentCurricularPlans = new ArrayList();
         for (DegreeCurricularPlan degreeCurricularPlan : masterDegreeCurricularPlans) {
             studentCurricularPlans.addAll(degreeCurricularPlan.getStudentCurricularPlansSet());
         }
 
+        final Collection<InfoStudentCurricularPlanWithFirstTimeEnrolment> infoStudentCurricularPlans = new ArrayList();
         for (StudentCurricularPlan studentCurricularPlan : studentCurricularPlans) {
 
             if (!studentCurricularPlan.isActive()) {
@@ -115,13 +106,10 @@ public class ListMasterDegreeStudents {
     }
 
     private static List<DegreeCurricularPlan> readByDegreeTypeAndState() {
-        List<DegreeCurricularPlan> result = new ArrayList<DegreeCurricularPlan>();
-        for (DegreeCurricularPlan degreeCurricularPlan : DegreeCurricularPlan.readNotEmptyDegreeCurricularPlans()) {
-            if (degreeCurricularPlan.getDegree().getDegreeType().isPreBolonhaMasterDegree()
-                    && degreeCurricularPlan.getState() == DegreeCurricularPlanState.ACTIVE) {
-                result.add(degreeCurricularPlan);
-            }
-        }
-        return result;
+        return DegreeCurricularPlan.readNotEmptyDegreeCurricularPlans()
+                .stream()
+                .filter(degreeCurricularPlan -> degreeCurricularPlan.getDegree().getDegreeType().isPreBolonhaMasterDegree())
+                .filter(degreeCurricularPlan -> degreeCurricularPlan.getState() == DegreeCurricularPlanState.ACTIVE)
+                .collect(Collectors.toList());
     }
 }

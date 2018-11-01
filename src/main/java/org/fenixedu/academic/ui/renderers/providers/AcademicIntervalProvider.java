@@ -21,7 +21,7 @@ package org.fenixedu.academic.ui.renderers.providers;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.collections.comparators.ReverseComparator;
+import org.apache.commons.collections4.comparators.ReverseComparator;
 import org.fenixedu.academic.domain.time.calendarStructure.AcademicInterval;
 import org.fenixedu.academic.domain.time.calendarStructure.AcademicPeriod;
 import org.fenixedu.academic.ui.renderers.converters.AcademicIntervalConverter;

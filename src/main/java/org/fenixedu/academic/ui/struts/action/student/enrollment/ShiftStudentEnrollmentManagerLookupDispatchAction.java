@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -226,12 +224,9 @@ public class ShiftStudentEnrollmentManagerLookupDispatchAction extends FenixDisp
     }
 
     private SchoolClass searchSchoolClassFrom(final List<SchoolClass> schoolClassesToEnrol, final String classId) {
-        return (SchoolClass) CollectionUtils.find(schoolClassesToEnrol, new Predicate() {
-            @Override
-            public boolean evaluate(Object object) {
-                return ((SchoolClass) object).getExternalId().equals(classId);
-            }
-        });
+        return schoolClassesToEnrol.stream()
+                .filter(schoolClass -> schoolClass.getExternalId().equals(classId))
+                .findFirst().orElse(null);
     }
 
     private List<SchoolClass> readStudentSchoolClassesToEnrolUsingExecutionCourse(HttpServletRequest request,

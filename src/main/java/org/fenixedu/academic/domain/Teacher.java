@@ -29,10 +29,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.messaging.Forum;
 import org.fenixedu.academic.domain.time.calendarStructure.AcademicInterval;
@@ -223,13 +222,9 @@ public class Teacher extends Teacher_Base {
     }
 
     public Professorship getProfessorshipByExecutionCourse(final ExecutionCourse executionCourse) {
-        return (Professorship) CollectionUtils.find(getProfessorships(), new Predicate() {
-            @Override
-            public boolean evaluate(Object arg0) {
-                Professorship professorship = (Professorship) arg0;
-                return professorship.getExecutionCourse() == executionCourse;
-            }
-        });
+        return getProfessorships().stream()
+                .filter(professorship -> professorship.getExecutionCourse() == executionCourse)
+                .findFirst().orElse(null);
     }
 
     public boolean hasProfessorshipForExecutionCourse(final ExecutionCourse executionCourse) {
@@ -237,14 +232,10 @@ public class Teacher extends Teacher_Base {
     }
 
     public List<Professorship> getDegreeProfessorshipsByExecutionPeriod(final ExecutionSemester executionSemester) {
-        return (List<Professorship>) CollectionUtils.select(getProfessorships(), new Predicate() {
-            @Override
-            public boolean evaluate(Object arg0) {
-                Professorship professorship = (Professorship) arg0;
-                return professorship.getExecutionCourse().getExecutionPeriod() == executionSemester
-                        && !professorship.getExecutionCourse().isMasterDegreeDFAOrDEAOnly();
-            }
-        });
+        return getProfessorships().stream()
+                .filter(professorship -> professorship.getExecutionCourse().getExecutionPeriod() == executionSemester)
+                .filter(professorship -> !professorship.getExecutionCourse().isMasterDegreeDFAOrDEAOnly())
+                .collect(Collectors.toList());
     }
 
     /*

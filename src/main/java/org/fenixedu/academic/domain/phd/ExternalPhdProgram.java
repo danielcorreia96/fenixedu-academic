@@ -18,11 +18,9 @@
  */
 package org.fenixedu.academic.domain.phd;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.commons.i18n.LocalizedString;
@@ -89,40 +87,24 @@ public class ExternalPhdProgram extends ExternalPhdProgram_Base {
 
     public static List<ExternalPhdProgram> readExternalPhdProgramsForCollaborationType(
             final PhdIndividualProgramCollaborationType type) {
-        List<ExternalPhdProgram> phdProgramList = new ArrayList<ExternalPhdProgram>();
-
-        CollectionUtils.select(Bennu.getInstance().getExternalPhdProgramsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return ((ExternalPhdProgram) arg0).isForCollaborationType(type);
-            }
-
-        }, phdProgramList);
-
-        return phdProgramList;
+        return Bennu.getInstance().getExternalPhdProgramsSet()
+                .stream()
+                .filter(externalPhdProgram -> externalPhdProgram.isForCollaborationType(type))
+                .collect(Collectors.toList());
     }
 
     public static ExternalPhdProgram readExternalPhdProgramByName(final String name) {
-        return (ExternalPhdProgram) CollectionUtils.find(Bennu.getInstance().getExternalPhdProgramsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object object) {
-                return name.equals(((ExternalPhdProgram) object).getName().getContent());
-            }
-
-        });
+        return Bennu.getInstance().getExternalPhdProgramsSet()
+                .stream()
+                .filter(externalPhdProgram -> name.equals(externalPhdProgram.getName().getContent()))
+                .findFirst().orElse(null);
     }
 
     public static ExternalPhdProgram readExternalPhdProgramByAcronym(final String acronym) {
-        return (ExternalPhdProgram) CollectionUtils.find(Bennu.getInstance().getExternalPhdProgramsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object object) {
-                return acronym.equals(((ExternalPhdProgram) object).getAcronym());
-            }
-
-        });
+        return Bennu.getInstance().getExternalPhdProgramsSet()
+                .stream()
+                .filter(externalPhdProgram -> acronym.equals(externalPhdProgram.getAcronym()))
+                .findFirst().orElse(null);
     }
 
 }

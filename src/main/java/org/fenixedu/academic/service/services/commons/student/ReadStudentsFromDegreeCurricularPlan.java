@@ -28,8 +28,8 @@ package org.fenixedu.academic.service.services.commons.student;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Transformer;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.dto.InfoStudentCurricularPlan;
@@ -52,13 +52,9 @@ public class ReadStudentsFromDegreeCurricularPlan {
             throw new NonExistingServiceException();
         }
 
-        return (List) CollectionUtils.collect(students, new Transformer() {
-            @Override
-            public Object transform(Object arg0) {
-                StudentCurricularPlan studentCurricularPlan = (StudentCurricularPlan) arg0;
-                return InfoStudentCurricularPlan.newInfoFromDomain(studentCurricularPlan);
-            }
-
+        return (List) CollectionUtils.collect(students, (Transformer) arg0 -> {
+            StudentCurricularPlan studentCurricularPlan = (StudentCurricularPlan) arg0;
+            return InfoStudentCurricularPlan.newInfoFromDomain(studentCurricularPlan);
         });
     }
 

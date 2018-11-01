@@ -21,8 +21,6 @@ package org.fenixedu.academic.domain;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.fenixedu.academic.domain.branch.BranchType;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.util.Bundle;
@@ -129,33 +127,22 @@ public class Branch extends Branch_Base {
     }
 
     private Branch findCommonBranchForSameDegreeCurricularPlan() {
-        for (Branch branch : getDegreeCurricularPlan().getAreasSet()) {
-            if (branch.representsCommonBranch() && branch.getName().equals("")) {
-                return branch;
-            }
-        }
-        return null;
+        return getDegreeCurricularPlan().getAreasSet().stream()
+                .filter(Branch::representsCommonBranch)
+                .filter(branch -> branch.getName().isEmpty())
+                .findFirst().orElse(null);
     }
 
     private Boolean hasCurricularCourseCommonBranchInAnyCurricularCourseScope(CurricularCourse curricularCourse,
             final Branch commonBranch) {
-        return ((CurricularCourseScope) CollectionUtils.find(curricularCourse.getScopesSet(), new Predicate() {
-            @Override
-            public boolean evaluate(Object o) {
-                CurricularCourseScope ccs = (CurricularCourseScope) o;
-                return ccs.getBranch().equals(commonBranch);
-            }
-        }) != null);
+        return curricularCourse.getScopesSet().stream().anyMatch(ccs -> ccs.getBranch().equals(commonBranch));
     }
 
     // Static methods
     public static Branch readByBranchType(final BranchType branchType) {
-        for (final Branch branch : Bennu.getInstance().getBranchsSet()) {
-            if (branch.getBranchType() == branchType) {
-                return branch;
-            }
-        }
-        return null;
+        return Bennu.getInstance().getBranchsSet().stream()
+                .filter(branch -> branch.getBranchType() == branchType)
+                .findFirst().orElse(null);
     }
 
     public boolean isCommonBranch() {

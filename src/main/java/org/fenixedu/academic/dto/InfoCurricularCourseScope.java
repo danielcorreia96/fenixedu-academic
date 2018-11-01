@@ -27,7 +27,7 @@ package org.fenixedu.academic.dto;
 import java.util.Calendar;
 import java.util.Comparator;
 
-import org.apache.commons.collections.comparators.ComparatorChain;
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CurricularCourseScope;
 import org.fenixedu.commons.i18n.I18N;

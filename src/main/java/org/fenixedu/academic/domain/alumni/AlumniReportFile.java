@@ -26,7 +26,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.fenixedu.academic.domain.Alumni;
 import org.fenixedu.academic.domain.AlumniIdentityCheckRequest;
 import org.fenixedu.academic.domain.DomainObjectUtil;

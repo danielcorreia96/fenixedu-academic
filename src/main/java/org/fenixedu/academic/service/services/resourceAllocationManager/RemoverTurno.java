@@ -20,8 +20,8 @@ package org.fenixedu.academic.service.services.resourceAllocationManager;
 
 import static org.fenixedu.academic.predicate.AccessControl.check;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.fenixedu.academic.domain.SchoolClass;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.dto.InfoClass;

@@ -18,15 +18,11 @@
  */
 package org.fenixedu.academic.domain.candidacyProcess.erasmus;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.fenixedu.academic.domain.AcademicProgram;
 import org.fenixedu.academic.domain.accessControl.academicAdministration.AcademicAccessRule;
 import org.fenixedu.academic.domain.accessControl.academicAdministration.AcademicOperationType;
 import org.fenixedu.academic.domain.candidacyProcess.IndividualCandidacyDocumentFileType;
@@ -95,21 +91,10 @@ public class ApprovedLearningAgreementDocumentFile extends ApprovedLearningAgree
     }
 
     protected List<ApprovedLearningAgreementExecutedAction> getSentLearningAgreementActions() {
-        List<ApprovedLearningAgreementExecutedAction> executedActionList =
-                new ArrayList<ApprovedLearningAgreementExecutedAction>();
-
-        CollectionUtils.select(getExecutedActionsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return ((ApprovedLearningAgreementExecutedAction) arg0).isSentLearningAgreementAction();
-            };
-
-        }, executedActionList);
-
-        Collections.sort(executedActionList, Collections.reverseOrder(ExecutedAction.WHEN_OCCURED_COMPARATOR));
-
-        return executedActionList;
+        return getExecutedActionsSet().stream()
+                .filter(ApprovedLearningAgreementExecutedAction::isSentLearningAgreementAction)
+                .sorted(Collections.reverseOrder(ExecutedAction.WHEN_OCCURED_COMPARATOR))
+                .collect(Collectors.toList());
     }
 
     public ApprovedLearningAgreementExecutedAction getMostRecentSentLearningAgreementAction() {
@@ -127,21 +112,10 @@ public class ApprovedLearningAgreementDocumentFile extends ApprovedLearningAgree
     }
 
     protected List<ApprovedLearningAgreementExecutedAction> getViewedLearningAgreementActions() {
-        List<ApprovedLearningAgreementExecutedAction> executedActionList =
-                new ArrayList<ApprovedLearningAgreementExecutedAction>();
-
-        CollectionUtils.select(getExecutedActionsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return ((ApprovedLearningAgreementExecutedAction) arg0).isViewedLearningAgreementAction();
-            };
-
-        }, executedActionList);
-
-        Collections.sort(executedActionList, Collections.reverseOrder(ExecutedAction.WHEN_OCCURED_COMPARATOR));
-
-        return executedActionList;
+        return getExecutedActionsSet().stream()
+                .filter(ApprovedLearningAgreementExecutedAction::isViewedLearningAgreementAction)
+                .sorted(Collections.reverseOrder(ExecutedAction.WHEN_OCCURED_COMPARATOR))
+                .collect(Collectors.toList());
     }
 
     public ApprovedLearningAgreementExecutedAction getMostRecentViewedLearningAgreementAction() {
@@ -159,21 +133,10 @@ public class ApprovedLearningAgreementDocumentFile extends ApprovedLearningAgree
     }
 
     protected List<ApprovedLearningAgreementExecutedAction> getSentEmailAcceptedStudentActions() {
-        List<ApprovedLearningAgreementExecutedAction> executedActionList =
-                new ArrayList<ApprovedLearningAgreementExecutedAction>();
-
-        CollectionUtils.select(getExecutedActionsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return ((ApprovedLearningAgreementExecutedAction) arg0).isSentEmailAcceptedStudent();
-            };
-
-        }, executedActionList);
-
-        Collections.sort(executedActionList, Collections.reverseOrder(ExecutedAction.WHEN_OCCURED_COMPARATOR));
-
-        return executedActionList;
+        return getExecutedActionsSet().stream()
+                .filter(ApprovedLearningAgreementExecutedAction::isSentEmailAcceptedStudent)
+                .sorted(Collections.reverseOrder(ExecutedAction.WHEN_OCCURED_COMPARATOR))
+                .collect(Collectors.toList());
     }
 
     public ApprovedLearningAgreementExecutedAction getMostRecentSentEmailAcceptedStudentAction() {

@@ -21,7 +21,7 @@ package org.fenixedu.academic.domain.studentCurriculum;
 import java.util.Comparator;
 import java.util.Set;
 
-import org.apache.commons.collections.comparators.ComparatorChain;
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.fenixedu.academic.domain.DomainObjectUtil;
 import org.fenixedu.academic.domain.ExecutionSemester;
 import org.fenixedu.academic.domain.ExecutionYear;

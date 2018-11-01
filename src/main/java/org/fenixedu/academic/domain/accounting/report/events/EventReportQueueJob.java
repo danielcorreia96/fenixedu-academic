@@ -32,9 +32,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.fenixedu.academic.domain.Person;
+import org.fenixedu.academic.domain.QueueJob;
 import org.fenixedu.academic.domain.QueueJobResult;
 import org.fenixedu.academic.domain.accessControl.academicAdministration.AcademicAccessRule;
 import org.fenixedu.academic.domain.accessControl.academicAdministration.AcademicOperationType;
@@ -858,39 +857,20 @@ public class EventReportQueueJob extends EventReportQueueJob_Base {
     }
 
     public static List<EventReportQueueJob> retrieveAllGeneratedReports() {
-        List<EventReportQueueJob> reports = new ArrayList<>();
-
-        CollectionUtils.select(Bennu.getInstance().getQueueJobSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return arg0 instanceof EventReportQueueJob;
-            }
-
-        }, reports);
-
-        return reports;
+        return Bennu.getInstance().getQueueJobSet()
+                .stream()
+                .filter(queueJob -> queueJob instanceof EventReportQueueJob)
+                .map(queueJob -> (EventReportQueueJob) queueJob)
+                .collect(Collectors.toList());
     }
 
     public static List<EventReportQueueJob> retrieveDoneGeneratedReports() {
-        List<EventReportQueueJob> reports = new ArrayList<>();
-
-        CollectionUtils.select(Bennu.getInstance().getQueueJobSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                if (!(arg0 instanceof EventReportQueueJob)) {
-                    return false;
-                }
-
-                EventReportQueueJob eventReportQueueJob = (EventReportQueueJob) arg0;
-
-                return eventReportQueueJob.getDone();
-            }
-
-        }, reports);
-
-        return reports;
+        return Bennu.getInstance().getQueueJobSet()
+                .stream()
+                .filter(queueJob -> queueJob instanceof EventReportQueueJob)
+                .map(queueJob -> (EventReportQueueJob) queueJob)
+                .filter(QueueJob::getDone)
+                .collect(Collectors.toList());
     }
 
     public static List<EventReportQueueJob> retrievePendingOrCancelledGeneratedReports() {

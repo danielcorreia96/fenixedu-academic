@@ -32,8 +32,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.fenixedu.academic.FenixEduAcademicConfiguration;
 import org.fenixedu.academic.domain.Attends;
 import org.fenixedu.academic.domain.Degree;
@@ -721,13 +721,7 @@ public class Student extends Student_Base {
 
     final public Enrolment getDissertationEnrolment(DegreeCurricularPlan degreeCurricularPlan, final ExecutionYear executionYear) {
         TreeSet<Enrolment> enrolments = getDissertationEnrolments(degreeCurricularPlan);
-        CollectionUtils.filter(enrolments, new Predicate() {
-
-            @Override
-            public boolean evaluate(Object enrolment) {
-                return ((Enrolment) enrolment).getExecutionYear().equals(executionYear);
-            }
-        });
+        CollectionUtils.filter(enrolments, (Predicate) enrolment -> ((Enrolment) enrolment).getExecutionYear().equals(executionYear));
         return enrolments.isEmpty() ? null : enrolments.last();
     }
 

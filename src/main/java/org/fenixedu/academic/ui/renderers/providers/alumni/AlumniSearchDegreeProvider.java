@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.collections.comparators.ComparableComparator;
+import org.apache.commons.collections4.comparators.ComparableComparator;
 import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.dto.alumni.AlumniMailSendToBean;
 

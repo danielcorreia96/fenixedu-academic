@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.fenixedu.academic.domain.Enrolment;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.domain.degree.enrollment.NotNeedToEnrollInCurricularCourse;

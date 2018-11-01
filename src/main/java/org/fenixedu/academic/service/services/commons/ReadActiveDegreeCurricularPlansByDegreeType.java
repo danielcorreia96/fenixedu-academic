@@ -22,9 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.domain.degree.degreeCurricularPlan.DegreeCurricularPlanState;
@@ -64,15 +63,7 @@ public class ReadActiveDegreeCurricularPlansByDegreeType {
             degreeCurricularPlans.add(dcp);
         }
 
-        return CollectionUtils.collect(degreeCurricularPlans, new Transformer() {
-
-            @Override
-            public Object transform(Object arg0) {
-                DegreeCurricularPlan degreeCurricularPlan = (DegreeCurricularPlan) arg0;
-                return InfoDegreeCurricularPlan.newInfoFromDomain(degreeCurricularPlan);
-            }
-
-        });
+        return degreeCurricularPlans.stream().map(InfoDegreeCurricularPlan::newInfoFromDomain).collect(Collectors.toList());
     }
 
 }

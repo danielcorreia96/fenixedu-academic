@@ -29,11 +29,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.Transformer;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.fenixedu.academic.domain.AcademicProgram;
 import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.domain.ExecutionInterval;
 import org.fenixedu.academic.domain.ExecutionYear;
@@ -270,13 +267,9 @@ public class MobilityApplicationProcess extends MobilityApplicationProcess_Base 
             DegreeType::isBolonhaMasterDegree, DegreeType::isIntegratedMasterDegree);
 
     static private boolean isAllowedToManageProcess(User userView) {
-        for (AcademicProgram program : AcademicAccessRule.getProgramsAccessibleToFunction(
-                AcademicOperationType.MANAGE_CANDIDACY_PROCESSES, userView.getPerson().getUser()).collect(Collectors.toSet())) {
-            if (ALLOWED_DEGREE_TYPES.test(program.getDegreeType())) {
-                return true;
-            }
-        }
-        return false;
+        return AcademicAccessRule
+                .getProgramsAccessibleToFunction(AcademicOperationType.MANAGE_CANDIDACY_PROCESSES, userView.getPerson().getUser())
+                .anyMatch(program -> ALLOWED_DEGREE_TYPES.test(program.getDegreeType()));
     }
 
     static private boolean isInternationalRelationsOfficer(User userView) {
@@ -311,34 +304,22 @@ public class MobilityApplicationProcess extends MobilityApplicationProcess_Base 
         List<MobilityIndividualApplicationProcess> childProcesses =
                 new java.util.ArrayList<MobilityIndividualApplicationProcess>((List) this.getChildProcessesSet());
 
-        for (MobilityIndividualApplicationProcess process : childProcesses) {
-            if (eIdentifier.equals(process.getPersonalDetails().getPerson().getEidentifier())) {
-                return process;
-            }
-        }
+        return childProcesses.stream()
+                .filter(process -> eIdentifier.equals(process.getPersonalDetails().getPerson().getEidentifier()))
+                .findFirst().orElse(null);
 
-        return null;
     }
 
     public MobilityIndividualApplicationProcess getOpenProcessByEIdentifier(String eIdentifier) {
         List<MobilityIndividualApplicationProcess> childProcesses =
                 new java.util.ArrayList<MobilityIndividualApplicationProcess>((List) this.getChildProcessesSet());
 
-        for (MobilityIndividualApplicationProcess process : childProcesses) {
-            if (process.isCandidacyCancelled()) {
-                continue;
-            }
+        return childProcesses.stream()
+                .filter(process -> !process.isCandidacyCancelled())
+                .filter(process -> !StringUtils.isEmpty(process.getPersonalDetails().getEidentifier()))
+                .filter(process -> eIdentifier.equals(process.getPersonalDetails().getEidentifier()))
+                .findFirst().orElse(null);
 
-            if (StringUtils.isEmpty(process.getPersonalDetails().getEidentifier())) {
-                continue;
-            }
-
-            if (eIdentifier.equals(process.getPersonalDetails().getEidentifier())) {
-                return process;
-            }
-        }
-
-        return null;
     }
 
     @Override
@@ -351,39 +332,24 @@ public class MobilityApplicationProcess extends MobilityApplicationProcess_Base 
     }
 
     public List<MobilityCoordinator> getErasmusCoordinatorForTeacher(final Teacher teacher) {
-        return new ArrayList<MobilityCoordinator>(CollectionUtils.select(getCoordinatorsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return ((MobilityCoordinator) arg0).getTeacher() == teacher;
-            }
-
-        }));
+        return getCoordinatorsSet()
+                .stream()
+                .filter(coordinator -> coordinator.getTeacher() == teacher)
+                .collect(Collectors.toList());
     }
 
     public MobilityCoordinator getCoordinatorForTeacherAndDegree(final Teacher teacher, final Degree degree) {
-        List<MobilityCoordinator> coordinators = getErasmusCoordinatorForTeacher(teacher);
-
-        return (MobilityCoordinator) CollectionUtils.find(coordinators, new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                MobilityCoordinator coordinator = (MobilityCoordinator) arg0;
-                return coordinator.getDegree() == degree;
-            }
-        });
+        return getErasmusCoordinatorForTeacher(teacher)
+                .stream()
+                .filter(coordinator -> coordinator.getDegree() == degree)
+                .findFirst().orElse(null);
     }
 
     public List<Degree> getDegreesAssociatedToTeacherAsCoordinator(final Teacher teacher) {
-        List<MobilityCoordinator> coordinators = getErasmusCoordinatorForTeacher(teacher);
-
-        return new ArrayList<Degree>(CollectionUtils.collect(coordinators, new Transformer() {
-
-            @Override
-            public Object transform(Object arg0) {
-                return ((MobilityCoordinator) arg0).getDegree();
-            }
-        }));
+        return getErasmusCoordinatorForTeacher(teacher)
+                .stream()
+                .map(MobilityCoordinator::getDegree)
+                .collect(Collectors.toList());
     }
 
     public boolean isTeacherErasmusCoordinatorForDegree(final Teacher teacher, final Degree degree) {
@@ -391,48 +357,27 @@ public class MobilityApplicationProcess extends MobilityApplicationProcess_Base 
     }
 
     public List<MobilityIndividualApplicationProcess> getProcessesWithNotViewedApprovedLearningAgreements() {
-        List<MobilityIndividualApplicationProcess> processList = new ArrayList<MobilityIndividualApplicationProcess>();
-        CollectionUtils.select(getChildProcessesSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                MobilityIndividualApplicationProcess individualProcess = (MobilityIndividualApplicationProcess) arg0;
-
-                return !individualProcess.isCandidacyCancelled()
-                        && individualProcess.getCandidacy().isMostRecentApprovedLearningAgreementNotViewed();
-            }
-        }, processList);
-
-        return processList;
+        return getChildProcessesSet()
+                .stream()
+                .map(individualProcess -> (MobilityIndividualApplicationProcess) individualProcess)
+                .filter(individualProcess -> !individualProcess.isCandidacyCancelled())
+                .filter(individualProcess -> individualProcess.getCandidacy().isMostRecentApprovedLearningAgreementNotViewed())
+                .collect(Collectors.toList());
     }
 
     public List<MobilityIndividualApplicationProcess> getProcessesWithNotViewedAlerts() {
-        List<MobilityIndividualApplicationProcess> processList = new ArrayList<MobilityIndividualApplicationProcess>();
-        CollectionUtils.select(getChildProcessesSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                MobilityIndividualApplicationProcess process = (MobilityIndividualApplicationProcess) arg0;
-                return process.isProcessWithMostRecentAlertMessageNotViewed();
-            }
-
-        }, processList);
-
-        return processList;
+        return getChildProcessesSet()
+                .stream()
+                .map(individualProcess -> (MobilityIndividualApplicationProcess) individualProcess)
+                .filter(MobilityIndividualApplicationProcess::isProcessWithMostRecentAlertMessageNotViewed)
+                .collect(Collectors.toList());
     }
 
     public List<ErasmusCandidacyProcessReport> getDoneReports() {
-        List<ErasmusCandidacyProcessReport> jobList = new ArrayList<ErasmusCandidacyProcessReport>();
-
-        CollectionUtils.select(getErasmusCandidacyProcessReportsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return ((QueueJob) arg0).getDone();
-            }
-        }, jobList);
-
-        return jobList;
+        return getErasmusCandidacyProcessReportsSet()
+                .stream()
+                .filter(QueueJob::getDone)
+                .collect(Collectors.toList());
     }
 
     public List<ErasmusCandidacyProcessReport> getUndoneReports() {
@@ -440,17 +385,10 @@ public class MobilityApplicationProcess extends MobilityApplicationProcess_Base 
     }
 
     public List<ErasmusCandidacyProcessReport> getPendingReports() {
-        List<ErasmusCandidacyProcessReport> jobList = new ArrayList<ErasmusCandidacyProcessReport>();
-
-        CollectionUtils.select(getErasmusCandidacyProcessReportsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                return ((QueueJob) arg0).getIsNotDoneAndNotCancelled();
-            }
-        }, jobList);
-
-        return jobList;
+        return getErasmusCandidacyProcessReportsSet()
+                .stream()
+                .filter(QueueJob::getIsNotDoneAndNotCancelled)
+                .collect(Collectors.toList());
     }
 
     public boolean isAbleToLaunchReportGenerationJob() {

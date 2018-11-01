@@ -28,9 +28,8 @@ package org.fenixedu.academic.dto;
  */
 import java.util.Calendar;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.fenixedu.academic.domain.Exam;
 import org.fenixedu.academic.util.DiaSemana;
 import org.fenixedu.academic.util.EvaluationType;
@@ -83,14 +82,9 @@ public class InfoExam extends InfoWrittenEvaluation {
     }
 
     public List getAssociatedRooms() {
-        return (List) CollectionUtils.collect(super.getWrittenEvaluationSpaceOccupations(), new Transformer() {
-
-            @Override
-            public Object transform(Object arg0) {
-                InfoRoomOccupation roomOccupation = (InfoRoomOccupation) arg0;
-                return roomOccupation.getInfoRoom();
-            }
-        });
+        return super.getWrittenEvaluationSpaceOccupations().stream()
+                .map(InfoRoomOccupation::getInfoRoom)
+                .collect(Collectors.toList());
     }
 
     public String getDate() {

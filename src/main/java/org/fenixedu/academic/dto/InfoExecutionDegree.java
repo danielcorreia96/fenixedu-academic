@@ -23,8 +23,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.apache.struts.util.LabelValueBean;
 import org.apache.struts.util.MessageResources;
 import org.fenixedu.academic.domain.Coordinator;
@@ -127,16 +127,13 @@ public class InfoExecutionDegree extends InfoObject {
         Iterator iter = executionDegrees.iterator();
         while (iter.hasNext()) {
             final InfoExecutionDegree infoExecutionDegree = (InfoExecutionDegree) iter.next();
-            List equalDegrees = (List) CollectionUtils.select(copyExecutionDegrees, new Predicate() {
-                @Override
-                public boolean evaluate(Object arg0) {
-                    InfoExecutionDegree infoExecutionDegreeElem = (InfoExecutionDegree) arg0;
-                    if (infoExecutionDegree.getInfoDegreeCurricularPlan().getInfoDegree().getSigla()
-                            .equals(infoExecutionDegreeElem.getInfoDegreeCurricularPlan().getInfoDegree().getSigla())) {
-                        return true;
-                    }
-                    return false;
+            List equalDegrees = (List) CollectionUtils.select(copyExecutionDegrees, (Predicate) arg0 -> {
+                InfoExecutionDegree infoExecutionDegreeElem = (InfoExecutionDegree) arg0;
+                if (infoExecutionDegree.getInfoDegreeCurricularPlan().getInfoDegree().getSigla()
+                        .equals(infoExecutionDegreeElem.getInfoDegreeCurricularPlan().getInfoDegree().getSigla())) {
+                    return true;
                 }
+                return false;
             });
             if (equalDegrees.size() == 1) {
                 copyExecutionDegrees.remove(infoExecutionDegree);

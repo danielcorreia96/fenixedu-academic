@@ -24,9 +24,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
@@ -35,6 +34,7 @@ import org.fenixedu.academic.domain.ExecutionYear;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.domain.candidacy.IngressionType;
+import org.fenixedu.academic.domain.candidacyProcess.IndividualCandidacyDocumentFile;
 import org.fenixedu.academic.domain.candidacyProcess.IndividualCandidacyProcess;
 import org.fenixedu.academic.domain.candidacyProcess.IndividualCandidacyProcessBean;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.ApprovedLearningAgreementDocumentFile;
@@ -188,18 +188,9 @@ public class MobilityIndividualApplication extends MobilityIndividualApplication
     }
 
     public List<ApprovedLearningAgreementDocumentFile> getActiveApprovedLearningAgreements() {
-        List<ApprovedLearningAgreementDocumentFile> activeDocuments = new ArrayList<ApprovedLearningAgreementDocumentFile>();
-        CollectionUtils.select(getApprovedLearningAgreementsSet(), new Predicate() {
-
-            @Override
-            public boolean evaluate(Object arg0) {
-                ApprovedLearningAgreementDocumentFile document = (ApprovedLearningAgreementDocumentFile) arg0;
-                return document.getCandidacyFileActive();
-            }
-
-        }, activeDocuments);
-
-        return activeDocuments;
+        return getApprovedLearningAgreementsSet().stream()
+                .filter(IndividualCandidacyDocumentFile::getCandidacyFileActive)
+                .collect(Collectors.toList());
     }
 
     public boolean hasAnyActiveApprovedLearningAgreements() {

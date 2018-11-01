@@ -21,7 +21,7 @@ package org.fenixedu.academic.domain;
 import java.util.Collection;
 import java.util.Comparator;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.bennu.core.domain.Bennu;

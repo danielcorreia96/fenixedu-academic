@@ -21,12 +21,11 @@ package org.fenixedu.academic.ui.struts.action.phd.coordinator.publicProgram;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -300,18 +299,11 @@ public class PublicPhdProgramCandidacyProcessDA extends PhdProgramCandidacyProce
         }
 
         private List<PhdCandidacyPeriod> getCandidacyPeriods() {
-            List<PhdCandidacyPeriod> candidacyPeriodList = new ArrayList<PhdCandidacyPeriod>();
-
-            CollectionUtils.select(Bennu.getInstance().getCandidacyPeriodsSet(), new Predicate() {
-
-                @Override
-                public boolean evaluate(Object arg0) {
-                    return arg0 instanceof PhdCandidacyPeriod;
-                }
-
-            }, candidacyPeriodList);
-
-            return candidacyPeriodList;
+            return Bennu.getInstance().getCandidacyPeriodsSet()
+                    .stream()
+                    .filter(candidacyPeriod -> candidacyPeriod instanceof PhdCandidacyPeriod)
+                    .map(candidacyPeriod -> (PhdCandidacyPeriod) candidacyPeriod)
+                    .collect(Collectors.toList());
         }
 
     }

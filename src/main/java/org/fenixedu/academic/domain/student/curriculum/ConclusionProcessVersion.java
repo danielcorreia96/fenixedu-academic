@@ -21,7 +21,7 @@ package org.fenixedu.academic.domain.student.curriculum;
 import java.math.BigDecimal;
 import java.util.Comparator;
 
-import org.apache.commons.collections.comparators.ComparatorChain;
+import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.DomainObjectUtil;
 import org.fenixedu.academic.domain.Enrolment;

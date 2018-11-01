@@ -21,7 +21,7 @@ package org.fenixedu.academic.ui.struts.action.phd.coordinator.providers;
 import java.util.Collection;
 import java.util.TreeSet;
 
-import org.apache.commons.collections.comparators.ReverseComparator;
+import org.apache.commons.collections4.comparators.ReverseComparator;
 import org.fenixedu.academic.domain.ExecutionSemester;
 import org.fenixedu.academic.domain.ExecutionYear;
 import org.fenixedu.academic.domain.phd.ManageEnrolmentsBean;

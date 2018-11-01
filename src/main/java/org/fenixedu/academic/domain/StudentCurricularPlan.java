@@ -34,10 +34,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.accessControl.academicAdministration.AcademicAccessRule;
 import org.fenixedu.academic.domain.accessControl.academicAdministration.AcademicOperationType;
@@ -54,6 +53,7 @@ import org.fenixedu.academic.domain.curriculum.EnrollmentState;
 import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.domain.degree.enrollment.CurricularCourse2Enroll;
 import org.fenixedu.academic.domain.degree.enrollment.NotNeedToEnrollInCurricularCourse;
+import org.fenixedu.academic.domain.degree.enrollment.NotNeedToEnrollInCurricularCourse_Base;
 import org.fenixedu.academic.domain.degreeStructure.Context;
 import org.fenixedu.academic.domain.degreeStructure.CourseGroup;
 import org.fenixedu.academic.domain.degreeStructure.CycleCourseGroup;
@@ -1070,15 +1070,7 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
     }
 
     final public int getNumberOfStudentEnrollmentsWithApprovedState() {
-        int result = 0;
-
-        for (final Enrolment enrolment : getAllEnrollments()) {
-            if (enrolment.isApproved()) {
-                result++;
-            }
-        }
-
-        return result;
+        return (int) getAllEnrollments().stream().filter(Enrolment::isApproved).count();
     }
 
     final protected boolean isApproved(CurricularCourse curricularCourse, List<CurricularCourse> approvedCourses) {
@@ -1090,18 +1082,9 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
     }
 
     final public boolean isCurricularCourseApproved(CurricularCourse curricularCourse) {
-        List studentApprovedEnrollments = getStudentEnrollmentsWithApprovedState();
-
-        List<CurricularCourse> result =
-                (List<CurricularCourse>) CollectionUtils.collect(studentApprovedEnrollments, new Transformer() {
-                    @Override
-                    final public Object transform(Object obj) {
-                        Enrolment enrollment = (Enrolment) obj;
-
-                        return enrollment.getCurricularCourse();
-
-                    }
-                });
+        List<CurricularCourse> result = getStudentEnrollmentsWithApprovedState().stream()
+                .map(CurriculumLine::getCurricularCourse)
+                .collect(Collectors.toList());
 
         return isApproved(curricularCourse, result);
     }
@@ -1111,16 +1094,9 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
     }
 
     public int getNumberOfApprovedCurricularCourses() {
-        int counter = 0;
-
-        int size = getDegreeCurricularPlan().getCurricularCoursesSet().size();
-        for (CurricularCourse curricularCourse : getDegreeCurricularPlan().getCurricularCoursesSet()) {
-            if (isCurricularCourseApproved(curricularCourse)) {
-                counter++;
-            }
-        }
-
-        return counter;
+        return (int) getDegreeCurricularPlan().getCurricularCoursesSet().stream()
+                .filter(this::isCurricularCourseApproved)
+                .count();
     }
 
     final public boolean isCurricularCourseNotExtraApprovedInCurrentOrPreviousPeriod(final CurricularCourse course,
@@ -1152,17 +1128,10 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
     }
 
     final public boolean isEquivalentAproved(CurricularCourse curricularCourse) {
-        List studentApprovedEnrollments = getStudentEnrollmentsWithApprovedState();
-
-        List<CurricularCourse> result = (List) CollectionUtils.collect(studentApprovedEnrollments, new Transformer() {
-            @Override
-            final public Object transform(Object obj) {
-                Enrolment enrollment = (Enrolment) obj;
-
-                return enrollment.getCurricularCourse();
-
-            }
-        });
+        List<CurricularCourse> result = getStudentEnrollmentsWithApprovedState()
+                .stream()
+                .map(CurriculumLine::getCurricularCourse)
+                .collect(Collectors.toList());
 
         return isThisCurricularCoursesInTheList(curricularCourse, result) || hasEquivalenceInNotNeedToEnroll(curricularCourse);
     }
@@ -1173,13 +1142,8 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
             return true;
         }
 
-        for (CurricularCourseEquivalence equiv : curricularCourse.getCurricularCourseEquivalencesSet()) {
-            if (allNotNeedToEnroll(equiv.getOldCurricularCoursesSet())) {
-                return true;
-            }
-        }
-
-        return false;
+        return curricularCourse.getCurricularCourseEquivalencesSet().stream()
+                .anyMatch(equiv -> allNotNeedToEnroll(equiv.getOldCurricularCoursesSet()));
     }
 
     final public void initEctsCreditsToEnrol(List<CurricularCourse2Enroll> setOfCurricularCoursesToEnroll,
@@ -1191,12 +1155,7 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
     }
 
     private boolean allNotNeedToEnroll(Collection<CurricularCourse> oldCurricularCourses) {
-        for (CurricularCourse course : oldCurricularCourses) {
-            if (!notNeedToEnroll(course)) {
-                return false;
-            }
-        }
-        return true;
+        return oldCurricularCourses.stream().allMatch(this::notNeedToEnroll);
     }
 
     final protected boolean hasEquivalenceIn(CurricularCourse curricularCourse, List<CurricularCourse> otherCourses) {
@@ -1208,36 +1167,21 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
             return true;
         }
 
-        for (CurricularCourseEquivalence equiv : curricularCourse.getCurricularCourseEquivalencesSet()) {
-            if (allCurricularCoursesInTheList(equiv.getOldCurricularCoursesSet(), otherCourses)) {
-                return true;
-            }
-        }
-
-        return false;
+        return curricularCourse.getCurricularCourseEquivalencesSet().stream()
+                .anyMatch(equiv -> allCurricularCoursesInTheList(equiv.getOldCurricularCoursesSet(), otherCourses));
     }
 
     private boolean allCurricularCoursesInTheList(Collection<CurricularCourse> oldCurricularCourses,
             List<CurricularCourse> otherCourses) {
-        for (CurricularCourse oldCurricularCourse : oldCurricularCourses) {
-            if (!isThisCurricularCoursesInTheList(oldCurricularCourse, otherCourses)
-                    && !hasEquivalenceInNotNeedToEnroll(oldCurricularCourse)) {
-                return false;
-            }
-        }
-        return true;
+        return oldCurricularCourses.stream()
+                .noneMatch(oldCurricularCourse -> !isThisCurricularCoursesInTheList(oldCurricularCourse, otherCourses)
+                        && !hasEquivalenceInNotNeedToEnroll(oldCurricularCourse));
     }
 
     final public boolean isCurricularCourseEnrolled(CurricularCourse curricularCourse) {
-        List result = (List) CollectionUtils.collect(getStudentEnrollmentsWithEnrolledState(), new Transformer() {
-            @Override
-            final public Object transform(Object obj) {
-                Enrolment enrollment = (Enrolment) obj;
-                return enrollment.getCurricularCourse();
-            }
-        });
-
-        return result.contains(curricularCourse);
+        return getStudentEnrollmentsWithEnrolledState().stream()
+                .map(CurriculumLine::getCurricularCourse)
+                .anyMatch(course -> course.equals(curricularCourse));
     }
 
     final public boolean isEnroledInExecutionPeriod(final CurricularCourse curricularCourse) {
@@ -1440,13 +1384,9 @@ public class StudentCurricularPlan extends StudentCurricularPlan_Base {
     }
 
     private List<CurricularCourse> getStudentNotNeedToEnrollCurricularCourses() {
-        return (List<CurricularCourse>) CollectionUtils.collect(getNotNeedToEnrollCurricularCoursesSet(), new Transformer() {
-            @Override
-            final public Object transform(Object obj) {
-                NotNeedToEnrollInCurricularCourse notNeedToEnrollInCurricularCourse = (NotNeedToEnrollInCurricularCourse) obj;
-                return notNeedToEnrollInCurricularCourse.getCurricularCourse();
-            }
-        });
+        return getNotNeedToEnrollCurricularCoursesSet().stream()
+                .map(NotNeedToEnrollInCurricularCourse::getCurricularCourse)
+                .collect(Collectors.toList());
     }
 
     final protected boolean hasCurricularCourseEquivalenceIn(CurricularCourse curricularCourse, List curricularCoursesEnrollments) {

@@ -19,14 +19,13 @@
 package org.fenixedu.academic.service.services.manager.executionCourseManagement;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.fenixedu.academic.domain.Attends;
 import org.fenixedu.academic.domain.CourseLoad;
 import org.fenixedu.academic.domain.CurricularCourse;
@@ -227,24 +226,13 @@ public class SeperateExecutionCourse {
     }
 
     private static Set<String> getExecutionCourseCodes(ExecutionSemester executionSemester) {
-        Collection<ExecutionCourse> executionCourses = executionSemester.getAssociatedExecutionCoursesSet();
-        return new HashSet<String>(CollectionUtils.collect(executionCourses, new Transformer() {
-            @Override
-            public Object transform(Object arg0) {
-                ExecutionCourse executionCourse = (ExecutionCourse) arg0;
-                return executionCourse.getSigla().toUpperCase();
-            }
-        }));
+        return executionSemester.getAssociatedExecutionCoursesSet().stream()
+                .map(executionCourse -> executionCourse.getSigla().toUpperCase())
+                .collect(Collectors.toSet());
     }
 
     boolean contains(Integer[] integerArray, Integer integer) {
-        for (Integer element : integerArray) {
-            if (integer.equals(element)) {
-                return true;
-            }
-        }
-
-        return false;
+        return Arrays.asList(integerArray).contains(integer);
     }
 
     @Atomic

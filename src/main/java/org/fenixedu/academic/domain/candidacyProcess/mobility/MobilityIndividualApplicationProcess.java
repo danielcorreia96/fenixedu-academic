@@ -21,9 +21,9 @@ package org.fenixedu.academic.domain.candidacyProcess.mobility;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.Degree;
@@ -321,16 +321,10 @@ public class MobilityIndividualApplicationProcess extends MobilityIndividualAppl
     }
 
     public List<ErasmusAlert> getAlertsNotViewed() {
-        List<ErasmusAlert> alertsNotViewed = new ArrayList<ErasmusAlert>();
-
-        CollectionUtils.select(getAlertSet(), arg0 -> {
-            ErasmusAlert alert = (ErasmusAlert) arg0;
-            return alert.isToFire();
-        }, alertsNotViewed);
-
-        Collections.sort(alertsNotViewed, Collections.reverseOrder(ErasmusAlert.WHEN_CREATED_COMPARATOR));
-
-        return alertsNotViewed;
+        return getAlertSet().stream()
+                .filter(ErasmusAlert::isToFire)
+                .sorted(Collections.reverseOrder(ErasmusAlert.WHEN_CREATED_COMPARATOR))
+                .collect(Collectors.toList());
     }
 
     public ErasmusAlert getMostRecentAlert() {

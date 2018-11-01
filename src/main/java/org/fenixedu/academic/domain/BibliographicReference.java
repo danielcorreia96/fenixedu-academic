@@ -21,8 +21,8 @@ package org.fenixedu.academic.domain;
 import java.util.Comparator;
 
 import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.apache.commons.collections.comparators.NullComparator;
+import org.apache.commons.collections4.comparators.ComparatorChain;
+import org.apache.commons.collections4.comparators.NullComparator;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;

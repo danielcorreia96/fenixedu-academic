@@ -22,9 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.fenixedu.academic.domain.EvaluationSeason;
 import org.fenixedu.academic.domain.MarkSheet;
 import org.fenixedu.academic.domain.Person;
@@ -92,13 +91,9 @@ public class MarkSheetManagementCreateBean extends MarkSheetManagementBaseBean {
     @Atomic
     public MarkSheet createMarkSheet(Person person) {
         final Collection<MarkSheetEnrolmentEvaluationBean> enrolmentEvaluationBeanList =
-                CollectionUtils.select(getAllEnrolmentEvalutionBeans(), new Predicate() {
-                    @Override
-                    public boolean evaluate(Object arg0) {
-                        return ((MarkSheetEnrolmentEvaluationBean) arg0).hasAnyGradeValue();
-                    }
-
-                });
+                getAllEnrolmentEvalutionBeans().stream()
+                        .filter(MarkSheetEnrolmentEvaluationBean::hasAnyGradeValue)
+                        .collect(Collectors.toList());
 
         return getCurricularCourse().createNormalMarkSheet(getExecutionPeriod(), getTeacher(), getEvaluationDate(),
                 getEvaluationSeason(), Boolean.FALSE, enrolmentEvaluationBeanList, person);
@@ -107,13 +102,9 @@ public class MarkSheetManagementCreateBean extends MarkSheetManagementBaseBean {
     @Atomic
     public MarkSheet createOldMarkSheet(Person person) {
         final Collection<MarkSheetEnrolmentEvaluationBean> enrolmentEvaluationBeanList =
-                CollectionUtils.select(getAllEnrolmentEvalutionBeans(), new Predicate() {
-                    @Override
-                    public boolean evaluate(Object arg0) {
-                        return ((MarkSheetEnrolmentEvaluationBean) arg0).hasAnyGradeValue();
-                    }
-
-                });
+                getAllEnrolmentEvalutionBeans().stream()
+                        .filter(MarkSheetEnrolmentEvaluationBean::hasAnyGradeValue)
+                        .collect(Collectors.toList());
 
         return getCurricularCourse().createOldNormalMarkSheet(getExecutionPeriod(), getTeacher(), getEvaluationDate(),
                 getEvaluationSeason(), enrolmentEvaluationBeanList, person);

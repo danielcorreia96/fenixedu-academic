@@ -20,7 +20,7 @@ package org.fenixedu.academic.servlet.taglib;
 
 import javax.servlet.jsp.JspException;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.struts.taglib.logic.ConditionalTagBase;
 import org.fenixedu.academic.domain.phd.PhdIndividualProgramProcess;
 import org.fenixedu.academic.domain.phd.access.PhdProcessAccessType;

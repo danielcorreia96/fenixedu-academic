@@ -37,8 +37,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Transformer;
 import org.apache.struts.util.LabelValueBean;
 import org.fenixedu.academic.dto.InfoDegree;
 import org.fenixedu.academic.dto.InfoExecutionDegree;
@@ -77,21 +77,16 @@ public class RequestUtils {
             }
         }
 
-        Collection lableValueList = CollectionUtils.collect(executionDegrees, new Transformer() {
+        Collection lableValueList = CollectionUtils.collect(executionDegrees, (Transformer) arg0 -> {
+            InfoExecutionDegree infoExecutionDegree = (InfoExecutionDegree) arg0;
 
-            @Override
-            public Object transform(Object arg0) {
-                InfoExecutionDegree infoExecutionDegree = (InfoExecutionDegree) arg0;
+            String label =
+                    infoExecutionDegree.getInfoDegreeCurricularPlan().getDegreeCurricularPlan()
+                            .getPresentationName(infoExecutionDegree.getInfoExecutionYear().getExecutionYear());
 
-                String label =
-                        infoExecutionDegree.getInfoDegreeCurricularPlan().getDegreeCurricularPlan()
-                                .getPresentationName(infoExecutionDegree.getInfoExecutionYear().getExecutionYear());
+            String value = infoExecutionDegree.getExternalId().toString();
 
-                String value = infoExecutionDegree.getExternalId().toString();
-
-                return new LabelValueBean(label, value);
-            }
-
+            return new LabelValueBean(label, value);
         });
 
         Comparator comparator = new BeanComparator("label", Collator.getInstance());

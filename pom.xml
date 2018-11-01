@@ -26,7 +26,6 @@
         <version.com.sun.mail.javax.mail>1.6.2</version.com.sun.mail.javax.mail>
         <version.com.twilio.sdk.twilio-java-sdk>7.29.0</version.com.twilio.sdk.twilio-java-sdk>
         <version.commons-beanutils.commons-beanutils>1.9.3</version.commons-beanutils.commons-beanutils>
-        <version.commons-collections.commons-collections>3.2.2</version.commons-collections.commons-collections>
         <version.commons-httpclient.commons-httpclient>3.1</version.commons-httpclient.commons-httpclient>
         <version.commons-io.commons-io>2.6</version.commons-io.commons-io>
         <version.commons-lang.commons-lang>2.6</version.commons-lang.commons-lang>
@@ -37,6 +36,7 @@
         <version.javax.ws.rs.javax.ws.rs.api>2.0</version.javax.ws.rs.javax.ws.rs.api>
         <version.joda.time.joda.time>2.10</version.joda.time.joda.time>
         <version.net.sourceforge.htmlcleaner.htmlcleaner>2.22</version.net.sourceforge.htmlcleaner.htmlcleaner>
+        <version.org.apache.commons-collections4>4.2</version.org.apache.commons-collections4>
         <version.org.apache.poi.poi>3.17</version.org.apache.poi.poi>
         <version.org.fenixedu.bennu-renderers>5.3.1</version.org.fenixedu.bennu-renderers>
         <version.org.fenixedu.bennu-modular-rendering>1.1.0</version.org.fenixedu.bennu-modular-rendering>
@@ -259,9 +259,9 @@
             <version>${version.org.imgscalr.imgscalr-lib}</version>
         </dependency>
         <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-            <version>${version.commons-collections.commons-collections}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>${version.org.apache.commons-collections4}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet.jsp</groupId>

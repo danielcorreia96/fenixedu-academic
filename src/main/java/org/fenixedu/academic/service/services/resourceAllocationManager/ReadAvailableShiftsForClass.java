@@ -25,13 +25,9 @@ package org.fenixedu.academic.service.services.resourceAllocationManager;
 
 import static org.fenixedu.academic.predicate.AccessControl.check;
 
-import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.fenixedu.academic.domain.SchoolClass;
-import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.dto.InfoClass;
 import org.fenixedu.academic.dto.InfoShift;
 import org.fenixedu.academic.predicate.RolePredicates;
@@ -45,20 +41,9 @@ public class ReadAvailableShiftsForClass {
     public static Object run(InfoClass infoClass) {
         check(RolePredicates.RESOURCE_ALLOCATION_MANAGER_PREDICATE);
 
-        List infoShifts = null;
-
         SchoolClass schoolClass = FenixFramework.getDomainObject(infoClass.getExternalId());
-        Set<Shift> shifts = schoolClass.findAvailableShifts();
 
-        infoShifts = (List) CollectionUtils.collect(shifts, new Transformer() {
-            @Override
-            public Object transform(Object arg0) {
-                Shift shift = (Shift) arg0;
-                return InfoShift.newInfoFromDomain(shift);
-            }
-        });
-
-        return infoShifts;
+        return schoolClass.findAvailableShifts().stream().map(InfoShift::newInfoFromDomain).collect(Collectors.toList());
     }
 
 }

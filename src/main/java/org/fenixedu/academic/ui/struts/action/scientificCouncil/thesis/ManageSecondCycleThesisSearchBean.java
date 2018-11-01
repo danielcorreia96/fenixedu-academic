@@ -164,7 +164,7 @@ public class ManageSecondCycleThesisSearchBean implements Serializable {
 
         for (final ExecutionDegree executionDegree : executionYear.getExecutionDegreesSet()) {
             final DegreeCurricularPlan degreeCurricularPlan = executionDegree.getDegreeCurricularPlan();
-            degreeCurricularPlan.applyToCurricularCourses(executionYear, new org.apache.commons.collections.Predicate() {
+            degreeCurricularPlan.applyToCurricularCourses(executionYear, new org.apache.commons.collections4.Predicate() {
                 @Override
                 public boolean evaluate(final Object arg0) {
                     final CurricularCourse curricularCourse = (CurricularCourse) arg0;

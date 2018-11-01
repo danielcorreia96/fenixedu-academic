@@ -25,8 +25,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -75,18 +75,13 @@ public class ErasmusCandidacyProcessDA extends org.fenixedu.academic.ui.struts.a
     protected List<IndividualCandidacyProcess> getChildProcesses(final CandidacyProcess process, HttpServletRequest request) {
         Collection<IndividualCandidacyProcess> processes = super.getChildProcesses(process, request);
 
-        List<IndividualCandidacyProcess> result = new ArrayList<IndividualCandidacyProcess>();
+        List<IndividualCandidacyProcess> result = new ArrayList<>();
 
-        CollectionUtils.select(processes, new Predicate() {
+        CollectionUtils.select(processes, (Predicate) arg0 -> {
+            IndividualCandidacyProcess child = (IndividualCandidacyProcess) arg0;
 
-            @Override
-            public boolean evaluate(Object arg0) {
-                IndividualCandidacyProcess child = (IndividualCandidacyProcess) arg0;
-
-                return ((MobilityApplicationProcess) process).getDegreesAssociatedToTeacherAsCoordinator(getTeacher()).contains(
-                        ((MobilityIndividualApplicationProcess) child).getCandidacy().getSelectedDegree());
-            }
-
+            return ((MobilityApplicationProcess) process).getDegreesAssociatedToTeacherAsCoordinator(getTeacher()).contains(
+                    ((MobilityIndividualApplicationProcess) child).getCandidacy().getSelectedDegree());
         }, result);
 
         return result;
