@@ -19,11 +19,9 @@
 package org.fenixedu.academic.ui.renderers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.Enrolment;
 import org.fenixedu.academic.domain.ExecutionSemester;
@@ -257,11 +255,11 @@ public class StudentCurricularPlanEnrolmentsRenderer extends InputRenderer {
                 StudentCurricularPlan studentCurricularPlan, ExecutionSemester executionSemester, int depth) {
             List<DegreeModuleToEnrol> courseGroupsToEnrol =
                     new ArrayList<DegreeModuleToEnrol>(curriculumModuleBean.getGroupsToEnrol());
-            Collections.sort(courseGroupsToEnrol, new BeanComparator("context"));
+            courseGroupsToEnrol.sort(Comparator.comparing(DegreeModuleToEnrol::getContext));
 
             List<CurriculumModuleBean> curriculumGroups =
                     new ArrayList<CurriculumModuleBean>(curriculumModuleBean.getGroupsEnroled());
-            Collections.sort(curriculumGroups, new CurriculumModuleComparator(executionSemester));
+            curriculumGroups.sort(new CurriculumModuleComparator(executionSemester));
 
             while (!courseGroupsToEnrol.isEmpty() || !curriculumGroups.isEmpty()) {
 
@@ -312,7 +310,7 @@ public class StudentCurricularPlanEnrolmentsRenderer extends InputRenderer {
         private void generateCurricularCoursesToEnrol(HtmlTable groupTable, CurriculumModuleBean curriculumModuleBean,
                 ExecutionSemester executionSemester) {
             List<DegreeModuleToEnrol> coursesToEnrol = curriculumModuleBean.getCurricularCoursesToEnrol();
-            Collections.sort(coursesToEnrol, new BeanComparator("context"));
+            coursesToEnrol.sort(Comparator.comparing(DegreeModuleToEnrol::getContext));
 
             for (DegreeModuleToEnrol degreeModuleToEnrol : coursesToEnrol) {
                 CurricularCourse curricularCourse = (CurricularCourse) degreeModuleToEnrol.getContext().getChildDegreeModule();

@@ -18,13 +18,12 @@
  */
 package org.fenixedu.academic.ui.struts.action.resourceAllocationManager;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -143,7 +142,7 @@ public class ManageExecutionCourseDA extends FenixExecutionCourseAndExecutionDeg
         List<InfoClass> infoClasses = ReadClassesByExecutionCourse.runReadClassesByExecutionCourse(executionCourse);
 
         if (infoClasses != null && !infoClasses.isEmpty()) {
-            Collections.sort(infoClasses, new BeanComparator("nome"));
+            infoClasses.sort(Comparator.comparing(InfoClass::getNome));
             request.setAttribute(PresentationConstants.LIST_INFOCLASS, infoClasses);
         }
     }

@@ -20,13 +20,13 @@ package org.fenixedu.academic.ui.struts.action.academicAdministration.executionC
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -216,7 +216,7 @@ public class EditExecutionCourseManageCurricularCoursesDispatchAction extends Fe
                     }
                 }
             }
-            Collections.sort(infoCurricularCourses, new BeanComparator("name"));
+            infoCurricularCourses.sort(Comparator.comparing(InfoCurricularCourse::getName));
             request.setAttribute("infoCurricularCourses", infoCurricularCourses);
 
             return mapping.findForward("associateCurricularCourse");

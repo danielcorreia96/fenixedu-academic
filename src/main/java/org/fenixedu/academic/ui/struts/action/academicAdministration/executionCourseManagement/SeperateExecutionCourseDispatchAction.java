@@ -18,15 +18,13 @@
  */
 package org.fenixedu.academic.ui.struts.action.academicAdministration.executionCourseManagement;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -40,6 +38,7 @@ import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.domain.ExecutionSemester;
 import org.fenixedu.academic.domain.Shift;
 import org.fenixedu.academic.domain.exceptions.DomainException;
+import org.fenixedu.academic.dto.InfoCurricularCourse;
 import org.fenixedu.academic.dto.InfoExecutionCourse;
 import org.fenixedu.academic.dto.InfoExecutionDegree;
 import org.fenixedu.academic.service.services.exceptions.FenixServiceException;
@@ -91,11 +90,10 @@ public class SeperateExecutionCourseDispatchAction extends FenixDispatchAction {
         InfoExecutionCourse infoExecutionCourse = ReadExecutionCourseWithShiftsAndCurricularCoursesByOID.run(executionCourseId);
         request.setAttribute("infoExecutionCourse", infoExecutionCourse);
 
-        List executionDegrees =
-                ReadExecutionDegreesByExecutionPeriodId.runForAcademicAdminAdv(infoExecutionCourse.getInfoExecutionPeriod()
-                        .getExternalId());
-        transformExecutionDegreesIntoLabelValueBean(executionDegrees);
-        request.setAttribute("executionDegrees", executionDegrees);
+        List<InfoExecutionDegree> executionDegrees =
+                ReadExecutionDegreesByExecutionPeriodId.runForAcademicAdminAdv(infoExecutionCourse.getInfoExecutionPeriod().getExternalId());
+        List<LabelValueBean> labelValueBeans = transformExecutionDegreesIntoLabelValueBean(executionDegrees);
+        request.setAttribute("executionDegrees", labelValueBeans);
 
         List curricularYears = RequestUtils.buildCurricularYearLabelValueBean();
         request.setAttribute(PresentationConstants.CURRICULAR_YEAR_LIST_KEY, curricularYears);
@@ -140,7 +138,7 @@ public class SeperateExecutionCourseDispatchAction extends FenixDispatchAction {
         }
 
         if (infoExecutionCourse.getAssociatedInfoCurricularCourses() != null) {
-            Collections.sort(infoExecutionCourse.getAssociatedInfoCurricularCourses(), new BeanComparator("name"));
+            infoExecutionCourse.getAssociatedInfoCurricularCourses().sort(Comparator.comparing(InfoCurricularCourse::getName));
         }
 
         request.setAttribute(PresentationConstants.EXECUTION_COURSE, infoExecutionCourse);
@@ -177,32 +175,17 @@ public class SeperateExecutionCourseDispatchAction extends FenixDispatchAction {
         return mapping.findForward("manageCurricularSeparation");
     }
 
-    private void transformExecutionDegreesIntoLabelValueBean(List executionDegreeList) {
-        CollectionUtils.transform(executionDegreeList, new Transformer() {
-
-            @Override
-            public Object transform(Object arg0) {
-                InfoExecutionDegree infoExecutionDegree = (InfoExecutionDegree) arg0;
-                /*
-                TODO: DUPLICATE check really needed?
-                StringBuilder label =
-                        new StringBuilder(infoExecutionDegree.getInfoDegreeCurricularPlan().getInfoDegree().getDegreeType()
-                                .getLocalizedName());
-                label.append(" em ");
-                label.append(infoExecutionDegree.getInfoDegreeCurricularPlan().getInfoDegree().getNome());
-                */
-
-                String label =
-                        infoExecutionDegree.getInfoDegreeCurricularPlan().getDegreeCurricularPlan()
-                                .getPresentationName(infoExecutionDegree.getInfoExecutionYear().getExecutionYear());
-
-                return new LabelValueBean(label, infoExecutionDegree.getExternalId().toString());
-            }
-
-        });
-
-        Collections.sort(executionDegreeList, new BeanComparator("label"));
-        executionDegreeList.add(0, new LabelValueBean(BundleUtil.getString(Bundle.RENDERER, "renderers.menu.default.title"), ""));
+    private List<LabelValueBean> transformExecutionDegreesIntoLabelValueBean(List<InfoExecutionDegree> executionDegreeList) {
+        List<LabelValueBean> labelValueBeans = executionDegreeList.stream()
+                .map(infoExecutionDegree -> {
+                    String label = infoExecutionDegree.getInfoDegreeCurricularPlan().getDegreeCurricularPlan()
+                            .getPresentationName(infoExecutionDegree.getInfoExecutionYear().getExecutionYear());
+                    return new LabelValueBean(label, infoExecutionDegree.getExternalId());
+                })
+                .sorted(Comparator.comparing(LabelValueBean::getLabel))
+                .collect(Collectors.toList());
+        labelValueBeans.add(0, new LabelValueBean(BundleUtil.getString(Bundle.RENDERER, "renderers.menu.default.title"), ""));
+        return labelValueBeans;
     }
 
     public ActionForward changeDestinationContext(ActionMapping mapping, ActionForm form, HttpServletRequest request,
@@ -219,11 +202,11 @@ public class SeperateExecutionCourseDispatchAction extends FenixDispatchAction {
 
             InfoExecutionCourse infoExecutionCourse = (InfoExecutionCourse) request.getAttribute("infoExecutionCourse");
 
-            List executionCourses =
+            List<InfoExecutionCourse> executionCourses =
                     ReadExecutionCoursesByExecutionDegreeIdAndExecutionPeriodIdAndCurYear.run(destinationExecutionDegreeId,
                             infoExecutionCourse.getInfoExecutionPeriod().getExternalId(), new Integer(destinationCurricularYear));
             executionCourses.remove(infoExecutionCourse);
-            Collections.sort(executionCourses, new BeanComparator("nome"));
+            executionCourses.sort(Comparator.comparing(InfoExecutionCourse::getNome));
             request.setAttribute("executionCourses", executionCourses);
         }
 

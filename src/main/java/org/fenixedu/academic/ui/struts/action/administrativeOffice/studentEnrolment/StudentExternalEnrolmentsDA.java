@@ -19,6 +19,7 @@
 package org.fenixedu.academic.ui.struts.action.administrativeOffice.studentEnrolment;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -26,7 +27,6 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -38,6 +38,7 @@ import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.academic.domain.organizationalStructure.UnitUtils;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.domain.studentCurriculum.ExternalEnrolment;
+import org.fenixedu.academic.dto.administrativeOffice.externalUnits.AbstractExternalUnitResultBean;
 import org.fenixedu.academic.dto.administrativeOffice.externalUnits.EditExternalEnrolmentBean;
 import org.fenixedu.academic.dto.administrativeOffice.externalUnits.ExternalCurricularCourseResultBean;
 import org.fenixedu.academic.dto.administrativeOffice.studentEnrolment.ExternalCurricularCourseEnrolmentBean;
@@ -108,7 +109,7 @@ public class StudentExternalEnrolmentsDA extends FenixDispatchAction {
 
     private Set<ExternalCurricularCourseResultBean> buildExternalCurricularCourseResultBeans(final Unit unit) {
         final Set<ExternalCurricularCourseResultBean> result =
-                new TreeSet<ExternalCurricularCourseResultBean>(new BeanComparator("fullName"));
+                new TreeSet<>(Comparator.comparing(AbstractExternalUnitResultBean::getFullName));
         for (final ExternalCurricularCourse externalCurricularCourse : unit.getAllExternalCurricularCourses()) {
             result.add(new ExternalCurricularCourseResultBean(externalCurricularCourse));
         }

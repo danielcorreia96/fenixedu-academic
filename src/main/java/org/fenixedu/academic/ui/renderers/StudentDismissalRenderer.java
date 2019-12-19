@@ -20,10 +20,9 @@ package org.fenixedu.academic.ui.renderers;
 
 import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.ExecutionSemester;
@@ -300,7 +299,7 @@ public class StudentDismissalRenderer extends InputRenderer {
 
             final List<CurricularCourse> orderedCurricularCourses =
                     new ArrayList<CurricularCourse>(dismissalBean.getAllCurricularCoursesToDismissal());
-            Collections.sort(orderedCurricularCourses, new BeanComparator("name", Collator.getInstance()));
+            orderedCurricularCourses.sort(Comparator.comparing(CurricularCourse::getName, Collator.getInstance()));
 
             for (final CurricularCourse curricularCourse : orderedCurricularCourses) {
                 final HtmlTableRow htmlTableRow = groupTable.createRow();

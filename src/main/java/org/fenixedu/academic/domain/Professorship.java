@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.util.Bundle;
@@ -44,8 +43,8 @@ import pt.ist.fenixframework.Atomic;
  */
 public class Professorship extends Professorship_Base {
 
-    public static final Comparator<Professorship> COMPARATOR_BY_PERSON_NAME = new BeanComparator("person.name",
-            Collator.getInstance());
+    public static final Comparator<Professorship> COMPARATOR_BY_PERSON_NAME =
+            Comparator.comparing(professorship -> professorship.getPerson().getName(), Collator.getInstance());
 
     public static final String PROFESSORSHIP_CREATED = "academic.professorship.created";
 

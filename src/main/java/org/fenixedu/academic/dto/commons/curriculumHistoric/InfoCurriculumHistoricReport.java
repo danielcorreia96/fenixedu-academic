@@ -23,11 +23,11 @@ package org.fenixedu.academic.dto.commons.curriculumHistoric;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.Enrolment;
 import org.fenixedu.academic.domain.EvaluationSeason;
@@ -91,9 +91,7 @@ public class InfoCurriculumHistoricReport implements Serializable {
     }
 
     private void init() {
-        this.enrolments =
-                new TreeSet<InfoEnrolmentHistoricReport>(
-                        new BeanComparator("enrolment.studentCurricularPlan.registration.number"));
+        this.enrolments = new TreeSet<>(Comparator.comparing(o1 -> o1.getEnrolment().getStudentCurricularPlan().getRegistration().getNumber()));
         for (final Enrolment enrolment : getCurricularCourse().getEnrolmentsByAcademicInterval(academicInterval)) {
             if (!enrolment.isAnnulled()) {
                 this.enrolments.add(new InfoEnrolmentHistoricReport(enrolment));

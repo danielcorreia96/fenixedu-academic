@@ -20,6 +20,7 @@ package org.fenixedu.academic.service.services.masterDegree.administrativeOffice
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
@@ -39,7 +40,7 @@ import pt.ist.fenixframework.FenixFramework;
 public class ReadCurricularCoursesByDegree {
 
     @Atomic
-    public static List run(String executionYearString, String degreeName) throws FenixServiceException {
+    public static List<InfoCurricularCourse> run(String executionYearString, String degreeName) throws FenixServiceException {
         ExecutionYear executionYear = ExecutionYear.readExecutionYearByName(executionYearString);
 
         // Read degree
@@ -62,15 +63,12 @@ public class ReadCurricularCoursesByDegree {
     }
 
     @Atomic
-    public static List run(String degreeCurricularPlanID) {
+    public static List<InfoCurricularCourse> run(String degreeCurricularPlanID) {
         DegreeCurricularPlan degreeCurricularPlan = FenixFramework.getDomainObject(degreeCurricularPlanID);
 
-        List<InfoCurricularCourse> infoCurricularCourses = new ArrayList<InfoCurricularCourse>();
-        for (CurricularCourse curricularCourse : degreeCurricularPlan.getCurricularCoursesSet()) {
-            infoCurricularCourses.add(InfoCurricularCourse.newInfoFromDomain(curricularCourse));
-        }
-
-        return infoCurricularCourses;
+        return degreeCurricularPlan.getCurricularCoursesSet().stream()
+                .map(InfoCurricularCourse::newInfoFromDomain)
+                .collect(Collectors.toList());
     }
 
 }

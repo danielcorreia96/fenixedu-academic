@@ -18,12 +18,12 @@
  */
 package org.fenixedu.academic.ui.struts.action.candidacy.erasmus;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.Country;
 import org.fenixedu.academic.domain.candidacyProcess.mobility.MobilityStudentDataBean;
+import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.academic.domain.organizationalStructure.UniversityUnit;
 import org.fenixedu.academic.domain.period.MobilityApplicationPeriod;
 
@@ -45,7 +45,7 @@ public class ErasmusUniversityProvider implements DataProvider {
         MobilityApplicationPeriod period = (MobilityApplicationPeriod) bean.getParentProcess().getCandidacyPeriod();
 
         List<UniversityUnit> universityUnitList = period.getUniversityUnitsAssociatedToCountry(selectedCountry);
-        Collections.sort(universityUnitList, new BeanComparator("nameI18n"));
+        universityUnitList.sort(Comparator.comparing(Unit::getNameI18n));
 
         return universityUnitList;
     }

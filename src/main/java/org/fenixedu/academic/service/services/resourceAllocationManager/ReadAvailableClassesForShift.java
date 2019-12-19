@@ -51,7 +51,7 @@ import pt.ist.fenixframework.FenixFramework;
 public class ReadAvailableClassesForShift {
 
     @Atomic
-    public static List run(String shiftOID) {
+    public static List<InfoClass> run(String shiftOID) {
         check(RolePredicates.RESOURCE_ALLOCATION_MANAGER_PREDICATE);
 
         final Shift shift = FenixFramework.getDomainObject(shiftOID);

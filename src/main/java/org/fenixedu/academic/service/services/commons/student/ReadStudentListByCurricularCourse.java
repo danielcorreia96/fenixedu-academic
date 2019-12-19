@@ -19,10 +19,9 @@
 package org.fenixedu.academic.service.services.commons.student;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.Enrolment;
 import org.fenixedu.academic.dto.InfoEnrolment;
@@ -60,7 +59,7 @@ public class ReadStudentListByCurricularCourse {
                 result.add(InfoEnrolment.newInfoFromDomain(enrolment));
             }
         }
-        Collections.sort(result, new BeanComparator("infoStudentCurricularPlan.infoStudent.number"));
+        result.sort(Comparator.comparing(o1 -> o1.getInfoStudentCurricularPlan().getInfoStudent().getNumber()));
         return result;
     }
 

@@ -42,12 +42,10 @@
    		<property name="useParent" value="true"/>
    		<property name="destination" value="viewForum"/>
    	</slot>
-   	<slot name="creator" key="label.org.fenixedu.academic.domain.messaging.ConversationThread.creator" layout="person-email-identity">
-		<property name="collapsed" value="true"/>
-		<property name="text" value="name"/>
-		<property name="address" value="email"/>
+	<slot name="creator" key="label.org.fenixedu.academic.domain.messaging.ConversationThread.creator">
+		<property name="format"	value="${name} (${email})" />
 	</slot>
-   	<slot name="creationDate" key="label.org.fenixedu.academic.domain.messaging.ConversationThread.creationDate"/>
+	<slot name="creationDate" key="label.org.fenixedu.academic.domain.messaging.ConversationThread.creationDate"/>
    	<slot name="messageCount" key="label.forum.ConversationMessages"/>
 </schema>
 
@@ -89,10 +87,8 @@
 </schema>
 
 <schema bundle="MESSAGING_RESOURCES" name="conversationMessage.view-with-author-creationDate-and-body" type="org.fenixedu.academic.domain.messaging.ConversationMessage">
-	<slot name="creator" key="label.org.fenixedu.academic.domain.messaging.ConversationMessage.creator" layout="person-email-identity">
-		<property name="collapsed" value="false"/>
-		<property name="text" value="name"/>
-		<property name="address" value="email"/>
+	<slot name="creator" key="label.org.fenixedu.academic.domain.messaging.ConversationMessage.creator">
+		<property name="format"	value="${name} (${email})" />
 	</slot>
 	<slot name="creationDate" key="label.org.fenixedu.academic.domain.messaging.ConversationMessage.creationDate"/>
 	<slot name="body" layout="html" key="label.org.fenixedu.academic.domain.messaging.ConversationMessage.body"/>	

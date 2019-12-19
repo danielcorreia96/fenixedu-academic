@@ -25,7 +25,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.Attends;
 import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
@@ -386,7 +385,7 @@ public class StudentPortalBean implements Serializable {
         for (ExecutionCourse executionCourse : executionCourses) {
             addExecutionCoursesAnnouncement(new ExecutionCoursesAnnouncements(executionCourse));
         }
-        Collections.sort(getExecutionCoursesAnnouncements(), new BeanComparator("executionCourse.name"));
+        getExecutionCoursesAnnouncements().sort(Comparator.comparing(o1 -> o1.getExecutionCourse().getName()));
     }
 
     public Degree getDegree() {

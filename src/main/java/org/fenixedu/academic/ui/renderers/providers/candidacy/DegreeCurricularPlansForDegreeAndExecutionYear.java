@@ -19,10 +19,9 @@
 package org.fenixedu.academic.ui.renderers.providers.candidacy;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.dto.administrativeOffice.candidacy.DFACandidacyBean;
 
@@ -39,7 +38,7 @@ public class DegreeCurricularPlansForDegreeAndExecutionYear implements DataProvi
         final List<DegreeCurricularPlan> result = new ArrayList<DegreeCurricularPlan>();
         if (dfaCandidacyBean.getDegree() != null && dfaCandidacyBean.getExecutionYear() != null) {
             result.addAll(dfaCandidacyBean.getDegree().getDegreeCurricularPlansForYear(dfaCandidacyBean.getExecutionYear()));
-            Collections.sort(result, new BeanComparator("name"));
+            result.sort(Comparator.comparing(DegreeCurricularPlan::getName));
         } else {
             dfaCandidacyBean.setDegreeCurricularPlan(null);
         }

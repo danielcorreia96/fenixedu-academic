@@ -69,9 +69,8 @@ public class ProjectSubmissionsManagementDispatchAction extends ExecutionCourseB
         final List<ProjectSubmission> deletedGroupsProjectSubmissions =
                 new ArrayList<ProjectSubmission>(project.getLastProjectSubmissionForEachDeletedStudentGroup());
 
-        Collections.sort(projectSubmissions, ProjectSubmission.COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE);
-        Collections.sort(deletedGroupsProjectSubmissions,
-                ProjectSubmission.COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE);
+        projectSubmissions.sort(ProjectSubmission.COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE);
+        deletedGroupsProjectSubmissions.sort(ProjectSubmission.COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE);
 
         setRequestParameters(request, project, projectSubmissions, null);
         request.setAttribute("deletedStudentGroupProjectSubmissions", deletedGroupsProjectSubmissions);

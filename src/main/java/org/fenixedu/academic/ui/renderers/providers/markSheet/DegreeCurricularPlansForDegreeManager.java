@@ -19,10 +19,9 @@
 package org.fenixedu.academic.ui.renderers.providers.markSheet;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.dto.degreeAdministrativeOffice.gradeSubmission.MarkSheetManagementBaseBean;
 
@@ -36,11 +35,11 @@ public class DegreeCurricularPlansForDegreeManager implements DataProvider {
     public Object provide(Object source, Object currentValue) {
 
         final MarkSheetManagementBaseBean markSheetManagementBean = (MarkSheetManagementBaseBean) source;
-        final List<DegreeCurricularPlan> result = new ArrayList<DegreeCurricularPlan>();
+        final List<DegreeCurricularPlan> result = new ArrayList<>();
         if (markSheetManagementBean.getDegree() != null && markSheetManagementBean.getExecutionPeriod() != null) {
             result.addAll(markSheetManagementBean.getDegree().getDegreeCurricularPlansSet());
         }
-        Collections.sort(result, new BeanComparator("name"));
+        result.sort(Comparator.comparing(DegreeCurricularPlan::getName));
         return result;
     }
 

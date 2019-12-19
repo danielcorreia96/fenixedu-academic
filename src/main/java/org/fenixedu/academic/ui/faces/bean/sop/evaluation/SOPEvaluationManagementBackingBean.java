@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,9 +36,6 @@ import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.util.MessageResources;
 import org.fenixedu.academic.domain.CurricularCourse;
@@ -51,6 +47,7 @@ import org.fenixedu.academic.domain.DegreeModuleScope;
 import org.fenixedu.academic.domain.Evaluation;
 import org.fenixedu.academic.domain.Exam;
 import org.fenixedu.academic.domain.ExecutionCourse;
+import org.fenixedu.academic.domain.ExecutionCourse_Base;
 import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.domain.OccupationPeriod;
 import org.fenixedu.academic.domain.WrittenEvaluation;
@@ -452,7 +449,7 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
     // BEGIN Drop down menu logic
     public List<SelectItem> getAcademicIntervals() throws FenixServiceException {
         List<AcademicInterval> academicIntervals = AcademicInterval.readActiveAcademicIntervals(AcademicPeriod.SEMESTER);
-        Collections.sort(academicIntervals, AcademicInterval.COMPARATOR_BY_BEGIN_DATE);
+        academicIntervals.sort(AcademicInterval.COMPARATOR_BY_BEGIN_DATE);
 
         List<SelectItem> result = new ArrayList<SelectItem>();
         result.add(new SelectItem(0, this.chooseMessage));
@@ -747,7 +744,7 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
         // , args));
         // }
         // }
-        Collections.sort(executionCourses, new BeanComparator("sigla"));
+        executionCourses.sort(Comparator.comparing(ExecutionCourse::getSigla));
         return executionCourses;
     }
 
@@ -794,8 +791,8 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
                 }
             }
         }
-        Collections.sort(executionCourseWrittenEvaluationAgregationBean,
-                ExecutionCourseWrittenEvaluationAgregationBean.COMPARATOR_BY_EXECUTION_COURSE_CODE_AND_CURRICULAR_YEAR);
+        executionCourseWrittenEvaluationAgregationBean
+                .sort(ExecutionCourseWrittenEvaluationAgregationBean.COMPARATOR_BY_EXECUTION_COURSE_CODE_AND_CURRICULAR_YEAR);
         return executionCourseWrittenEvaluationAgregationBean;
     }
 
@@ -824,7 +821,7 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
                 }
 
                 if (!executionCourseWrittenEvaluations.isEmpty()) {
-                    Collections.sort(executionCourseWrittenEvaluations, WrittenEvaluation.COMPARATOR_BY_BEGIN_DATE);
+                    executionCourseWrittenEvaluations.sort(WrittenEvaluation.COMPARATOR_BY_BEGIN_DATE);
                     processWrittenTestAdditionalValues(executionCourse, executionCourseWrittenEvaluations);
                     writtenEvaluations.put(executionCourse.getExternalId(), executionCourseWrittenEvaluations);
                     executionCoursesWithWrittenEvaluations.add(executionCourse);
@@ -886,7 +883,7 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
         for (final ExecutionCourse executionCourse : getExecutionCourses()) {
             result.add(new SelectItem(executionCourse.getExternalId(), executionCourse.getNome()));
         }
-        Collections.sort(result, COMPARATOR_BY_LABEL);
+        result.sort(COMPARATOR_BY_LABEL);
         result.add(0, new SelectItem(0, this.chooseMessage));
         return result;
     }
@@ -1004,23 +1001,11 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
         }
 
         if (this.getOrderCriteria() == 0) {
-            final ComparatorChain comparatorChain = new ComparatorChain();
-            comparatorChain.addComparator(new ReverseComparator(new BeanComparator("capacidadeExame")));
-            comparatorChain.addComparator(new BeanComparator("nome"));
-
-            Collections.sort(availableInfoRoom, comparatorChain);
+            availableInfoRoom.sort(Comparator.comparing(InfoRoom::getCapacidadeExame).reversed().thenComparing(InfoRoom::getNome));
         } else if (this.getOrderCriteria() == 1) {
-            final ComparatorChain comparatorChain = new ComparatorChain();
-            comparatorChain.addComparator(new ReverseComparator(new BeanComparator("edificio")));
-            comparatorChain.addComparator(new BeanComparator("nome"));
-
-            Collections.sort(availableInfoRoom, comparatorChain);
+            availableInfoRoom.sort(Comparator.comparing(InfoRoom::getEdificio).reversed().thenComparing(InfoRoom::getNome));
         } else if (this.getOrderCriteria() == 2) {
-            final ComparatorChain comparatorChain = new ComparatorChain();
-            comparatorChain.addComparator(new ReverseComparator(new BeanComparator("tipo")));
-            comparatorChain.addComparator(new BeanComparator("nome"));
-
-            Collections.sort(availableInfoRoom, comparatorChain);
+            availableInfoRoom.sort(Comparator.comparing(InfoRoom::getTipo).reversed().thenComparing(InfoRoom::getNome));
         }
 
         List<SelectItem> items = new ArrayList<SelectItem>(availableInfoRoom.size());
@@ -1516,7 +1501,7 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
         executionCourses.addAll(ExecutionCourse.filterByAcademicIntervalAndDegreeCurricularPlanAndCurricularYearAndName(
                 getAcademicIntervalFromParameter(getAcademicInterval()), executionDegree.getDegreeCurricularPlan(),
                 CurricularYear.readByYear(curricularYearID), "%"));
-        Collections.sort(executionCourses, new BeanComparator("sigla"));
+        executionCourses.sort(Comparator.comparing(ExecutionCourse::getSigla));
         return executionCourses;
     }
 
@@ -1525,7 +1510,7 @@ public class SOPEvaluationManagementBackingBean extends EvaluationManagementBack
         for (final ExecutionCourse executionCourse : readExecutionCourses()) {
             result.add(new SelectItem(executionCourse.getExternalId(), executionCourse.getNome()));
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         result.add(0, new SelectItem(0, this.chooseMessage));
         return result;
     }

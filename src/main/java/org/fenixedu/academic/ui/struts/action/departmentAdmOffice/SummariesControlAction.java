@@ -28,7 +28,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +40,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -289,7 +288,7 @@ public final class SummariesControlAction extends FenixDispatchAction {
             request.setAttribute("currentSemester", "true");
             request.setAttribute("oneWeekBeforeDate", oneWeekBeforeDate.minusDays(8));
         }
-        Collections.sort(allDepartmentsSummariesResume, new BeanComparator("department.realName"));
+        allDepartmentsSummariesResume.sort(Comparator.comparing(o1 -> o1.getDepartment().getRealName()));
         request.setAttribute("summariesResumeMap", allDepartmentsSummariesResume);
     }
 
@@ -498,7 +497,7 @@ public final class SummariesControlAction extends FenixDispatchAction {
             labelValueBean.setLabel(department.getRealName());
             departments.add(labelValueBean);
         }
-        Collections.sort(departments, new BeanComparator("label"));
+        departments.sort(Comparator.comparing(LabelValueBean::getLabel));
         return departments;
     }
 

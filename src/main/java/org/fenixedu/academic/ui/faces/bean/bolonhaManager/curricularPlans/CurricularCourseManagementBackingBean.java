@@ -23,7 +23,6 @@ package org.fenixedu.academic.ui.faces.bean.bolonhaManager.curricularPlans;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.*;
 import org.fenixedu.academic.domain.curricularRules.CurricularRule;
@@ -59,6 +58,7 @@ import javax.faces.model.SelectItem;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class CurricularCourseManagementBackingBean extends FenixBackingBean {
@@ -731,7 +731,7 @@ public class CurricularCourseManagementBackingBean extends FenixBackingBean {
             DepartmentUnit departmentUnit = ((Department) departmentObject).getDepartmentUnit();
             result.add(new SelectItem(departmentUnit.getExternalId(), departmentUnit.getName()));
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         result.add(0, new SelectItem(this.NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
     }
@@ -745,7 +745,7 @@ public class CurricularCourseManagementBackingBean extends FenixBackingBean {
                 result.add(new SelectItem(departmentUnit.getExternalId(), departmentUnit.getName()));
             }
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         if (result.size() == 1) {
             Department personDepartment = getPersonDepartment();
             if (personDepartment != null
@@ -781,7 +781,7 @@ public class CurricularCourseManagementBackingBean extends FenixBackingBean {
                     }
                 }
             }
-            Collections.sort(result, new BeanComparator("label"));
+            result.sort(Comparator.comparing(SelectItem::getLabel));
         }
         result.add(0, new SelectItem(this.NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
@@ -798,7 +798,7 @@ public class CurricularCourseManagementBackingBean extends FenixBackingBean {
             }
             result.add(new SelectItem(degreeModules.get(degreeModules.size() - 1).getExternalId(), pathName.toString()));
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         result.add(0, new SelectItem(this.NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
     }

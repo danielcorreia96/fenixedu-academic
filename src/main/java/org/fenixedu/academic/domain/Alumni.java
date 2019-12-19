@@ -21,6 +21,7 @@ package org.fenixedu.academic.domain;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,8 +30,6 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.contacts.EmailAddress;
 import org.fenixedu.academic.domain.contacts.MobilePhone;
@@ -443,10 +442,8 @@ public class Alumni extends Alumni_Base {
 
     public AlumniIdentityCheckRequest getLastIdentityRequest() {
         Set<AlumniIdentityCheckRequest> orderedSet =
-                new TreeSet<AlumniIdentityCheckRequest>(new ReverseComparator(new BeanComparator("creationDateTime")));
-        for (AlumniIdentityCheckRequest request : getIdentityRequestsSet()) {
-            orderedSet.add(request);
-        }
+                new TreeSet<>(Comparator.comparing(AlumniIdentityCheckRequest::getCreationDateTime).reversed());
+        orderedSet.addAll(getIdentityRequestsSet());
         return orderedSet.size() != 0 ? orderedSet.iterator().next() : null;
     }
 

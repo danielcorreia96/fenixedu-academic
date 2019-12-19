@@ -23,6 +23,7 @@ package org.fenixedu.academic.ui.faces.bean.bolonhaManager.curricularRules;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -30,7 +31,6 @@ import javax.faces.component.UISelectItems;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.Degree;
@@ -218,7 +218,7 @@ public class CurricularRulesManagementBackingBean extends FenixBackingBean {
             }
         }
 
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
 
         result.add(0, new SelectItem(NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
@@ -571,7 +571,7 @@ public class CurricularRulesManagementBackingBean extends FenixBackingBean {
                             + degree.getNome()));
                 }
             }
-            Collections.sort(result, new BeanComparator("label"));
+            result.sort(Comparator.comparing(SelectItem::getLabel));
         }
         result.add(0, new SelectItem(NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "any.one")));
         return result;
@@ -669,7 +669,7 @@ public class CurricularRulesManagementBackingBean extends FenixBackingBean {
             for (final Unit unit : UnitUtils.readAllDepartmentUnits()) {
                 result.add(new SelectItem(unit.getExternalId(), unit.getName()));
             }
-            Collections.sort(result, new BeanComparator("label"));
+            result.sort(Comparator.comparing(SelectItem::getLabel));
         }
         result.add(0, new SelectItem(NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
@@ -684,7 +684,7 @@ public class CurricularRulesManagementBackingBean extends FenixBackingBean {
                     result.add(new SelectItem(courseGroup.getExternalId(), courseGroup.getName()));
                 }
             }
-            Collections.sort(result, new BeanComparator("label"));
+            result.sort(Comparator.comparing(SelectItem::getLabel));
         }
         result.add(0, new SelectItem(NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "all")));
         return result;
@@ -740,7 +740,7 @@ public class CurricularRulesManagementBackingBean extends FenixBackingBean {
                 result.add(new SelectItem(lastDegreeModule.getExternalId(), pathName.toString()));
             }
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
     }
 
     private String getFinalEndExecutionPeriodID() {

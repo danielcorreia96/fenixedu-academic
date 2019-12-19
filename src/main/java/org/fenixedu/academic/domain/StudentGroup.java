@@ -25,7 +25,6 @@ package org.fenixedu.academic.domain;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.util.Bundle;
@@ -38,7 +37,7 @@ import pt.ist.fenixframework.dml.runtime.RelationAdapter;
  */
 public class StudentGroup extends StudentGroup_Base {
 
-    public static final Comparator<StudentGroup> COMPARATOR_BY_GROUP_NUMBER = new BeanComparator("groupNumber");
+    public static final Comparator<StudentGroup> COMPARATOR_BY_GROUP_NUMBER = Comparator.comparing(StudentGroup::getGroupNumber);
     static {
         getRelationStudentGroupAttend().addListener(new StudentGroupAttendListener());
     }

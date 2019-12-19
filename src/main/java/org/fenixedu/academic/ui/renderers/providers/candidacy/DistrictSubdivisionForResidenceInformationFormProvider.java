@@ -20,9 +20,9 @@ package org.fenixedu.academic.ui.renderers.providers.candidacy;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.DistrictSubdivision;
 import org.fenixedu.academic.domain.candidacy.workflow.form.ResidenceInformationForm;
 
@@ -42,9 +42,8 @@ public class DistrictSubdivisionForResidenceInformationFormProvider implements D
         final ResidenceInformationForm residenceInformationForm = (ResidenceInformationForm) source;
         if (residenceInformationForm.getDistrictOfResidence() != null) {
             List<DistrictSubdivision> result =
-                    new ArrayList<DistrictSubdivision>(residenceInformationForm.getDistrictOfResidence()
-                            .getDistrictSubdivisionsSet());
-            Collections.sort(result, new BeanComparator("name"));
+                    new ArrayList<>(residenceInformationForm.getDistrictOfResidence().getDistrictSubdivisionsSet());
+            result.sort(Comparator.comparing(DistrictSubdivision::getName));
             return result;
         }
 

@@ -43,9 +43,6 @@ public class InfoSiteStudentGroup extends DataTranferObject {
 
     };
 
-    // Collections.sort(infoSiteStudentGroupsList, new
-    // BeanComparator("infoStudentGroup.groupNumber"));
-
     private List infoSiteStudentInformationList;
 
     private InfoStudentGroup infoStudentGroup;

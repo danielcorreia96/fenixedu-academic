@@ -23,25 +23,13 @@
 package org.fenixedu.academic.ui.struts.action.utils;
 
 import java.io.IOException;
-import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.struts.util.LabelValueBean;
-import org.fenixedu.academic.dto.InfoDegree;
-import org.fenixedu.academic.dto.InfoExecutionDegree;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 
@@ -61,43 +49,6 @@ public class RequestUtils {
         }
         request.setAttribute(name, parameter);
         return parameter;
-    }
-
-    public static Collection buildExecutionDegreeLabelValueBean(Collection executionDegrees) {
-        final Map duplicateDegreesMap = new HashMap();
-        for (Iterator iterator = executionDegrees.iterator(); iterator.hasNext();) {
-            InfoExecutionDegree infoExecutionDegree = (InfoExecutionDegree) iterator.next();
-            InfoDegree infoDegree = infoExecutionDegree.getInfoDegreeCurricularPlan().getInfoDegree();
-            String degreeName = infoDegree.getNome();
-
-            if (duplicateDegreesMap.get(degreeName) == null) {
-                duplicateDegreesMap.put(degreeName, new Boolean(false));
-            } else {
-                duplicateDegreesMap.put(degreeName, new Boolean(true));
-            }
-        }
-
-        Collection lableValueList = CollectionUtils.collect(executionDegrees, new Transformer() {
-
-            @Override
-            public Object transform(Object arg0) {
-                InfoExecutionDegree infoExecutionDegree = (InfoExecutionDegree) arg0;
-
-                String label =
-                        infoExecutionDegree.getInfoDegreeCurricularPlan().getDegreeCurricularPlan()
-                                .getPresentationName(infoExecutionDegree.getInfoExecutionYear().getExecutionYear());
-
-                String value = infoExecutionDegree.getExternalId().toString();
-
-                return new LabelValueBean(label, value);
-            }
-
-        });
-
-        Comparator comparator = new BeanComparator("label", Collator.getInstance());
-        Collections.sort((List) lableValueList, comparator);
-
-        return lableValueList;
     }
 
     public static final List<LabelValueBean> buildCurricularYearLabelValueBean() {

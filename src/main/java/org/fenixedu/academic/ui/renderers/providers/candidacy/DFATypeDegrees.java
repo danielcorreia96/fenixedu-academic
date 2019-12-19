@@ -19,10 +19,9 @@
 package org.fenixedu.academic.ui.renderers.providers.candidacy;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.Degree;
 import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.dto.administrativeOffice.candidacy.DFACandidacyBean;
@@ -47,7 +46,7 @@ public class DFATypeDegrees implements DataProvider {
                 }
             }
         }
-        Collections.sort(result, new BeanComparator("name"));
+        result.sort(Comparator.comparing(Degree::getName));
         return result;
     }
 

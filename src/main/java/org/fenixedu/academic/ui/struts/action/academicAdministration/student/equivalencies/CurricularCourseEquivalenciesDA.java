@@ -19,7 +19,7 @@
 package org.fenixedu.academic.ui.struts.action.academicAdministration.student.equivalencies;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -210,18 +208,17 @@ public class CurricularCourseEquivalenciesDA extends FenixDispatchAction {
     }
 
     private void sortInfoDegreeCurricularPlans(final List<InfoDegreeCurricularPlan> infoDegreeCurricularPlans) {
-        Collections.sort(infoDegreeCurricularPlans, new BeanComparator("name"));
+        infoDegreeCurricularPlans.sort(Comparator.comparing(InfoDegreeCurricularPlan::getName));
     }
 
     private void sortInfoCurricularCourseEquivalences(final List<CurricularCourseEquivalence> equivalences) {
-        final ComparatorChain chain = new ComparatorChain();
-        chain.addComparator(CurricularCourseEquivalence.COMPARATOR_BY_EQUIVALENT_COURSE_NAME);
-        chain.addComparator(CurricularCourseEquivalence.COMPARATOR_BY_EQUIVALENT_COURSE_CODE);
-        Collections.sort(equivalences, chain);
+        Comparator<CurricularCourseEquivalence> chain = CurricularCourseEquivalence.COMPARATOR_BY_EQUIVALENT_COURSE_NAME
+                .thenComparing(CurricularCourseEquivalence.COMPARATOR_BY_EQUIVALENT_COURSE_CODE);
+        equivalences.sort(chain);
     }
 
     private void sortInfoCurricularCourses(final List<InfoCurricularCourse> infoCurricularCourses) {
-        Collections.sort(infoCurricularCourses, InfoCurricularCourse.COMPARATOR_BY_NAME_AND_ID);
+        infoCurricularCourses.sort(InfoCurricularCourse.COMPARATOR_BY_NAME_AND_ID);
     }
 
 }

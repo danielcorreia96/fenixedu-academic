@@ -19,7 +19,8 @@
 package org.fenixedu.academic.ui.struts.action.resourceAllocationManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +28,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionError;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -267,10 +267,7 @@ public class ManageShiftDA extends FenixShiftAndExecutionCourseAndExecutionDegre
 
         }
 
-        final List<String> lessonOIDs = new ArrayList<String>();
-        for (String selectedLesson : selectedLessons) {
-            lessonOIDs.add(selectedLesson);
-        }
+        final List<String> lessonOIDs = Arrays.asList(selectedLessons);
 
         try {
             DeleteLessons.run(lessonOIDs);
@@ -296,9 +293,9 @@ public class ManageShiftDA extends FenixShiftAndExecutionCourseAndExecutionDegre
 
         List<InfoStudent> students = LerAlunosDeTurno.run(shiftKey);
 
-        Collections.sort(students, new BeanComparator("number"));
+        students.sort(Comparator.comparing(InfoStudent::getNumber));
 
-        if (students != null && !students.isEmpty()) {
+        if (!students.isEmpty()) {
             request.setAttribute(PresentationConstants.STUDENT_LIST, students);
         }
 
@@ -307,7 +304,7 @@ public class ManageShiftDA extends FenixShiftAndExecutionCourseAndExecutionDegre
 
         List<InfoShift> shifts = LerTurnosDeDisciplinaExecucao.run(infoExecutionCourse);
 
-        if (shifts != null && !shifts.isEmpty()) {
+        if (!shifts.isEmpty()) {
             request.setAttribute(PresentationConstants.SHIFTS, shifts);
         }
 

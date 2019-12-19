@@ -19,15 +19,13 @@
 package org.fenixedu.academic.ui.struts.action.resourceAllocationManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -114,14 +112,24 @@ public class ManageExecutionCoursesDA extends FenixExecutionDegreeAndCurricularY
      */
     private void sortList(HttpServletRequest request, List<InfoExecutionCourse> infoExecutionCourses) {
         String sortParameter = request.getParameter("sortBy");
-        if ((sortParameter != null) && (sortParameter.length() != 0)) {
-            if (sortParameter.equals("occupancy")) {
-                Collections.sort(infoExecutionCourses, new ReverseComparator(new BeanComparator(sortParameter)));
-            } else {
-                Collections.sort(infoExecutionCourses, new BeanComparator(sortParameter));
+        if (sortParameter != null) {
+            switch (sortParameter) {
+            case "nome":
+                infoExecutionCourses.sort(Comparator.comparing(InfoExecutionCourse::getNome));
+                break;
+            case "executionCourse.attendsCount":
+                infoExecutionCourses.sort(Comparator.comparing((InfoExecutionCourse info) -> info.getExecutionCourse().getAttendsSet().size()));
+                break;
+            case "occupancy":
+                infoExecutionCourses.sort(Comparator.comparing(InfoExecutionCourse::getOccupancy).reversed());
+                break;
+            case "equalLoad":
+                infoExecutionCourses.sort(Comparator.comparing(InfoExecutionCourse::getEqualLoad));
+                break;
+            default:
+                infoExecutionCourses.sort(Comparator.comparing(InfoExecutionCourse::getOccupancy).reversed());
+                break;
             }
-        } else {
-            Collections.sort(infoExecutionCourses, new ReverseComparator(new BeanComparator("occupancy")));
         }
     }
 
@@ -132,9 +140,6 @@ public class ManageExecutionCoursesDA extends FenixExecutionDegreeAndCurricularY
                 ReadShiftsByExecutionCourseID.runReadShiftsByExecutionCourseID(request.getParameter("executionCourseOID"));
 
         arranjeShifts(infoExecutionCourseOccupancy);
-
-        // Collections.sort(infoExecutionCourseOccupancy.getInfoShifts(), new
-        // ReverseComparator(new BeanComparator("percentage")));
 
         request.setAttribute("infoExecutionCourseOccupancy", infoExecutionCourseOccupancy);
         return mapping.findForward("showOccupancy");

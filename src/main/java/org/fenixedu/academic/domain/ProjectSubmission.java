@@ -20,8 +20,6 @@ package org.fenixedu.academic.domain;
 
 import java.util.Comparator;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.bennu.core.domain.Bennu;
@@ -68,15 +66,11 @@ public class ProjectSubmission extends ProjectSubmission_Base {
         }
     };
 
-    public static Comparator COMPARATOR_BY_GROUP_NUMBER = new BeanComparator("studentGroup.groupNumber");
+    public static Comparator<ProjectSubmission> COMPARATOR_BY_GROUP_NUMBER =
+            Comparator.comparing(projectSubmission -> projectSubmission.getStudentGroup().getGroupNumber());
 
-    public static Comparator COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE = new ComparatorChain();
-
-    static {
-        ((ComparatorChain) COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE).addComparator(COMPARATOR_BY_GROUP_NUMBER);
-        ((ComparatorChain) COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE)
-                .addComparator(COMPARATOR_BY_MOST_RECENT_SUBMISSION_DATE);
-    }
+    public static Comparator<ProjectSubmission> COMPARATOR_BY_GROUP_NUMBER_AND_MOST_RECENT_SUBMISSION_DATE =
+            COMPARATOR_BY_GROUP_NUMBER.thenComparing(COMPARATOR_BY_MOST_RECENT_SUBMISSION_DATE);
 
     public ProjectSubmission(Project project, StudentGroup studentGroup, Attends attends,
             ProjectSubmissionFile projectSubmissionFile) {

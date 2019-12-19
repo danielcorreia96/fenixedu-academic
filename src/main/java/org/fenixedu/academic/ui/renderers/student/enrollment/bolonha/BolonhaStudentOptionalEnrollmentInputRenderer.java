@@ -18,10 +18,9 @@
  */
 package org.fenixedu.academic.ui.renderers.student.enrollment.bolonha;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CurricularCourse;
 import org.fenixedu.academic.domain.degreeStructure.Context;
@@ -157,8 +156,8 @@ public class BolonhaStudentOptionalEnrollmentInputRenderer extends InputRenderer
                     courseGroup.getValidChildContexts(CurricularCourse.class,
                             bolonhaStudentOptionalEnrollmentBean.getExecutionPeriod());
 
-            Collections.sort(childCourseGroupContexts, new BeanComparator("childOrder"));
-            Collections.sort(childCurricularCourseContexts, new BeanComparator("childOrder"));
+            childCourseGroupContexts.sort(Comparator.comparing(Context::getChildOrder));
+            childCurricularCourseContexts.sort(Comparator.comparing(Context::getChildOrder));
 
             generateCurricularCourses(blockContainer, childCurricularCourseContexts, depth + getWidthDecreasePerLevel());
 

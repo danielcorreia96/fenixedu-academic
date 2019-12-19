@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +35,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -445,8 +445,8 @@ public class ShiftDistributionFirstYearDA extends FenixDispatchAction {
 
         final Spreadsheet spreadsheet = new Spreadsheet("Shifts");
 
-        final List<DegreeCurricularPlan> sorted = new ArrayList<DegreeCurricularPlan>(abstractStudentNumbers.keySet());
-        Collections.sort(sorted, new BeanComparator("name"));
+        final List<DegreeCurricularPlan> sorted = new ArrayList<>(abstractStudentNumbers.keySet());
+        sorted.sort(Comparator.comparing(DegreeCurricularPlan::getName));
         addHeader(spreadsheet, sorted);
 
         for (final Entry<Shift, Map<DegreeCurricularPlan, Integer>> shiftEntry : calculateStatistics(distribution,

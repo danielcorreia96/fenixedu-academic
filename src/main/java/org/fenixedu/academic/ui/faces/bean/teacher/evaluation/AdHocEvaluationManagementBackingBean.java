@@ -18,10 +18,9 @@
  */
 package org.fenixedu.academic.ui.faces.bean.teacher.evaluation;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.AdHocEvaluation;
 import org.fenixedu.academic.domain.GradeScale;
 import org.fenixedu.academic.domain.exceptions.DomainException;
@@ -92,7 +91,7 @@ public class AdHocEvaluationManagementBackingBean extends EvaluationManagementBa
 
     public List<AdHocEvaluation> getAssociatedAdHocEvaluations() throws FenixServiceException {
         List<AdHocEvaluation> associatedAdHocEvaluations = getExecutionCourse().getAssociatedAdHocEvaluations();
-        Collections.sort(associatedAdHocEvaluations, new BeanComparator("creationDateTime"));
+        associatedAdHocEvaluations.sort(Comparator.comparing(AdHocEvaluation::getCreationDateTime));
         return associatedAdHocEvaluations;
     }
 

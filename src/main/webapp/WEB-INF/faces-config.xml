@@ -1899,14 +1899,6 @@
 	</component>
 	<component>
 		<component-type>
-			org.fenixedu.academic.ui.faces.components.UIAutoComplete
-		</component-type>
-		<component-class>
-			org.fenixedu.academic.ui.faces.components.UIAutoComplete
-		</component-class>
-	</component>
-	<component>
-		<component-type>
 			org.fenixedu.academic.ui.faces.components.UIExtendedOutputText
 		</component-type>
 		<component-class>

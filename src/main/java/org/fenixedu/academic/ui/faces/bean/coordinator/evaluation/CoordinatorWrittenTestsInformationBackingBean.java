@@ -25,13 +25,13 @@ package org.fenixedu.academic.ui.faces.bean.coordinator.evaluation;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.ExecutionCourse;
+import org.fenixedu.academic.domain.WrittenEvaluation;
 import org.fenixedu.academic.domain.WrittenTest;
 import org.fenixedu.academic.domain.space.WrittenEvaluationSpaceOccupation;
 import org.fenixedu.academic.ui.faces.components.util.CalendarLink;
@@ -47,15 +47,15 @@ public class CoordinatorWrittenTestsInformationBackingBean extends CoordinatorEv
 
     public List<ExecutionCourse> getExecutionCoursesWithWrittenTests() {
         if (this.executionCoursesWithWrittenTests == null) {
-            this.executionCoursesWithWrittenTests = new ArrayList();
-            Collections.sort(getExecutionCourses(), new BeanComparator("sigla"));
+            this.executionCoursesWithWrittenTests = new ArrayList<>();
+            getExecutionCourses().sort(Comparator.comparing(ExecutionCourse::getSigla));
             writtenTests.clear();
             writtenTestsFreeSpace.clear();
             writtenTestsRooms.clear();
             for (final ExecutionCourse executionCourse : getExecutionCourses()) {
                 final List<WrittenTest> associatedWrittenTests = executionCourse.getAssociatedWrittenTests();
                 if (!associatedWrittenTests.isEmpty()) {
-                    Collections.sort(associatedWrittenTests, new BeanComparator("dayDate"));
+                    associatedWrittenTests.sort(Comparator.comparing(WrittenEvaluation::getDayDate));
                     writtenTests.put(executionCourse.getExternalId(), associatedWrittenTests);
                     processWrittenTestAdditionalValues(associatedWrittenTests);
                     this.executionCoursesWithWrittenTests.add(executionCourse);
@@ -85,8 +85,8 @@ public class CoordinatorWrittenTestsInformationBackingBean extends CoordinatorEv
 
     public List<ExecutionCourse> getExecutionCoursesWithoutWrittenTests() {
         if (this.executionCoursesWithoutWrittenTests == null) {
-            this.executionCoursesWithoutWrittenTests = new ArrayList();
-            Collections.sort(getExecutionCourses(), new BeanComparator("sigla"));
+            this.executionCoursesWithoutWrittenTests = new ArrayList<>();
+            getExecutionCourses().sort(Comparator.comparing(ExecutionCourse::getSigla));
             for (final ExecutionCourse executionCourse : getExecutionCourses()) {
                 if (executionCourse.getAssociatedWrittenTests().isEmpty()) {
                     executionCoursesWithoutWrittenTests.add(executionCourse);

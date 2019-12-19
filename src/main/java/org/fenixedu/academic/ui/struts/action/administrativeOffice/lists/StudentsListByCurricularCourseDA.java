@@ -23,8 +23,7 @@ package org.fenixedu.academic.ui.struts.action.administrativeOffice.lists;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -35,7 +34,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -156,13 +154,10 @@ public class StudentsListByCurricularCourseDA extends FenixDispatchAction {
 
     private List<Enrolment> searchStudentByCriteria(final ExecutionYear executionYear, final CurricularCourse curricularCourse,
             final Integer semester) {
-        final List<Enrolment> result = new ArrayList<Enrolment>();
 
         final ExecutionSemester executionSemester = executionYear.getExecutionSemesterFor(semester);
-        for (final Enrolment enrolment : curricularCourse.getEnrolmentsByExecutionPeriod(executionSemester)) {
-            result.add(enrolment);
-        }
-        Collections.sort(result, new BeanComparator("studentCurricularPlan.registration.number"));
+        final List<Enrolment> result = curricularCourse.getEnrolmentsByExecutionPeriod(executionSemester);
+        result.sort(Comparator.comparing(o1 -> o1.getStudentCurricularPlan().getRegistration().getNumber()));
 
         return result;
     }

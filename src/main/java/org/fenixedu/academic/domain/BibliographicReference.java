@@ -20,33 +20,17 @@ package org.fenixedu.academic.domain;
 
 import java.util.Comparator;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.apache.commons.collections.comparators.NullComparator;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
 
 public class BibliographicReference extends BibliographicReference_Base {
 
-    public static final Comparator<BibliographicReference> COMPARATOR_BY_ORDER = new Comparator<BibliographicReference>() {
-
-        private ComparatorChain chain = null;
-
-        @Override
-        public int compare(BibliographicReference one, BibliographicReference other) {
-            if (this.chain == null) {
-                chain = new ComparatorChain();
-
-                chain.addComparator(new BeanComparator("referenceOrder", new NullComparator(true)));
-                chain.addComparator(new BeanComparator("title"));
-                chain.addComparator(new BeanComparator("year"));
-                chain.addComparator(DomainObjectUtil.COMPARATOR_BY_ID);
-            }
-
-            return chain.compare(one, other);
-        }
-    };
+    public static final Comparator<BibliographicReference> COMPARATOR_BY_ORDER =
+            Comparator.nullsLast(Comparator.comparing(BibliographicReference::getReferenceOrder))
+                    .thenComparing(BibliographicReference::getTitle)
+                    .thenComparing(BibliographicReference::getYear)
+                    .thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
 
     public BibliographicReference() {
         super();

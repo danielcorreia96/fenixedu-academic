@@ -28,13 +28,11 @@ import java.io.Serializable;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.fenixedu.academic.domain.Enrolment;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.domain.degree.enrollment.NotNeedToEnrollInCurricularCourse;
 import org.fenixedu.academic.domain.studentCurricularPlan.Specialization;
@@ -108,21 +106,20 @@ public class InfoStudentCurricularPlan extends InfoObject implements Serializabl
         return getStudentCurricularPlan().getCompletedCourses();
     }
 
-    public List getInfoEnrolments() {
-        final List<InfoEnrolment> infoEnrolments = new ArrayList<InfoEnrolment>();
-        for (final Enrolment enrolment : getStudentCurricularPlan().getEnrolmentsSet()) {
-            infoEnrolments.add(InfoEnrolment.newInfoFromDomain(enrolment));
-        }
-        return infoEnrolments;
+    public List<InfoEnrolment> getInfoEnrolments() {
+        return getStudentCurricularPlan().getEnrolmentsSet().stream()
+                .map(InfoEnrolment::newInfoFromDomain)
+
+                .collect(Collectors.toList());
     }
 
-    public List getInfoEnrolmentsSorted() {
+    public List<InfoEnrolment> getInfoEnrolmentsSorted() {
         final List<InfoEnrolment> infoEnrolments = getInfoEnrolments();
-        ComparatorChain comparatorChain = new ComparatorChain();
-        comparatorChain.addComparator(new BeanComparator("infoExecutionPeriod.infoExecutionYear.year"));
-        comparatorChain.addComparator(new BeanComparator("infoExecutionPeriod.semester"));
-        comparatorChain.addComparator(new BeanComparator("infoCurricularCourse.name", Collator.getInstance()));
-        Collections.sort(infoEnrolments, comparatorChain);
+        Comparator<InfoEnrolment> comparatorChain =
+                Comparator.comparing(enrolment -> enrolment.getInfoExecutionPeriod().getInfoExecutionYear().getYear());
+        comparatorChain = comparatorChain.thenComparing(enrolment -> enrolment.getInfoExecutionPeriod().getSemester());
+        comparatorChain = comparatorChain.thenComparing(InfoEnrolment::getInfoCurricularCourse, Collator.getInstance());
+        infoEnrolments.sort(comparatorChain);
         return infoEnrolments;
     }
 

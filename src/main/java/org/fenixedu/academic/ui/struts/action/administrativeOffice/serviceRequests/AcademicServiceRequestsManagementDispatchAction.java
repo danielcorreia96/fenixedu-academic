@@ -32,9 +32,6 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -479,7 +476,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
         final Collection<AcademicServiceRequest> remainingRequests = bean.searchAcademicServiceRequests();
         final Collection<AcademicServiceRequest> specificRequests = getAndRemoveSpecificRequests(bean, remainingRequests);
 
-        final SortedSet<AcademicServiceRequest> sorted = new TreeSet<AcademicServiceRequest>(getComparator(request));
+        final SortedSet<AcademicServiceRequest> sorted = new TreeSet<>(getComparator(request));
         sorted.addAll(remainingRequests);
         request.setAttribute("remainingRequests", remainingRequests);
         request.setAttribute("specificRequests", specificRequests);
@@ -512,7 +509,7 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
         return bean;
     }
 
-    private Comparator getComparator(HttpServletRequest request) {
+    private Comparator<AcademicServiceRequest> getComparator(HttpServletRequest request) {
         final String orderParameter = request.getParameter(ORDER_PARAMETER);
         final String orderGetter =
                 StringUtils.isEmpty(orderParameter) ? DEFAULT_ORDER_GETTER : orderParameter.substring(0,
@@ -523,20 +520,26 @@ public class AcademicServiceRequestsManagementDispatchAction extends FenixDispat
                         orderParameter.indexOf(ORDER_MARKER) + 1, orderParameter.length());
         final boolean orderAsc = Arrays.asList(ASC_ORDER_DIR).contains(orderDir);
 
-        if (orderGetter.equals(REQUEST_NUMBER_YEAR)) {
-            return orderAsc ? AcademicServiceRequest.COMPARATOR_BY_NUMBER : new ReverseComparator(
-                    AcademicServiceRequest.COMPARATOR_BY_NUMBER);
-        } else if (orderGetter.equals(EXECUTION_YEAR)) {
-            return orderAsc ? AcademicServiceRequest.EXECUTION_YEAR_AND_OID_COMPARATOR : new ReverseComparator(
-                    AcademicServiceRequest.EXECUTION_YEAR_AND_OID_COMPARATOR);
-        } else if (orderGetter.equals(REGISTRATION_NUMBER) || orderGetter.equals(DESCRIPTION)
-                || orderGetter.equals(URGENT_REQUEST) || orderGetter.equals(REGISTRATION_NUMBER)
-                || orderGetter.equals(REQUEST_DATE) || orderGetter.equals(ACTIVE_SITUATION_DATE)) {
-            final ComparatorChain chain = new ComparatorChain();
-            chain.addComparator(orderAsc ? new BeanComparator(orderGetter) : new ReverseComparator(
-                    new BeanComparator(orderGetter)));
-            chain.addComparator(DomainObjectUtil.COMPARATOR_BY_ID);
-            return chain;
+        switch (orderGetter) {
+        case REQUEST_NUMBER_YEAR:
+            return orderAsc ? AcademicServiceRequest.COMPARATOR_BY_NUMBER : AcademicServiceRequest.COMPARATOR_BY_NUMBER.reversed();
+        case EXECUTION_YEAR:
+            return orderAsc ? AcademicServiceRequest.EXECUTION_YEAR_AND_OID_COMPARATOR : AcademicServiceRequest.EXECUTION_YEAR_AND_OID_COMPARATOR.reversed();
+        case DESCRIPTION:
+            return orderAsc ? Comparator.comparing(AcademicServiceRequest::getDescription).thenComparing(DomainObjectUtil.COMPARATOR_BY_ID)
+                    : Comparator.comparing(AcademicServiceRequest::getDescription).reversed().thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
+        case URGENT_REQUEST:
+            return orderAsc ? Comparator.comparing(AcademicServiceRequest::isUrgentRequest).thenComparing(DomainObjectUtil.COMPARATOR_BY_ID)
+                    : Comparator.comparing(AcademicServiceRequest::isUrgentRequest).reversed().thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
+        case REGISTRATION_NUMBER:
+            return orderAsc ? Comparator.comparing(AcademicServiceRequest::getServiceRequestNumber).thenComparing(DomainObjectUtil.COMPARATOR_BY_ID)
+                    : Comparator.comparing(AcademicServiceRequest::getServiceRequestNumber).reversed().thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
+        case REQUEST_DATE:
+            return orderAsc ? Comparator.comparing(AcademicServiceRequest::getRequestDate).thenComparing(DomainObjectUtil.COMPARATOR_BY_ID)
+                    : Comparator.comparing(AcademicServiceRequest::getRequestDate).reversed().thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
+        case ACTIVE_SITUATION_DATE:
+            return orderAsc ? Comparator.comparing(AcademicServiceRequest::getActiveSituationDate).thenComparing(DomainObjectUtil.COMPARATOR_BY_ID)
+                    : Comparator.comparing(AcademicServiceRequest::getActiveSituationDate).reversed().thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
         }
 
         return null;

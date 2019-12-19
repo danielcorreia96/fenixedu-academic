@@ -18,10 +18,9 @@
  */
 package org.fenixedu.academic.ui.struts.action.candidacy.erasmus;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.Country;
 import org.fenixedu.academic.domain.candidacyProcess.mobility.MobilityApplicationProcess;
 import org.fenixedu.academic.domain.candidacyProcess.mobility.MobilityStudentDataBean;
@@ -43,7 +42,7 @@ public class CountriesForVacanciesProvider implements DataProvider {
         MobilityApplicationProcess process = (MobilityApplicationProcess) bean.getParentProcess();
 
         List<Country> countries = process.getCandidacyPeriod().getAssociatedCountries();
-        Collections.sort(countries, new BeanComparator("localizedName"));
+        countries.sort(Comparator.comparing(Country::getLocalizedName));
 
         return countries;
     }

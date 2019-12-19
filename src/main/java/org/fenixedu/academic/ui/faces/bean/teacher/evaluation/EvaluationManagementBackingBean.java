@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,7 +50,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.util.MessageResources;
 import org.fenixedu.academic.domain.Attends;
 import org.fenixedu.academic.domain.CurricularCourse;
@@ -529,8 +529,8 @@ public class EvaluationManagementBackingBean extends FenixBackingBean {
     public List<Exam> getExamList() {
         ExecutionCourse executionCourse = FenixFramework.getDomainObject(getExecutionCourseID());
 
-        List<Exam> examsList = new ArrayList(executionCourse.getAssociatedExams());
-        examsList.sort(new BeanComparator("dayDate"));
+        List<Exam> examsList = new ArrayList<>(executionCourse.getAssociatedExams());
+        examsList.sort(Comparator.comparing(WrittenEvaluation::getDayDate));
         return examsList;
     }
 
@@ -538,13 +538,13 @@ public class EvaluationManagementBackingBean extends FenixBackingBean {
         ExecutionCourse executionCourse = getExecutionCourse();
         Teacher teacher = AccessControl.getPerson().getTeacher();
 
-        List<WrittenTest> writtenTestList = new ArrayList();
+        List<WrittenTest> writtenTestList = new ArrayList<>();
         for (WrittenTest writtenTest : executionCourse.getAssociatedWrittenTests()) {
             writtenTestList.add(writtenTest);
             canManageRoomsMap.put(writtenTest.getExternalId(), writtenTest.canTeacherChooseRoom(executionCourse, teacher));
         }
 
-        writtenTestList.sort(new BeanComparator("dayDate"));
+        writtenTestList.sort(Comparator.comparing(WrittenEvaluation::getDayDate));
         return writtenTestList;
     }
 
@@ -633,8 +633,8 @@ public class EvaluationManagementBackingBean extends FenixBackingBean {
 
         if (this.writtenEvaluationEnrolments == null) {
             this.writtenEvaluationEnrolments =
-                    new ArrayList(((WrittenEvaluation) getEvaluation()).getWrittenEvaluationEnrolmentsSet());
-            this.writtenEvaluationEnrolments.sort(new BeanComparator("student.person.username"));
+                    new ArrayList<>(((WrittenEvaluation) getEvaluation()).getWrittenEvaluationEnrolmentsSet());
+            this.writtenEvaluationEnrolments.sort(Comparator.comparing(o1 -> o1.getStudent().getPerson().getUsername()));
         }
         return this.writtenEvaluationEnrolments;
     }
@@ -961,12 +961,12 @@ public class EvaluationManagementBackingBean extends FenixBackingBean {
     }
 
     public List<SelectItem> getPositions() {
-        final List<SelectItem> result = new ArrayList(getEvaluationRoomsPositions().size());
+        final List<SelectItem> result = new ArrayList<>(getEvaluationRoomsPositions().size());
         result.add(new SelectItem(0, ""));
         for (final Integer value : getEvaluationRoomsPositions().values()) {
             result.add(new SelectItem(value, value.toString()));
         }
-        result.sort(new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         this.resetPosition = true;
         return result;
     }
@@ -1188,7 +1188,7 @@ public class EvaluationManagementBackingBean extends FenixBackingBean {
             FinalEvaluation evaluation = (FinalEvaluation) getEvaluation();
             ExecutionCourse executionCourse = getExecutionCourse();
             this.alreadySubmitedMarks = evaluation.getAlreadySubmitedMarks(executionCourse);
-            this.alreadySubmitedMarks.sort(new BeanComparator("attend.aluno.number"));
+            this.alreadySubmitedMarks.sort(Comparator.comparing(o1 -> o1.getAttend().getAluno().getNumber()));
         }
         return this.alreadySubmitedMarks;
     }
@@ -1198,7 +1198,7 @@ public class EvaluationManagementBackingBean extends FenixBackingBean {
             FinalEvaluation evaluation = (FinalEvaluation) getEvaluation();
             ExecutionCourse executionCourse = getExecutionCourse();
             this.notSubmitedMarks = evaluation.getNotSubmitedMarkAttends(executionCourse);
-            this.notSubmitedMarks.sort(new BeanComparator("aluno.number"));
+            this.notSubmitedMarks.sort(Comparator.comparing(o1 -> o1.getAluno().getNumber()));
         }
         return this.notSubmitedMarks;
     }

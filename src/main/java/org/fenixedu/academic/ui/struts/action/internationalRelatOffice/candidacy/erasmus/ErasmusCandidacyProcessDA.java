@@ -20,7 +20,7 @@ package org.fenixedu.academic.ui.struts.action.internationalRelatOffice.candidac
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -28,7 +28,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -555,10 +554,9 @@ public class ErasmusCandidacyProcessDA extends org.fenixedu.academic.ui.struts.a
                 return new ArrayList<Unit>();
             }
 
-            java.util.ArrayList<Unit> associatedUniversityUnits =
-                    new java.util.ArrayList<Unit>(selectedCountryUnit.getSubUnits(PartyTypeEnum.UNIVERSITY));
+            ArrayList<Unit> associatedUniversityUnits = new ArrayList<>(selectedCountryUnit.getSubUnits(PartyTypeEnum.UNIVERSITY));
 
-            Collections.sort(associatedUniversityUnits, new BeanComparator("nameI18n"));
+            associatedUniversityUnits.sort(Comparator.comparing(Unit::getNameI18n));
 
             return associatedUniversityUnits;
         }

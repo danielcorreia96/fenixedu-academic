@@ -21,11 +21,10 @@
  */
 package org.fenixedu.academic.service.services.commons.curriculumHistoric;
 
+import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.domain.DegreeModuleScope;
 import org.fenixedu.academic.domain.ExecutionYear;
@@ -41,18 +40,18 @@ import pt.ist.fenixframework.FenixFramework;
  */
 public class ReadActiveCurricularCourseScopeByDegreeCurricularPlanAndExecutionYear {
 
+    private static Comparator<DegreeModuleScope> DEGREE_MODULE_SCOPE_COMPARATOR =
+            Comparator.comparing(DegreeModuleScope::getCurricularYear)
+                    .thenComparing(DegreeModuleScope::getCurricularSemester)
+                    .thenComparing(o1 -> o1.getCurricularCourse().getExternalId())
+                    .thenComparing(DegreeModuleScope::getBranch);
+
     @Atomic
     public static SortedSet<DegreeModuleScope> run(String degreeCurricularPlanID, AcademicInterval academicInterval)
             throws FenixServiceException {
         final DegreeCurricularPlan degreeCurricularPlan = FenixFramework.getDomainObject(degreeCurricularPlanID);
 
-        final ComparatorChain comparator = new ComparatorChain();
-        comparator.addComparator(new BeanComparator("curricularYear"));
-        comparator.addComparator(new BeanComparator("curricularSemester"));
-        comparator.addComparator(new BeanComparator("curricularCourse.externalId"));
-        comparator.addComparator(new BeanComparator("branch"));
-
-        final SortedSet<DegreeModuleScope> scopes = new TreeSet<DegreeModuleScope>(comparator);
+        final SortedSet<DegreeModuleScope> scopes = new TreeSet<>(DEGREE_MODULE_SCOPE_COMPARATOR);
 
         for (DegreeModuleScope degreeModuleScope : degreeCurricularPlan.getDegreeModuleScopes()) {
             if (degreeModuleScope.isActiveForAcademicInterval(academicInterval)) {
@@ -70,13 +69,7 @@ public class ReadActiveCurricularCourseScopeByDegreeCurricularPlanAndExecutionYe
         final DegreeCurricularPlan degreeCurricularPlan = FenixFramework.getDomainObject(degreeCurricularPlanID);
         final ExecutionYear executionYear = FenixFramework.getDomainObject(executioYearID);
 
-        final ComparatorChain comparator = new ComparatorChain();
-        comparator.addComparator(new BeanComparator("curricularYear"));
-        comparator.addComparator(new BeanComparator("curricularSemester"));
-        comparator.addComparator(new BeanComparator("curricularCourse.externalId"));
-        comparator.addComparator(new BeanComparator("branch"));
-
-        final SortedSet<DegreeModuleScope> scopes = new TreeSet<DegreeModuleScope>(comparator);
+        final SortedSet<DegreeModuleScope> scopes = new TreeSet<>(DEGREE_MODULE_SCOPE_COMPARATOR);
 
         for (DegreeModuleScope degreeModuleScope : degreeCurricularPlan.getDegreeModuleScopes()) {
             if (degreeModuleScope.isActiveForExecutionYear(executionYear)) {

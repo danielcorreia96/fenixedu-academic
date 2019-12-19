@@ -20,13 +20,11 @@ package org.fenixedu.academic.ui.faces.bean.manager;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.faces.model.SelectItem;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.fenixedu.academic.domain.CurricularCourseScope.DegreeModuleScopeCurricularCourseScope;
 import org.fenixedu.academic.domain.DegreeModuleScope;
 import org.fenixedu.academic.domain.degree.DegreeType;
@@ -121,12 +119,12 @@ public class DisplayCurricularPlan extends FenixBackingBean {
     }
 
     private void sortScopes(List<InfoCurricularCourseScope> scopes) {
-        ComparatorChain comparatorChain = new ComparatorChain();
-        comparatorChain.addComparator(new BeanComparator("infoCurricularSemester.infoCurricularYear.year"));
-        comparatorChain.addComparator(new BeanComparator("infoBranch.name"));
-        comparatorChain.addComparator(new BeanComparator("infoCurricularSemester.semester"));
-        comparatorChain.addComparator(new BeanComparator("infoCurricularCourse.name"));
-        Collections.sort(scopes, comparatorChain);
+        Comparator<InfoCurricularCourseScope> comparatorChain =
+                Comparator.comparing(o1 -> o1.getInfoCurricularSemester().getInfoCurricularYear().getYear());
+        comparatorChain = comparatorChain.thenComparing(o1 -> o1.getInfoBranch().getName());
+        comparatorChain = comparatorChain.thenComparing(o1 -> o1.getInfoCurricularSemester().getSemester());
+        comparatorChain = comparatorChain.thenComparing(o1 -> o1.getInfoCurricularCourse().getName());
+        scopes.sort(comparatorChain);
     }
 
     public String getChoosenExecutionYearID() {

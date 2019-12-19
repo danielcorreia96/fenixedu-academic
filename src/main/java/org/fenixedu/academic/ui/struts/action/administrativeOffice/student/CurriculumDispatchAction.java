@@ -21,6 +21,7 @@ package org.fenixedu.academic.ui.struts.action.administrativeOffice.student;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +29,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -41,6 +40,7 @@ import org.fenixedu.academic.domain.ExecutionSemester;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.domain.student.Registration;
 import org.fenixedu.academic.domain.student.Student;
+import org.fenixedu.academic.dto.InfoEnrolment;
 import org.fenixedu.academic.dto.InfoStudentCurricularPlan;
 import org.fenixedu.academic.dto.student.ExecutionPeriodStatisticsBean;
 import org.fenixedu.academic.predicate.AcademicPredicates;
@@ -290,9 +290,8 @@ public class CurriculumDispatchAction extends FenixDispatchAction {
     }
 
     private static List<StudentCurricularPlan> getSortedStudentCurricularPlans(final Registration registration) {
-        final List<StudentCurricularPlan> result = new ArrayList<StudentCurricularPlan>();
-        result.addAll(registration.getStudentCurricularPlansSet());
-        Collections.sort(result, new BeanComparator("startDateYearMonthDay"));
+        final List<StudentCurricularPlan> result = new ArrayList<>(registration.getStudentCurricularPlansSet());
+        result.sort(Comparator.comparing(StudentCurricularPlan::getStartDateYearMonthDay));
 
         return result;
     }
@@ -348,7 +347,7 @@ public class CurriculumDispatchAction extends FenixDispatchAction {
         final String studentCurricularPlanID = getStudentCPID(request, (DynaActionForm) form);
 
         String executionDegreeID = getExecutionDegree(request);
-        List result = null;
+        List<InfoEnrolment> result;
         try {
             // TODO check
             result = ReadStudentCurriculum.runReadStudentCurriculum(executionDegreeID, studentCurricularPlanID);
@@ -361,13 +360,9 @@ public class CurriculumDispatchAction extends FenixDispatchAction {
             return null;
         }
 
-        BeanComparator courseName = new BeanComparator("infoCurricularCourse.name");
-        BeanComparator executionYear = new BeanComparator("infoExecutionPeriod.infoExecutionYear.year");
-        ComparatorChain chainComparator = new ComparatorChain();
-        chainComparator.addComparator(courseName);
-        chainComparator.addComparator(executionYear);
-
-        Collections.sort(result, chainComparator);
+        Comparator<InfoEnrolment> courseName = Comparator.comparing(infoEnrolment -> infoEnrolment.getInfoCurricularCourse().getName());
+        Comparator<InfoEnrolment> executionYear = Comparator.comparing(infoEnrolment -> infoEnrolment.getInfoExecutionPeriod().getInfoExecutionYear().getYear());
+        result.sort(courseName.thenComparing(executionYear));
 
         InfoStudentCurricularPlan infoStudentCurricularPlan = null;
         try {
@@ -396,7 +391,6 @@ public class CurriculumDispatchAction extends FenixDispatchAction {
     public static JsonObject computeCurricularInfo(HttpServletRequest request, Registration registration) {
 
         /* Make a 'studentStatistics' Array of ExecutionPeriodStatisticsBean that has info on # enrolments, etc */
-        List<ExecutionPeriodStatisticsBean> studentStatistics = new ArrayList<ExecutionPeriodStatisticsBean>();
 
         Map<ExecutionSemester, ExecutionPeriodStatisticsBean> enrolmentsByExecutionPeriod =
                 new HashMap<ExecutionSemester, ExecutionPeriodStatisticsBean>();
@@ -418,8 +412,8 @@ public class CurriculumDispatchAction extends FenixDispatchAction {
                 }
             }
         }
-        studentStatistics.addAll(enrolmentsByExecutionPeriod.values());
-        Collections.sort(studentStatistics, new BeanComparator("executionPeriod"));
+        List<ExecutionPeriodStatisticsBean> studentStatistics = new ArrayList<>(enrolmentsByExecutionPeriod.values());
+        studentStatistics.sort(Comparator.comparing(ExecutionPeriodStatisticsBean::getExecutionPeriod));
 
         /* Put all the info in the required JSON format */
         JsonObject curricularInfoJSONObject = new JsonObject();

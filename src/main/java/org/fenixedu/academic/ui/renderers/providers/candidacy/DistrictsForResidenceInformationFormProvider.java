@@ -55,7 +55,6 @@ public class DistrictsForResidenceInformationFormProvider implements DataProvide
             }
         }
 
-        //Collections.sort(result, new BeanComparator("name"));
         return result;
     }
 

@@ -19,12 +19,12 @@
 package org.fenixedu.academic.ui.struts.action.administrativeOffice.externalUnits;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -35,6 +35,7 @@ import org.fenixedu.academic.domain.organizationalStructure.PartyTypeEnum;
 import org.fenixedu.academic.domain.organizationalStructure.Unit;
 import org.fenixedu.academic.domain.organizationalStructure.UnitUtils;
 import org.fenixedu.academic.domain.studentCurriculum.ExternalEnrolment;
+import org.fenixedu.academic.dto.administrativeOffice.externalUnits.AbstractExternalUnitResultBean;
 import org.fenixedu.academic.dto.administrativeOffice.externalUnits.CreateExternalCurricularCourseBean;
 import org.fenixedu.academic.dto.administrativeOffice.externalUnits.CreateExternalUnitBean;
 import org.fenixedu.academic.dto.administrativeOffice.externalUnits.EditExternalCurricularCourseBean;
@@ -105,7 +106,7 @@ public class ExternalUnitsDispatchAction extends FenixDispatchAction {
             searchBean.clearResults();
             searchUnits(searchBean);
             searchExternalCurricularCourses(searchBean);
-            Collections.sort(searchBean.getResults(), new BeanComparator("fullName"));
+            searchBean.getResults().sort(Comparator.comparing(AbstractExternalUnitResultBean::getFullName));
             searchBean.setEarthUnit(UnitUtils.readEarthUnit());
         }
 

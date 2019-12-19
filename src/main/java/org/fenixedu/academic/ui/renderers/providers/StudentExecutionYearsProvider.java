@@ -19,10 +19,9 @@
 package org.fenixedu.academic.ui.renderers.providers;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.ExecutionYear;
 import org.fenixedu.academic.dto.student.RegistrationSelectExecutionYearBean;
 
@@ -35,9 +34,9 @@ public class StudentExecutionYearsProvider implements DataProvider {
     @Override
     public Object provide(Object source, Object currentValue) {
         List<ExecutionYear> result =
-                new ArrayList(((RegistrationSelectExecutionYearBean) source).getRegistration().getStudent()
+                new ArrayList<>(((RegistrationSelectExecutionYearBean) source).getRegistration().getStudent()
                         .getEnrolmentsExecutionYears());
-        Collections.sort(result, new BeanComparator("year"));
+        result.sort(Comparator.comparing(ExecutionYear::getYear));
         return result;
     }
 

@@ -24,16 +24,14 @@ package org.fenixedu.academic.ui.faces.bean.coordinator.evaluation;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.faces.component.html.HtmlInputHidden;
 import javax.faces.model.SelectItem;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.domain.Evaluation;
 import org.fenixedu.academic.domain.ExecutionCourse;
@@ -112,13 +110,14 @@ public class CoordinatorEvaluationManagementBackingBean extends FenixBackingBean
 
     public List<SelectItem> getExecutionPeriodsLabels() {
         if (this.executionPeriodsLabels == null) {
-            this.executionPeriodsLabels = new ArrayList();
+            this.executionPeriodsLabels = new ArrayList<>();
 
             final List<InfoExecutionPeriod> infoExecutionPeriods = getExecutionPeriods();
-            final ComparatorChain comparatorChain = new ComparatorChain();
-            comparatorChain.addComparator(new ReverseComparator(new BeanComparator("infoExecutionYear.year")));
-            comparatorChain.addComparator(new ReverseComparator(new BeanComparator("semester")));
-            Collections.sort(infoExecutionPeriods, comparatorChain);
+
+            Comparator<InfoExecutionPeriod> comparatorChain = Comparator.comparing(o1 -> o1.getInfoExecutionYear().getYear());
+            comparatorChain = comparatorChain.reversed().thenComparing(InfoExecutionPeriod::getSemester).reversed();
+            infoExecutionPeriods.sort(comparatorChain);
+
             for (final InfoExecutionPeriod infoExecutionPeriod : infoExecutionPeriods) {
                 final SelectItem selectItem = new SelectItem();
                 selectItem.setValue(infoExecutionPeriod.getExternalId());
@@ -174,12 +173,11 @@ public class CoordinatorEvaluationManagementBackingBean extends FenixBackingBean
     }
 
     public List<SelectItem> getExecutionCoursesLabels() {
-        final List<SelectItem> result = new ArrayList();
-        for (final ExecutionCourse executionCourse : getExecutionCourses()) {
-            result.add(new SelectItem(executionCourse.getExternalId(), executionCourse.getNome()));
-        }
-        Collections.sort(result, new BeanComparator("label"));
-        return result;
+        return getExecutionCourses()
+                .stream()
+                .map(executionCourse -> new SelectItem(executionCourse.getExternalId(), executionCourse.getNome()))
+                .sorted(Comparator.comparing(SelectItem::getLabel))
+                .collect(Collectors.toList());
     }
 
     public Evaluation getEvaluation() {

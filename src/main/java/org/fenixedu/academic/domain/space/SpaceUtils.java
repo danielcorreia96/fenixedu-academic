@@ -34,8 +34,6 @@ import java.util.stream.Stream;
 
 import javax.servlet.UnavailableException;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.fenixedu.academic.domain.ExecutionCourse;
 import org.fenixedu.academic.domain.ExecutionSemester;
 import org.fenixedu.academic.domain.FrequencyType;
@@ -74,14 +72,14 @@ public class SpaceUtils {
 
     public static final String LABORATORY_FOR_EDUCATION_CODE = "2.1", LABORATORY_FOR_RESEARCHER_CODE = "2.2";
 
-    public final static Comparator<Space> ROOM_COMPARATOR_BY_NAME = new ComparatorChain();
-    static {
-        ((ComparatorChain) ROOM_COMPARATOR_BY_NAME).addComparator(new BeanComparator("name", Collator.getInstance()));
-        ((ComparatorChain) ROOM_COMPARATOR_BY_NAME).addComparator(new BeanComparator("externalId"));
-    }
+    private final static Comparator<Space> COMPARATOR_BY_NAME =
+        Comparator.comparing(Space::getName, Collator.getInstance());
 
-    public static final Comparator<SpaceClassification> COMPARATORY_BY_PARENT_ROOM_CLASSIFICATION_AND_CODE = new BeanComparator(
-            "absoluteCode");
+    public final static Comparator<Space> ROOM_COMPARATOR_BY_NAME =
+            COMPARATOR_BY_NAME.thenComparing(Space::getExternalId);
+
+    public static final Comparator<SpaceClassification> COMPARATORY_BY_PARENT_ROOM_CLASSIFICATION_AND_CODE =
+            Comparator.comparing(SpaceClassification::getAbsoluteCode);
 
     public static Space findAllocatableSpaceForEducationByName(String name) {
         return allocatableSpacesForEducation().filter(space -> space.getName().equalsIgnoreCase(name)).findAny().orElse(null);

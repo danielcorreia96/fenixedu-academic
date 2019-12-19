@@ -19,10 +19,9 @@
 package org.fenixedu.academic.ui.renderers.providers.lists;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.dto.administrativeOffice.lists.ExecutionDegreeListBean;
 
@@ -36,10 +35,10 @@ public class DegreeCurricularPlansForDegree implements DataProvider {
     public Object provide(Object source, Object currentValue) {
 
         final ExecutionDegreeListBean executionDegreeBean = (ExecutionDegreeListBean) source;
-        final List<DegreeCurricularPlan> result = new ArrayList<DegreeCurricularPlan>();
+        final List<DegreeCurricularPlan> result = new ArrayList<>();
         if (executionDegreeBean.getDegree() != null) {
             result.addAll(executionDegreeBean.getDegree().getDegreeCurricularPlansSet());
-            Collections.sort(result, new BeanComparator("name"));
+            result.sort(Comparator.comparing(DegreeCurricularPlan::getName));
         } else {
             executionDegreeBean.setDegreeCurricularPlan(null);
         }

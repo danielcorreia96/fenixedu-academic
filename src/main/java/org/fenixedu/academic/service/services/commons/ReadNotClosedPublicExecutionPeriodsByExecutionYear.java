@@ -33,7 +33,7 @@ import pt.ist.fenixframework.FenixFramework;
 public class ReadNotClosedPublicExecutionPeriodsByExecutionYear {
 
     @Atomic
-    public static List run(InfoExecutionYear infoExecutionYear) throws FenixServiceException {
+    public static List<InfoExecutionPeriod> run(InfoExecutionYear infoExecutionYear) throws FenixServiceException {
 
         final ExecutionYear executionYear;
         if (infoExecutionYear == null) {

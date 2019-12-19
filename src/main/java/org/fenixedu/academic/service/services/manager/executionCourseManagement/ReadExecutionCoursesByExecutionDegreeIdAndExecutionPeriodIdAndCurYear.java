@@ -40,7 +40,7 @@ import pt.ist.fenixframework.FenixFramework;
 public class ReadExecutionCoursesByExecutionDegreeIdAndExecutionPeriodIdAndCurYear {
 
     @Atomic
-    public static List run(String executionDegreeId, String executionPeriodId, Integer curricularYearInt)
+    public static List<InfoExecutionCourse> run(String executionDegreeId, String executionPeriodId, Integer curricularYearInt)
             throws FenixServiceException {
 
         if (executionPeriodId == null) {
@@ -61,7 +61,7 @@ public class ReadExecutionCoursesByExecutionDegreeIdAndExecutionPeriodIdAndCurYe
                             degreeCurricularPlan, curricularYear, "%");
         }
 
-        final List infoExecutionCourseList = new ArrayList(executionCourseList.size());
+        final List<InfoExecutionCourse> infoExecutionCourseList = new ArrayList<InfoExecutionCourse>(executionCourseList.size());
         for (final ExecutionCourse executionCourse : executionCourseList) {
             infoExecutionCourseList.add(InfoExecutionCourse.newInfoFromDomain(executionCourse));
         }

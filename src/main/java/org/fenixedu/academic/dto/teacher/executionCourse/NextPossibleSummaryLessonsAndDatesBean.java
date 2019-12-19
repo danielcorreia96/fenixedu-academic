@@ -21,8 +21,6 @@ package org.fenixedu.academic.dto.teacher.executionCourse;
 import java.io.Serializable;
 import java.util.Comparator;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.fenixedu.academic.domain.Lesson;
 import org.fenixedu.academic.domain.LessonInstance;
 import org.fenixedu.academic.domain.Shift;
@@ -37,12 +35,10 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class NextPossibleSummaryLessonsAndDatesBean implements Serializable, Comparable<NextPossibleSummaryLessonsAndDatesBean> {
 
-    public static final Comparator<NextPossibleSummaryLessonsAndDatesBean> COMPARATOR_BY_DATE_AND_HOUR = new ComparatorChain();
-    static {
-        ((ComparatorChain) COMPARATOR_BY_DATE_AND_HOUR).addComparator(new BeanComparator("date"), true);
-        ((ComparatorChain) COMPARATOR_BY_DATE_AND_HOUR).addComparator(new BeanComparator("time"), true);
-        ((ComparatorChain) COMPARATOR_BY_DATE_AND_HOUR).addComparator(new BeanComparator("shift.externalId"));
-    }
+    public static final Comparator<NextPossibleSummaryLessonsAndDatesBean> COMPARATOR_BY_DATE_AND_HOUR =
+            Comparator.comparing(NextPossibleSummaryLessonsAndDatesBean::getDate).reversed()
+                    .thenComparing(NextPossibleSummaryLessonsAndDatesBean::getTime).reversed()
+                    .thenComparing(o1 -> o1.getShift().getExternalId());
 
     private ShiftType lessonType;
 

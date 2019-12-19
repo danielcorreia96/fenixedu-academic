@@ -28,8 +28,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.academic.util.State;
@@ -157,14 +157,11 @@ public class Guide extends Guide_Base {
     }
 
     public static List<Guide> readByNumberAndYear(Integer number, Integer year) {
-        List<Guide> guides = new ArrayList<Guide>();
-        for (Guide guide : Bennu.getInstance().getGuidesSet()) {
-            if (guide.getYear().equals(year) && guide.getNumber().equals(number)) {
-                guides.add(guide);
-            }
-        }
-        Collections.sort(guides, new BeanComparator("version"));
-        return guides;
+        return Bennu.getInstance().getGuidesSet().stream()
+                .filter(guide -> guide.getYear().equals(year))
+                .filter(guide -> guide.getNumber().equals(number))
+                .sorted(Comparator.comparing(Guide::getVersion))
+                .collect(Collectors.toList());
     }
 
     public static List<Guide> readByYear(Integer year) {

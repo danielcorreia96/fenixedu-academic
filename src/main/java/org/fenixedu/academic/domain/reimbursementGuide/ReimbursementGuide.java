@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.fenixedu.academic.util.State;
@@ -40,7 +39,7 @@ import org.fenixedu.bennu.core.domain.Bennu;
  */
 public class ReimbursementGuide extends ReimbursementGuide_Base {
 
-    final static Comparator<ReimbursementGuide> NUMBER_COMPARATOR = new BeanComparator("number");
+    final static Comparator<ReimbursementGuide> NUMBER_COMPARATOR = Comparator.comparing(ReimbursementGuide::getNumber);
 
     public ReimbursementGuide() {
         super();

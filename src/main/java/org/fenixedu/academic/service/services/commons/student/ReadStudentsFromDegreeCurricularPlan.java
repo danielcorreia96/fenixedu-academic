@@ -25,11 +25,10 @@
 
 package org.fenixedu.academic.service.services.commons.student;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.fenixedu.academic.domain.DegreeCurricularPlan;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.dto.InfoStudentCurricularPlan;
@@ -42,24 +41,17 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class ReadStudentsFromDegreeCurricularPlan {
 
-    protected List run(String degreeCurricularPlanID) throws FenixServiceException {
+    protected List<InfoStudentCurricularPlan> run(String degreeCurricularPlanID) throws FenixServiceException {
         // Read the Students
         DegreeCurricularPlan degreeCurricularPlan = FenixFramework.getDomainObject(degreeCurricularPlanID);
 
-        Collection students = degreeCurricularPlan.getStudentCurricularPlansSet();
+        Set<StudentCurricularPlan> students = degreeCurricularPlan.getStudentCurricularPlansSet();
 
         if ((students == null) || (students.isEmpty())) {
             throw new NonExistingServiceException();
         }
 
-        return (List) CollectionUtils.collect(students, new Transformer() {
-            @Override
-            public Object transform(Object arg0) {
-                StudentCurricularPlan studentCurricularPlan = (StudentCurricularPlan) arg0;
-                return InfoStudentCurricularPlan.newInfoFromDomain(studentCurricularPlan);
-            }
-
-        });
+        return students.stream().map(InfoStudentCurricularPlan::newInfoFromDomain).collect(Collectors.toList());
     }
 
     // Service Invokers migrated from Berserk
@@ -67,7 +59,7 @@ public class ReadStudentsFromDegreeCurricularPlan {
     private static final ReadStudentsFromDegreeCurricularPlan serviceInstance = new ReadStudentsFromDegreeCurricularPlan();
 
     @Atomic
-    public static List runReadStudentsFromDegreeCurricularPlan(String degreeCurricularPlanID) throws FenixServiceException,
+    public static List<InfoStudentCurricularPlan> runReadStudentsFromDegreeCurricularPlan(String degreeCurricularPlanID) throws FenixServiceException,
             NotAuthorizedException {
         return serviceInstance.run(degreeCurricularPlanID);
     }

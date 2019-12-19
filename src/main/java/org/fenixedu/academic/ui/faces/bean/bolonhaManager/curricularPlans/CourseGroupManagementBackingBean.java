@@ -22,14 +22,13 @@
 package org.fenixedu.academic.ui.faces.bean.bolonhaManager.curricularPlans;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.faces.model.SelectItem;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.ExecutionSemester;
 import org.fenixedu.academic.domain.curricularRules.CurricularRule;
 import org.fenixedu.academic.domain.degreeStructure.BranchCourseGroup;
@@ -251,7 +250,7 @@ public class CourseGroupManagementBackingBean extends CurricularCourseManagement
                 result.add(new SelectItem(lastDegreeModule.getExternalId(), pathName.toString()));
             }
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         result.add(0, new SelectItem(this.NO_SELECTION_STRING, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
     }

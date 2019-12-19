@@ -18,10 +18,9 @@
  */
 package org.fenixedu.academic.service.services.commons;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.fenixedu.academic.domain.ExecutionSemester;
 import org.fenixedu.academic.dto.InfoExecutionPeriod;
 import org.fenixedu.bennu.core.domain.Bennu;
 
@@ -30,12 +29,10 @@ import pt.ist.fenixframework.Atomic;
 public class ReadExecutionPeriods {
 
     @Atomic
-    public static List run() {
-        final List<InfoExecutionPeriod> result = new ArrayList<InfoExecutionPeriod>();
-        for (final ExecutionSemester executionSemester : Bennu.getInstance().getExecutionPeriodsSet()) {
-            result.add(InfoExecutionPeriod.newInfoFromDomain(executionSemester));
-        }
-        return result;
+    public static List<InfoExecutionPeriod> run() {
+        return Bennu.getInstance().getExecutionPeriodsSet().stream()
+                .map(InfoExecutionPeriod::newInfoFromDomain)
+                .collect(Collectors.toList());
     }
 
 }

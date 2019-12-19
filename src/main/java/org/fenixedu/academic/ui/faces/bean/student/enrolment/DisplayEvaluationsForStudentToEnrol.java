@@ -19,7 +19,7 @@
 package org.fenixedu.academic.ui.faces.bean.student.enrolment;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +27,10 @@ import java.util.Map;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.apache.commons.collections.comparators.ReverseComparator;
-import org.fenixedu.academic.domain.Evaluation;
 import org.fenixedu.academic.domain.Exam;
 import org.fenixedu.academic.domain.ExecutionCourse;
 import org.fenixedu.academic.domain.ExecutionSemester;
+import org.fenixedu.academic.domain.WrittenEvaluation;
 import org.fenixedu.academic.domain.WrittenTest;
 import org.fenixedu.academic.domain.exceptions.DomainException;
 import org.fenixedu.academic.domain.student.Registration;
@@ -51,15 +48,13 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
 
-    private static final ComparatorChain comparatorChain = new ComparatorChain();
-    static {
-        comparatorChain.addComparator(new ReverseComparator(new BeanComparator("isInEnrolmentPeriod")));
-        comparatorChain.addComparator(new BeanComparator("dayDate"));
-    }
+    private static final Comparator<WrittenEvaluation> comparatorChain =
+            Comparator.comparing(WrittenEvaluation::isInEnrolmentPeriod).reversed()
+                    .thenComparing(WrittenEvaluation::getDayDate);
 
-    protected static final Integer ALL = Integer.valueOf(0);
-    protected static final Integer EXAMS = Integer.valueOf(1);
-    protected static final Integer WRITTENTESTS = Integer.valueOf(2);
+    protected static final Integer ALL = 0;
+    protected static final Integer EXAMS = 1;
+    protected static final Integer WRITTENTESTS = 2;
 
     private String executionPeriodID;
     protected Integer evaluationType;
@@ -67,21 +62,20 @@ public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
     private List<SelectItem> executionPeriodsLabels;
     private List<SelectItem> evaluationTypes;
     private Registration student;
-    private List<Evaluation> allNotEnroledEvaluations;
-    private List<Evaluation> notEnroledEvaluations;
-    private List<Evaluation> enroledEvaluations;
-    private List<Evaluation> evaluationsWithoutEnrolmentPeriod;
+    private List<WrittenEvaluation> allNotEnroledEvaluations;
+    private List<WrittenEvaluation> notEnroledEvaluations;
+    private List<WrittenEvaluation> enroledEvaluations;
+    private List<WrittenEvaluation> evaluationsWithoutEnrolmentPeriod;
     private Map<String, List<ExecutionCourse>> executionCourses;
 
     public List<SelectItem> getExecutionPeriodsLabels() {
         if (this.executionPeriodsLabels == null) {
-            this.executionPeriodsLabels = new ArrayList();
+            this.executionPeriodsLabels = new ArrayList<>();
 
             final List<InfoExecutionPeriod> infoExecutionPeriods = getExecutionPeriods();
-            final ComparatorChain comparatorChain = new ComparatorChain();
-            comparatorChain.addComparator(new ReverseComparator(new BeanComparator("infoExecutionYear.year")));
-            comparatorChain.addComparator(new ReverseComparator(new BeanComparator("semester")));
-            Collections.sort(infoExecutionPeriods, comparatorChain);
+            Comparator<InfoExecutionPeriod> comparatorChain = Comparator.comparing(o1 -> o1.getInfoExecutionYear().getYear());
+            comparatorChain = comparatorChain.reversed().thenComparing(InfoExecutionPeriod::getSemester).reversed();
+            infoExecutionPeriods.sort(comparatorChain);
             for (final InfoExecutionPeriod infoExecutionPeriod : infoExecutionPeriods) {
                 final SelectItem selectItem = new SelectItem();
                 selectItem.setValue(infoExecutionPeriod.getExternalId());
@@ -94,7 +88,7 @@ public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
 
     public List<SelectItem> getEvaluationTypes() {
         if (this.evaluationTypes == null) {
-            this.evaluationTypes = new ArrayList(4);
+            this.evaluationTypes = new ArrayList<>(4);
             final String allEvaluations = BundleUtil.getString(Bundle.STUDENT, "link.all");
             evaluationTypes.add(new SelectItem(ALL, allEvaluations));
             final String exams = BundleUtil.getString(Bundle.STUDENT, "link.exams.enrolment");
@@ -105,48 +99,48 @@ public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
         return this.evaluationTypes;
     }
 
-    public List<Evaluation> getAllNotEnroledEvaluations() {
+    public List<WrittenEvaluation> getAllNotEnroledEvaluations() {
         if (this.allNotEnroledEvaluations == null) {
-            this.allNotEnroledEvaluations = new ArrayList();
+            this.allNotEnroledEvaluations = new ArrayList<>();
 
             processAllEvaluations();
         }
         return this.allNotEnroledEvaluations;
     }
 
-    public List<Evaluation> getNotEnroledEvaluations() {
+    public List<WrittenEvaluation> getNotEnroledEvaluations() {
         if (this.notEnroledEvaluations == null) {
-            this.notEnroledEvaluations = new ArrayList();
+            this.notEnroledEvaluations = new ArrayList<>();
 
             processNotEnroledEvaluations();
         }
         return this.notEnroledEvaluations;
     }
 
-    public void setNotEnroledEvaluations(List<Evaluation> notEnroledEvaluations) {
+    public void setNotEnroledEvaluations(List<WrittenEvaluation> notEnroledEvaluations) {
         this.notEnroledEvaluations = notEnroledEvaluations;
     }
 
-    public List<Evaluation> getEnroledEvaluations() {
+    public List<WrittenEvaluation> getEnroledEvaluations() {
         if (this.enroledEvaluations == null) {
-            this.enroledEvaluations = new ArrayList();
+            this.enroledEvaluations = new ArrayList<>();
             processEnroledEvaluations();
         }
         return this.enroledEvaluations;
     }
 
-    public void setEnroledEvaluations(List<Evaluation> enroledEvaluations) {
+    public void setEnroledEvaluations(List<WrittenEvaluation> enroledEvaluations) {
         this.enroledEvaluations = enroledEvaluations;
     }
 
-    public List<Evaluation> getEvaluationsWithoutEnrolmentPeriod() {
+    public List<WrittenEvaluation> getEvaluationsWithoutEnrolmentPeriod() {
         if (this.evaluationsWithoutEnrolmentPeriod == null) {
-            this.evaluationsWithoutEnrolmentPeriod = new ArrayList();
+            this.evaluationsWithoutEnrolmentPeriod = new ArrayList<WrittenEvaluation>();
         }
         return this.evaluationsWithoutEnrolmentPeriod;
     }
 
-    public void setEvaluationsWithoutEnrolmentPeriod(List<Evaluation> evaluationsWithoutEnrolmentPeriod) {
+    public void setEvaluationsWithoutEnrolmentPeriod(List<WrittenEvaluation> evaluationsWithoutEnrolmentPeriod) {
         this.evaluationsWithoutEnrolmentPeriod = evaluationsWithoutEnrolmentPeriod;
     }
 
@@ -182,7 +176,7 @@ public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
                 }
             }
         }
-        Collections.sort(this.enroledEvaluations, comparatorChain);
+        this.enroledEvaluations.sort(comparatorChain);
     }
 
     private void processAllEvaluations() {
@@ -207,7 +201,7 @@ public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
                 }
             }
         }
-        Collections.sort(this.allNotEnroledEvaluations, comparatorChain);
+        this.allNotEnroledEvaluations.sort(comparatorChain);
     }
 
     private void processNotEnroledEvaluations() {
@@ -242,7 +236,7 @@ public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
                 }
             }
         }
-        Collections.sort(this.notEnroledEvaluations, comparatorChain);
+        this.notEnroledEvaluations.sort(comparatorChain);
     }
 
     public void changeExecutionPeriod(ValueChangeEvent event) {
@@ -266,7 +260,7 @@ public class DisplayEvaluationsForStudentToEnrol extends FenixBackingBean {
             return ReadNotClosedExecutionPeriods.run();
         } catch (FenixServiceException e) {
         }
-        return new ArrayList();
+        return new ArrayList<>();
     }
 
     private InfoExecutionPeriod getCurrentExecutionPeriod() {

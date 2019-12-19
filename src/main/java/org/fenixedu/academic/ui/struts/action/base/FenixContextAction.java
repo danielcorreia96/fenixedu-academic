@@ -19,14 +19,12 @@
 package org.fenixedu.academic.ui.struts.action.base;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -77,10 +75,7 @@ public abstract class FenixContextAction extends FenixAction {
             }
         }
 
-        ComparatorChain comparatorChain = new ComparatorChain();
-        comparatorChain.addComparator(new BeanComparator("value"));
-        Collections.sort(result, comparatorChain);
-        Collections.reverse(result);
+        result.sort(Comparator.comparing(LabelValueBean::getValue).reversed());
 
         return result;
     }

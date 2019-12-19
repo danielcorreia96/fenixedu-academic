@@ -18,18 +18,18 @@
  */
 package org.fenixedu.academic.ui.struts.action.resourceAllocationManager;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.DynaActionForm;
+import org.fenixedu.academic.dto.InfoClass;
 import org.fenixedu.academic.dto.InfoShift;
 import org.fenixedu.academic.service.services.exceptions.FenixServiceException;
 import org.fenixedu.academic.service.services.resourceAllocationManager.AddSchoolClassesToShift;
@@ -55,10 +55,10 @@ public class AddClassesDA extends FenixShiftAndExecutionCourseAndExecutionDegree
 
         InfoShift infoShift = (InfoShift) request.getAttribute(PresentationConstants.SHIFT);
 
-        List classes = ReadAvailableClassesForShift.run(infoShift.getExternalId());
+        List<InfoClass> classes = ReadAvailableClassesForShift.run(infoShift.getExternalId());
 
-        if (classes != null && !classes.isEmpty()) {
-            Collections.sort(classes, new BeanComparator("nome"));
+        if (!classes.isEmpty()) {
+            classes.sort(Comparator.comparing(InfoClass::getNome));
             request.setAttribute(PresentationConstants.CLASSES, classes);
         }
 
@@ -73,10 +73,7 @@ public class AddClassesDA extends FenixShiftAndExecutionCourseAndExecutionDegree
         DynaActionForm addClassesForm = (DynaActionForm) form;
         String[] selectedClasses = (String[]) addClassesForm.get("selectedItems");
 
-        List classOIDs = new ArrayList();
-        for (String selectedClasse : selectedClasses) {
-            classOIDs.add(selectedClasse);
-        }
+        List<String> classOIDs = Arrays.asList(selectedClasses);
 
         try {
             AddSchoolClassesToShift.run(infoShift, classOIDs);

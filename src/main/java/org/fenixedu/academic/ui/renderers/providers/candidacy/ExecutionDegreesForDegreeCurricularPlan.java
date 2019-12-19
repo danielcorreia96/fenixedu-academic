@@ -19,10 +19,9 @@
 package org.fenixedu.academic.ui.renderers.providers.candidacy;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.ExecutionDegree;
 import org.fenixedu.academic.dto.administrativeOffice.candidacy.DFACandidacyBean;
 
@@ -36,10 +35,10 @@ public class ExecutionDegreesForDegreeCurricularPlan implements DataProvider {
     public Object provide(Object source, Object currentValue) {
 
         final DFACandidacyBean dfaCandidacyBean = (DFACandidacyBean) source;
-        final List<ExecutionDegree> result = new ArrayList<ExecutionDegree>();
+        final List<ExecutionDegree> result = new ArrayList<>();
         if (dfaCandidacyBean.getDegree() != null && dfaCandidacyBean.getDegreeCurricularPlan() != null) {
             result.addAll(dfaCandidacyBean.getDegreeCurricularPlan().getExecutionDegreesSet());
-            Collections.sort(result, new BeanComparator("year"));
+            result.sort(Comparator.comparing(executionDegree -> executionDegree.getExecutionYear().getYear()));
         } else {
             dfaCandidacyBean.setExecutionDegree(null);
         }

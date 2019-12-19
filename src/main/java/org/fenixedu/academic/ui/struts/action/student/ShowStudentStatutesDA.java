@@ -19,12 +19,11 @@
 package org.fenixedu.academic.ui.struts.action.student;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -50,8 +49,8 @@ public class ShowStudentStatutesDA extends FenixDispatchAction {
     public ActionForward execute(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) {
         User userView = getUserView(request);
         Student student = userView.getPerson().getStudent();
-        ArrayList<StudentStatute> studentStatutes = new ArrayList<StudentStatute>(student.getStudentStatutesSet());
-        Collections.sort(studentStatutes, new BeanComparator("beginExecutionPeriod.beginDateYearMonthDay"));
+        ArrayList<StudentStatute> studentStatutes = new ArrayList<>(student.getStudentStatutesSet());
+        studentStatutes.sort(Comparator.comparing(o1 -> o1.getBeginExecutionPeriod().getBeginDateYearMonthDay()));
         request.setAttribute("studentStatutes", studentStatutes);
         return mapping.findForward("studentStatutes");
     }

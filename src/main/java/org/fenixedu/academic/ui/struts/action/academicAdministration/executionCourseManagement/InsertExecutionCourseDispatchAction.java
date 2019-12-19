@@ -18,18 +18,14 @@
  */
 package org.fenixedu.academic.ui.struts.action.academicAdministration.executionCourseManagement;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.Transformer;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -78,48 +74,26 @@ public class InsertExecutionCourseDispatchAction extends FenixDispatchAction {
     public ActionForward prepareInsertExecutionCourse(ActionMapping mapping, ActionForm form, HttpServletRequest request,
             HttpServletResponse response) {
 
-        List infoExecutionPeriods = null;
-        infoExecutionPeriods = ReadExecutionPeriods.run();
+        List<InfoExecutionPeriod> infoExecutionPeriods = ReadExecutionPeriods.run();
 
         if (infoExecutionPeriods != null && !infoExecutionPeriods.isEmpty()) {
             // exclude closed execution periods
-            infoExecutionPeriods = (List) CollectionUtils.select(infoExecutionPeriods, new Predicate() {
-                @Override
-                public boolean evaluate(Object input) {
-                    InfoExecutionPeriod infoExecutionPeriod = (InfoExecutionPeriod) input;
-                    if (!infoExecutionPeriod.getState().equals(PeriodState.CLOSED)) {
-                        return true;
-                    }
-                    return false;
-                }
-            });
+            Comparator<InfoExecutionPeriod> comparator = Comparator.comparing(o1 -> o1.getInfoExecutionYear().getYear());
+            comparator = comparator.reversed().thenComparing(InfoExecutionPeriod::getName).reversed();
 
-            ComparatorChain comparator = new ComparatorChain();
-            comparator.addComparator(new BeanComparator("infoExecutionYear.year"), true);
-            comparator.addComparator(new BeanComparator("name"), true);
-            Collections.sort(infoExecutionPeriods, comparator);
+            infoExecutionPeriods = infoExecutionPeriods.stream()
+                    .filter(infoExecutionPeriod -> !infoExecutionPeriod.getState().equals(PeriodState.CLOSED))
+                    .sorted(comparator)
+                    .collect(Collectors.toList());
 
-            List<LabelValueBean> executionPeriodLabels = new ArrayList<LabelValueBean>();
-            CollectionUtils.collect(infoExecutionPeriods, new Transformer() {
-                @Override
-                public Object transform(Object arg0) {
-                    InfoExecutionPeriod infoExecutionPeriod = (InfoExecutionPeriod) arg0;
-
-                    LabelValueBean executionPeriod =
-                            new LabelValueBean(infoExecutionPeriod.getName() + " - "
-                                    + infoExecutionPeriod.getInfoExecutionYear().getYear(), infoExecutionPeriod.getExternalId()
-                                    .toString());
-                    return executionPeriod;
-                }
-            }, executionPeriodLabels);
-
+            List<LabelValueBean> executionPeriodLabels = infoExecutionPeriods.stream()
+                    .map(infoExecutionPeriod -> new LabelValueBean(infoExecutionPeriod.getName() + " - " + infoExecutionPeriod.getInfoExecutionYear().getYear(), infoExecutionPeriod.getExternalId()))
+                    .collect(Collectors.toList());
             request.setAttribute(PresentationConstants.LIST_EXECUTION_PERIODS, executionPeriodLabels);
 
-            List<LabelValueBean> entryPhases = new ArrayList<LabelValueBean>();
-            for (EntryPhase entryPhase : EntryPhase.values()) {
-                LabelValueBean labelValueBean = new LabelValueBean(entryPhase.getLocalizedName(), entryPhase.getName());
-                entryPhases.add(labelValueBean);
-            }
+            List<LabelValueBean> entryPhases = Arrays.stream(EntryPhase.values())
+                    .map(entryPhase -> new LabelValueBean(entryPhase.getLocalizedName(), entryPhase.getName()))
+                    .collect(Collectors.toList());
             request.setAttribute("entryPhases", entryPhases);
 
         }

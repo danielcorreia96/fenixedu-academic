@@ -21,7 +21,6 @@ package org.fenixedu.academic.domain.thesis;
 import java.util.Comparator;
 import java.util.Objects;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.DomainObjectUtil;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.bennu.core.domain.Bennu;
@@ -39,9 +38,6 @@ public class ThesisEvaluationParticipant extends ThesisEvaluationParticipant_Bas
 
     public final static Comparator<ThesisEvaluationParticipant> COMPARATOR_BY_PERSON_NAME = Comparator.comparing(
             ThesisEvaluationParticipant::getName).thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
-
-    public final static Comparator<ThesisEvaluationParticipant> COMPARATOR_BY_STUDENT_NUMBER = new BeanComparator(
-            "thesis.student.number");
 
     public ThesisEvaluationParticipant(Thesis thesis, Person person, ThesisParticipationType type) {
         super();

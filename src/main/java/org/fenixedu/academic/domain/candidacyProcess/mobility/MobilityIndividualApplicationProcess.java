@@ -20,9 +20,9 @@ package org.fenixedu.academic.domain.candidacyProcess.mobility;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CurricularCourse;
@@ -45,7 +45,9 @@ import org.fenixedu.academic.domain.candidacyProcess.erasmus.ErasmusAlert;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.ErasmusAlertEntityType;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.ErasmusCandidacyProcessExecutedAction;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.ErasmusIndividualCandidacyProcessExecutedAction;
+import org.fenixedu.academic.domain.candidacyProcess.erasmus.ExecutedAction;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.ExecutedActionType;
+import org.fenixedu.academic.domain.candidacyProcess.erasmus.ExecutedAction_Base;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.NationalIdCardAvoidanceQuestion;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.ReceptionEmailExecutedAction;
 import org.fenixedu.academic.domain.candidacyProcess.erasmus.StorkAttributesList;
@@ -383,8 +385,7 @@ public class MobilityIndividualApplicationProcess extends MobilityIndividualAppl
             }
         }
 
-        Collections.sort(list, Collections.reverseOrder(new BeanComparator("whenOccured")));
-
+        list.sort(Comparator.comparing(ExecutedAction::getWhenOccured).reversed());
         return list;
     }
 

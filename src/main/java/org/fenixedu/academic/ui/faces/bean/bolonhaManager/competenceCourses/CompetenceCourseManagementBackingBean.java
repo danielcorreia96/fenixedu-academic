@@ -24,7 +24,7 @@ package org.fenixedu.academic.ui.faces.bean.bolonhaManager.competenceCourses;
 import static org.fenixedu.academic.predicate.AccessControl.check;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -34,8 +34,6 @@ import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.CompetenceCourse;
 import org.fenixedu.academic.domain.CompetenceCourseType;
@@ -1051,7 +1049,7 @@ public class CompetenceCourseManagementBackingBean extends FenixBackingBean {
                 result.add(new SelectItem(departmentUnit.getExternalId(), departmentUnit.getName()));
             }
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         result.add(0, new SelectItem(this.NO_SELECTION, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
     }
@@ -1081,7 +1079,7 @@ public class CompetenceCourseManagementBackingBean extends FenixBackingBean {
                 result.add(new SelectItem(unit.getExternalId(), unit.getName()));
             }
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         result.add(0, new SelectItem(this.NO_SELECTION, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
     }
@@ -1121,7 +1119,7 @@ public class CompetenceCourseManagementBackingBean extends FenixBackingBean {
                 result.add(new SelectItem(unit.getExternalId(), unit.getName()));
             }
         }
-        Collections.sort(result, new BeanComparator("label"));
+        result.sort(Comparator.comparing(SelectItem::getLabel));
         result.add(0, new SelectItem(this.NO_SELECTION, BundleUtil.getString(Bundle.BOLONHA, "choose")));
         return result;
     }
@@ -1331,7 +1329,7 @@ public class CompetenceCourseManagementBackingBean extends FenixBackingBean {
                     selectedYears.add(new SelectItem(executionYear.getExternalId(), executionYear.getYear()));
                 }
             }
-            Collections.sort(selectedYears, new ReverseComparator(new BeanComparator("label")));
+            selectedYears.sort(Comparator.comparing(SelectItem::getLabel).reversed());
         }
 
         return selectedYears;

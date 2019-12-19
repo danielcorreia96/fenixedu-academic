@@ -23,15 +23,13 @@
 package org.fenixedu.academic.ui.faces.bean.student.enrolment;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.faces.component.html.HtmlInputHidden;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.fenixedu.academic.domain.Evaluation;
 import org.fenixedu.academic.domain.Exam;
 import org.fenixedu.academic.domain.WrittenEvaluation;
 import org.fenixedu.academic.domain.exceptions.DomainException;
@@ -45,37 +43,37 @@ import org.fenixedu.spaces.domain.Space;
 
 public class ManageEvaluationsForStudent extends DisplayEvaluationsForStudentToEnrol {
 
-    private List<Evaluation> evaluationsWithEnrolmentPeriodOpened;
-    private List<Evaluation> evaluationsWithEnrolmentPeriodClosed;
+    private List<WrittenEvaluation> evaluationsWithEnrolmentPeriodOpened;
+    private List<WrittenEvaluation> evaluationsWithEnrolmentPeriodClosed;
     private HtmlInputHidden evaluationTypeHidden;
     private Map<String, Boolean> enroledEvaluationsForStudent;
     private Map<String, String> studentRooms;
 
-    public List<Evaluation> getEvaluationsWithEnrolmentPeriodClosed() {
+    public List<WrittenEvaluation> getEvaluationsWithEnrolmentPeriodClosed() {
         if (this.evaluationsWithEnrolmentPeriodClosed == null) {
             processEvaluations();
         }
         return this.evaluationsWithEnrolmentPeriodClosed;
     }
 
-    public void setEvaluationsWithEnrolmentPeriodClosed(List<Evaluation> evaluationsWithEnrolmentPeriodClosed) {
+    public void setEvaluationsWithEnrolmentPeriodClosed(List<WrittenEvaluation> evaluationsWithEnrolmentPeriodClosed) {
         this.evaluationsWithEnrolmentPeriodClosed = evaluationsWithEnrolmentPeriodClosed;
     }
 
-    public List<Evaluation> getEvaluationsWithEnrolmentPeriodOpened() {
+    public List<WrittenEvaluation> getEvaluationsWithEnrolmentPeriodOpened() {
         if (this.evaluationsWithEnrolmentPeriodOpened == null) {
             processEvaluations();
         }
         return this.evaluationsWithEnrolmentPeriodOpened;
     }
 
-    public void setEvaluationsWithEnrolmentPeriodOpened(List<Evaluation> evaluationsWithEnrolmentPeriodOpened) {
+    public void setEvaluationsWithEnrolmentPeriodOpened(List<WrittenEvaluation> evaluationsWithEnrolmentPeriodOpened) {
         this.evaluationsWithEnrolmentPeriodOpened = evaluationsWithEnrolmentPeriodOpened;
     }
 
     private void processEvaluations() {
-        this.evaluationsWithEnrolmentPeriodClosed = new ArrayList();
-        this.evaluationsWithEnrolmentPeriodOpened = new ArrayList();
+        this.evaluationsWithEnrolmentPeriodClosed = new ArrayList<>();
+        this.evaluationsWithEnrolmentPeriodOpened = new ArrayList<>();
 
         final String evaluationType = getEvaluationTypeString();
         for (final Registration registration : getStudent().getStudent().getRegistrationsSet()) {
@@ -116,9 +114,10 @@ public class ManageEvaluationsForStudent extends DisplayEvaluationsForStudentToE
                 }
             }
         }
-        Collections.sort(this.evaluationsWithEnrolmentPeriodClosed, new BeanComparator("dayDate"));
-        Collections.sort(this.evaluationsWithEnrolmentPeriodOpened, new BeanComparator("dayDate"));
-        Collections.sort(getEvaluationsWithoutEnrolmentPeriod(), new BeanComparator("dayDate"));
+        Comparator<WrittenEvaluation> comparator = Comparator.comparing(WrittenEvaluation::getDayDate);
+        this.evaluationsWithEnrolmentPeriodClosed.sort(comparator);
+        this.evaluationsWithEnrolmentPeriodOpened.sort(comparator);
+        getEvaluationsWithoutEnrolmentPeriod().sort(comparator);
     }
 
     public String enrolStudent() {

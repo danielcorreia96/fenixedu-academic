@@ -25,12 +25,11 @@ package org.fenixedu.academic.ui.faces.bean.coordinator.evaluation;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.fenixedu.academic.domain.ExecutionCourse;
 import org.fenixedu.academic.domain.Project;
 import org.fenixedu.academic.ui.faces.components.util.CalendarLink;
@@ -41,19 +40,19 @@ public class CoordinatorProjectsInformationBackingBean extends CoordinatorEvalua
 
     private List<ExecutionCourse> executionCoursesWithProjects;
     private List<ExecutionCourse> executionCoursesWithoutProjects;
-    private final Map<String, List<Project>> projects = new HashMap();
+    private final Map<String, List<Project>> projects = new HashMap<>();
     private List<CalendarLink> projectsCalendarLink;
 
     private void filterExecutionCourses() {
         if (this.executionCoursesWithProjects == null || this.executionCoursesWithoutProjects == null) {
-            this.executionCoursesWithProjects = new ArrayList();
-            this.executionCoursesWithoutProjects = new ArrayList();
-            Collections.sort(getExecutionCourses(), new BeanComparator("sigla"));
+            this.executionCoursesWithProjects = new ArrayList<>();
+            this.executionCoursesWithoutProjects = new ArrayList<>();
+            getExecutionCourses().sort(Comparator.comparing(ExecutionCourse::getSigla));
             projects.clear();
             for (final ExecutionCourse executionCourse : getExecutionCourses()) {
                 final List<Project> associatedProjects = executionCourse.getAssociatedProjects();
                 if (!executionCourse.getAssociatedProjects().isEmpty()) {
-                    Collections.sort(associatedProjects, new BeanComparator("begin"));
+                    associatedProjects.sort(Comparator.comparing(Project::getBegin));
                     this.executionCoursesWithProjects.add(executionCourse);
                     this.projects.put(executionCourse.getExternalId(), associatedProjects);
                 } else {

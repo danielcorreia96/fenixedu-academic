@@ -33,7 +33,7 @@ import pt.ist.fenixframework.FenixFramework;
 
 public class ReadStudentCurriculum {
 
-    protected List run(String executionDegreeCode, String studentCurricularPlanID) throws FenixServiceException {
+    protected List<InfoEnrolment> run(String executionDegreeCode, String studentCurricularPlanID) throws FenixServiceException {
 
         final StudentCurricularPlan studentCurricularPlan = FenixFramework.getDomainObject(studentCurricularPlanID);
         if (studentCurricularPlan == null) {
@@ -52,7 +52,7 @@ public class ReadStudentCurriculum {
     private static final ReadStudentCurriculum serviceInstance = new ReadStudentCurriculum();
 
     @Atomic
-    public static List runReadStudentCurriculum(String executionDegreeCode, String studentCurricularPlanID)
+    public static List<InfoEnrolment> runReadStudentCurriculum(String executionDegreeCode, String studentCurricularPlanID)
             throws FenixServiceException, NotAuthorizedException {
         return serviceInstance.run(executionDegreeCode, studentCurricularPlanID);
     }

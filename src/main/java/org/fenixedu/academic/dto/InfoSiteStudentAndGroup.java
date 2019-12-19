@@ -40,9 +40,6 @@ public class InfoSiteStudentAndGroup extends DataTranferObject {
 
     };
 
-    // Collections.sort(infoSiteStudentsAndGroupsList, new
-    // BeanComparator("infoSiteStudentInformation.number"));
-
     private InfoSiteStudentInformation infoSiteStudentInformation;
     private InfoStudentGroup infoStudentGroup;
 

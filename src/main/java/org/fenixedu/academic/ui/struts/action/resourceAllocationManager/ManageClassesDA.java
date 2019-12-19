@@ -19,14 +19,14 @@
 package org.fenixedu.academic.ui.struts.action.resourceAllocationManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionError;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -94,10 +94,8 @@ public class ManageClassesDA extends FenixExecutionDegreeAndCurricularYearContex
             infoClassesList.add(infoClass);
         }
 
-        if (infoClassesList != null && !infoClassesList.isEmpty()) {
-            BeanComparator nameComparator = new BeanComparator("nome");
-            Collections.sort(infoClassesList, nameComparator);
-
+        if (!infoClassesList.isEmpty()) {
+            infoClassesList.sort(Comparator.comparing(InfoClass::getNome));
             request.setAttribute(PresentationConstants.CLASSES, infoClassesList);
         }
         request.setAttribute("executionDegreeD", executionDegree);
@@ -160,10 +158,7 @@ public class ManageClassesDA extends FenixExecutionDegreeAndCurricularYearContex
             return mapping.getInputForward();
 
         }
-        List<String> classOIDs = new ArrayList<String>();
-        for (String selectedClasse : selectedClasses) {
-            classOIDs.add(selectedClasse);
-        }
+        List<String> classOIDs = Arrays.asList(selectedClasses);
 
         DeleteClasses.run(classOIDs);
 

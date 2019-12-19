@@ -38,8 +38,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.lang.StringUtils;
 import org.fenixedu.academic.domain.degree.DegreeType;
 import org.fenixedu.academic.domain.degreeStructure.CycleType;
@@ -57,12 +55,8 @@ import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.groups.Group;
 
 public class Department extends Department_Base {
-
-    public static final Comparator<Department> COMPARATOR_BY_NAME = new ComparatorChain();
-    static {
-        ((ComparatorChain) COMPARATOR_BY_NAME).addComparator(new BeanComparator("name", Collator.getInstance()));
-        ((ComparatorChain) COMPARATOR_BY_NAME).addComparator(DomainObjectUtil.COMPARATOR_BY_ID);
-    }
+    public static final Comparator<Department> COMPARATOR_BY_NAME =
+            Comparator.comparing(Department::getName, Collator.getInstance()).thenComparing(DomainObjectUtil.COMPARATOR_BY_ID);
 
     public Department() {
         super();

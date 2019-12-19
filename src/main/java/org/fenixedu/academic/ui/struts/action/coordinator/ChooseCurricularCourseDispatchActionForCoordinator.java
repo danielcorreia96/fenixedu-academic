@@ -18,13 +18,12 @@
  */
 package org.fenixedu.academic.ui.struts.action.coordinator;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionError;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -78,7 +77,7 @@ public class ChooseCurricularCourseDispatchActionForCoordinator extends FenixDis
         // Get the Curricular Course List
 
         User userView = getUserView(request);
-        List curricularCourseList = null;
+        List<InfoCurricularCourse> curricularCourseList;
         try {
             curricularCourseList = ReadCurricularCoursesByDegree.run(executionYear, degree);
         } catch (NonExistingServiceException e) {
@@ -90,7 +89,7 @@ public class ChooseCurricularCourseDispatchActionForCoordinator extends FenixDis
         } catch (ExistingServiceException e) {
             throw new ExistingActionException(e);
         }
-        Collections.sort(curricularCourseList, new BeanComparator("name"));
+        curricularCourseList.sort(Comparator.comparing(InfoCurricularCourse::getName));
         request.setAttribute("curricularCourses", curricularCourseList);
 
         return mapping.findForward("PrepareSuccess");

@@ -20,15 +20,13 @@ package org.fenixedu.academic.ui.struts.action.resourceAllocationManager.exams;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.struts.action.ActionError;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -161,8 +159,8 @@ public class RoomSearchDA extends FenixDispatchAction {
                 newAvailableInfoRoom = availableInfoRoom;
             }
         }
-        if (newAvailableInfoRoom != null && !newAvailableInfoRoom.isEmpty()) {
-            Collections.sort(newAvailableInfoRoom, new BeanComparator("nome"));
+        if (!newAvailableInfoRoom.isEmpty()) {
+            newAvailableInfoRoom.sort(Comparator.comparing(InfoRoom::getNome));
             String[] availableRoomId = new String[newAvailableInfoRoom.size()];
             Iterator<InfoRoom> iter = newAvailableInfoRoom.iterator();
             int i = 0;
@@ -184,27 +182,34 @@ public class RoomSearchDA extends FenixDispatchAction {
 
         String[] availableRoomsId = (String[]) roomSearchForm.get("availableRoomsId");
         String sortParameter = request.getParameter("sortParameter");
-        List<InfoRoom> availableRooms = new ArrayList<InfoRoom>();
+        List<InfoRoom> availableRooms = new ArrayList<>();
         for (String element : availableRoomsId) {
             final Space room = FenixFramework.getDomainObject(element);
             availableRooms.add(InfoRoom.newInfoFromDomain(room));
         }
         if ((sortParameter != null) && (sortParameter.length() != 0)) {
-            if (sortParameter.equals("name")) {
-                Collections.sort(availableRooms, new BeanComparator("nome"));
-            } else if (sortParameter.equals("type")) {
-                Collections.sort(availableRooms, new BeanComparator("tipo"));
-            } else if (sortParameter.equals("building")) {
-                Collections.sort(availableRooms, new BeanComparator("edificio"));
-            } else if (sortParameter.equals("floor")) {
-                Collections.sort(availableRooms, new BeanComparator("piso"));
-            } else if (sortParameter.equals("normal")) {
-                Collections.sort(availableRooms, new ReverseComparator(new BeanComparator("capacidadeNormal")));
-            } else if (sortParameter.equals("exam")) {
-                Collections.sort(availableRooms, new ReverseComparator(new BeanComparator("capacidadeExame")));
+            switch (sortParameter) {
+                case "name":
+                    availableRooms.sort(Comparator.comparing(InfoRoom::getNome));
+                    break;
+                case "type":
+                    availableRooms.sort(Comparator.comparing(InfoRoom::getTipo));
+                    break;
+                case "building":
+                    availableRooms.sort(Comparator.comparing(InfoRoom::getEdificio));
+                    break;
+                case "floor":
+                    availableRooms.sort(Comparator.comparing(InfoRoom::getPiso));
+                    break;
+                case "normal":
+                    availableRooms.sort(Comparator.comparing(InfoRoom::getCapacidadeNormal).reversed());
+                    break;
+                case "exam":
+                    availableRooms.sort(Comparator.comparing(InfoRoom::getCapacidadeExame).reversed());
+                    break;
             }
         } else {
-            Collections.sort(availableRooms, new BeanComparator("nome"));
+            availableRooms.sort(Comparator.comparing(InfoRoom::getNome));
         }
 
         String sdate = roomSearchForm.get("day") + "/" + roomSearchForm.get("month") + "/" + roomSearchForm.get("year");

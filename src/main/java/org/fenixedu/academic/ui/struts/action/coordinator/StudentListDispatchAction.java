@@ -18,16 +18,17 @@
  */
 package org.fenixedu.academic.ui.struts.action.coordinator;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.fenixedu.academic.dto.InfoCurricularCourse;
+import org.fenixedu.academic.dto.InfoStudentCurricularPlan;
 import org.fenixedu.academic.service.services.commons.student.ReadStudentsFromDegreeCurricularPlan;
 import org.fenixedu.academic.service.services.exceptions.NonExistingServiceException;
 import org.fenixedu.academic.service.services.exceptions.NotAuthorizedException;
@@ -74,7 +75,7 @@ public class StudentListDispatchAction extends FenixDispatchAction {
             request.setAttribute("degreeCurricularPlanID", degreeCurricularPlanID);
         }
 
-        List result = null;
+        List<InfoStudentCurricularPlan> result;
 
         try {
             result = ReadStudentsFromDegreeCurricularPlan.runReadStudentsFromDegreeCurricularPlan(degreeCurricularPlanID);
@@ -84,8 +85,7 @@ public class StudentListDispatchAction extends FenixDispatchAction {
         } catch (NonExistingServiceException e) {
             throw new NonExistingActionException("error.exception.noStudents", "");
         }
-        BeanComparator numberComparator = new BeanComparator("infoStudent.number");
-        Collections.sort(result, numberComparator);
+        result.sort(Comparator.comparing(infoStudentCurricularPlan -> infoStudentCurricularPlan.getInfoStudent().getNumber()));
 
         request.setAttribute(PresentationConstants.STUDENT_LIST, result);
 
@@ -110,10 +110,9 @@ public class StudentListDispatchAction extends FenixDispatchAction {
             request.setAttribute("degreeCurricularPlanID", degreeCurricularPlanID);
         }
 
-        List result = ReadCurricularCoursesByDegree.run(degreeCurricularPlanID);
+        List<InfoCurricularCourse> result = ReadCurricularCoursesByDegree.run(degreeCurricularPlanID);
 
-        BeanComparator nameComparator = new BeanComparator("name");
-        Collections.sort(result, nameComparator);
+        result.sort(Comparator.comparing(InfoCurricularCourse::getName));
 
         request.setAttribute("curricularCourses", result);
 
