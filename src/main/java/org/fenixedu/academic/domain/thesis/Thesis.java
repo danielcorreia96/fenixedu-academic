@@ -54,6 +54,7 @@ import org.fenixedu.academic.domain.MarkSheet;
 import org.fenixedu.academic.domain.Person;
 import org.fenixedu.academic.domain.Professorship;
 import org.fenixedu.academic.domain.ScientificCommission;
+import org.fenixedu.academic.domain.ScientificCommission_Base;
 import org.fenixedu.academic.domain.StudentCurricularPlan;
 import org.fenixedu.academic.domain.Teacher;
 import org.fenixedu.academic.domain.exceptions.DomainException;
@@ -363,11 +364,11 @@ public class Thesis extends Thesis_Base {
     }
 
     public List<ThesisEvaluationParticipant> getAllParticipants(ThesisParticipationType type) {
-        return getAllParticipants(type, new ThesisParticipationType[0]);
+        return getAllParticipants(type, ThesisParticipationType.STATE_CREATOR);
     }
 
-    public List<ThesisEvaluationParticipant> getAllParticipants(ThesisParticipationType type, ThesisParticipationType... types) {
-        List<ThesisParticipationType> values = Lists.asList(type, types);
+    public List<ThesisEvaluationParticipant> getAllParticipants(ThesisParticipationType... types) {
+        List<ThesisParticipationType> values = Arrays.asList(types);
         return getParticipationsSet().stream().filter(p -> values.contains(p.getType())).collect(Collectors.toList());
     }
 
@@ -645,13 +646,12 @@ public class Thesis extends Thesis_Base {
 
     private void sendRejectionEmail(final String rejectionComment) {
 
-        final Collection<Person> persons = new HashSet<>();
         final ExecutionYear executionYear = getEnrolment().getExecutionYear();
-        for (ScientificCommission member : getDegree().getScientificCommissionMembers(executionYear)) {
-            if (member.isContact()) {
-                persons.add(member.getPerson());
-            }
-        }
+        final Collection<Person> persons = getDegree().getScientificCommissionMembers(executionYear)
+                .stream()
+                .filter(ScientificCommission::isContact)
+                .map(ScientificCommission::getPerson)
+                .collect(Collectors.toSet());
 
         Set<Person> orientationPersons = getOrientationPersons();
         persons.addAll(orientationPersons);
@@ -978,17 +978,11 @@ public class Thesis extends Thesis_Base {
         CurricularCourse curricularCourse = getEnrolment().getCurricularCourse();
         Degree degree = curricularCourse.getDegree();
 
-        for (final ExecutionDegree executionDegree : curricularCourse.getDegreeCurricularPlan().getExecutionDegreesSet()) {
-            if (executionDegree.getExecutionYear() == getEnrolment().getExecutionYear()) {
-                for (Coordinator coordinator : executionDegree.getCoordinatorsListSet()) {
-                    if (coordinator.isResponsible()) {
-                        return coordinator.getPerson().getTeacher();
-                    }
-                }
-            }
-        }
+        return curricularCourse.getDegreeCurricularPlan().getExecutionDegreesSet().stream()
+                .filter(executionDegree -> executionDegree.getExecutionYear() == getEnrolment().getExecutionYear())
+                .flatMap(executionDegree -> executionDegree.getCoordinatorsListSet().stream()).filter(Coordinator::isResponsible)
+                .findFirst().map(coordinator -> coordinator.getPerson().getTeacher()).orElse(null);
 
-        return null;
     }
 
     private ExecutionCourse getExecutionCourse() {

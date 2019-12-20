@@ -18,28 +18,21 @@
  */
 package org.fenixedu.academic.service.services.scientificCouncil.thesis;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Locale;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.fenixedu.academic.domain.ExecutionYear;
 import org.fenixedu.academic.domain.Person;
-import org.fenixedu.academic.domain.ScientificCommission;
 import org.fenixedu.academic.domain.thesis.Thesis;
-import org.fenixedu.academic.domain.thesis.ThesisParticipationType;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.service.filter.ScientificCouncilAuthorizationFilter;
 import org.fenixedu.academic.service.services.exceptions.NotAuthorizedException;
 import org.fenixedu.bennu.core.domain.Bennu;
 import org.fenixedu.commons.i18n.I18N;
 
+import org.fenixedu.messaging.core.domain.Message;
 import pt.ist.fenixframework.Atomic;
 
-import com.google.common.io.ByteStreams;
 
 public class ApproveThesisDiscussion extends ThesisServiceWithMailNotification {
     private static final String SUBJECT_KEY = "thesis.evaluation.approve.subject";
@@ -51,36 +44,17 @@ public class ApproveThesisDiscussion extends ThesisServiceWithMailNotification {
         thesis.approveEvaluation();
     }
 
-    public static byte[] readStream(final InputStream inputStream) {
-        try {
-            return ByteStreams.toByteArray(inputStream);
-        } catch (final IOException e) {
-            throw new Error(e);
-        }
-    }
-
     @Override
-    protected Collection<String> getReceiversEmails(Thesis thesis) {
-        Set<String> persons =
-                thesis.getAllParticipants(ThesisParticipationType.ORIENTATOR, ThesisParticipationType.COORIENTATOR,
-                        ThesisParticipationType.PRESIDENT, ThesisParticipationType.VOWEL).stream().map(p -> p.getEmail())
-                        .collect(Collectors.toSet());
-        persons.add(thesis.getStudent().getPerson().getProfile().getEmail());
-
-        // also send proposal approval to the contact team
-        ExecutionYear executionYear = thesis.getEnrolment().getExecutionYear();
-        for (ScientificCommission member : thesis.getDegree().getScientificCommissionMembers(executionYear)) {
-            if (member.isContact()) {
-                persons.add(member.getPerson().getProfile().getEmail());
-            }
-        }
-
-        return persons;
+    public void sendEmail(Thesis thesis) {
+        Message.from(AccessControl.getPerson().getSender())
+                .singleBcc(getReceiversEmails(thesis))
+                .subject(getSubject(thesis))
+                .textBody(getMessage(thesis))
+                .send();
     }
 
     @Override
     protected String getMessage(Thesis thesis) {
-
         Locale locale = I18N.getLocale();
         Person currentPerson = AccessControl.getPerson();
         ExecutionYear executionYear = ExecutionYear.readCurrentExecutionYear();

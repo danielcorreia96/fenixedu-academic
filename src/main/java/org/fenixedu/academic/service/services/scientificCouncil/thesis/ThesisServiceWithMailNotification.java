@@ -19,14 +19,20 @@
 package org.fenixedu.academic.service.services.scientificCouncil.thesis;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.fenixedu.academic.domain.ExecutionYear;
 import org.fenixedu.academic.domain.Person;
+import org.fenixedu.academic.domain.ScientificCommission;
 import org.fenixedu.academic.domain.thesis.Thesis;
 import org.fenixedu.academic.domain.thesis.ThesisEvaluationParticipant;
+import org.fenixedu.academic.domain.thesis.ThesisParticipationType;
 import org.fenixedu.academic.predicate.AccessControl;
 import org.fenixedu.academic.util.Bundle;
 import org.fenixedu.bennu.core.i18n.BundleUtil;
@@ -42,13 +48,7 @@ public abstract class ThesisServiceWithMailNotification {
 
     abstract void process(Thesis thesis);
 
-    private void sendEmail(Thesis thesis) {
-        Message.from(AccessControl.getPerson().getSender())
-                .singleBcc(getReceiversEmails(thesis))
-                .subject(getSubject(thesis))
-                .textBody(getMessage(thesis))
-                .send();
-    }
+    abstract void sendEmail(Thesis thesis);
 
     protected String getMessage(String key, Object... args) {
         return getMessage(I18N.getLocale(), key, args);
@@ -63,30 +63,39 @@ public abstract class ThesisServiceWithMailNotification {
 
     protected abstract String getMessage(Thesis thesis);
 
-    protected abstract Collection<String> getReceiversEmails(Thesis thesis);
+    protected Collection<String> getReceiversEmails(Thesis thesis) {
+        ThesisParticipationType[] thesisParticipants = {
+                ThesisParticipationType.ORIENTATOR, ThesisParticipationType.COORIENTATOR,
+                ThesisParticipationType.PRESIDENT, ThesisParticipationType.VOWEL
+        };
+        Set<String> persons =
+                thesis.getAllParticipants(thesisParticipants)
+                        .stream()
+                        .map(ThesisEvaluationParticipant::getEmail)
+                        .collect(Collectors.toSet());
+        persons.add(thesis.getStudent().getPerson().getProfile().getEmail());
+
+        // also send proposal approval to the contact team
+        ExecutionYear executionYear = thesis.getEnrolment().getExecutionYear();
+        for (ScientificCommission member : thesis.getDegree().getScientificCommissionMembers(executionYear)) {
+            if (member.isContact()) {
+                persons.add(member.getPerson().getProfile().getEmail());
+            }
+        }
+
+        return persons;
+    }
 
     //
     // Utility methods
     //
 
     protected static Set<Person> personSet(Person... persons) {
-        Set<Person> result = new HashSet<>();
-
-        for (Person person : persons) {
-            if (person != null) {
-                result.add(person);
-            }
-        }
-
-        return result;
+        return Arrays.stream(persons).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     protected static Person getPerson(ThesisEvaluationParticipant participant) {
-        if (participant == null) {
-            return null;
-        } else {
-            return participant.getPerson();
-        }
+        return participant == null ? null : participant.getPerson();
     }
 
 }
